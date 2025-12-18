@@ -1,0 +1,18 @@
+body { font-family: Arial, sans-serif; margin: 20px; background: #f0f0f0; }
+h1 { text-align: center; }
+input, select, textarea { padding: 6px; margin: 5px 0; width: 200px; }
+textarea { width: 90%; height: 50px; }
+button { padding: 8px 16px; margin: 5px; cursor: pointer; }
+button:disabled { background: #ccc; cursor: not-allowed; }
+#panelContent { margin-top: 20px; background: white; padding: 20px; border: 1px solid #ccc; min-height: 200px; }
+table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+th, td { border: 1px solid #ccc; padding: 5px; text-align: center; }
+th { background: #333; color: white; }
+.frekwencja-obecny { background-color: #c8e6c9; }
+.frekwencja-nieobecny { background-color: #ffcdd2; }
+.frekwencja-spozniony { background-color: #fff9c4; }
+.ocena-bdb { background-color: #c8e6c9; }
+.ocena-db { background-color: #fff9c4; }
+.ocena-dst { background-color: #ffe0b2; }
+.ocena-dop { background-color: #ffccbc; }
+.ocena-nds { background-color: #ffcdd2; }

@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<title>Dziennik elektroniczny - Mega wersja</title>
+<link rel="stylesheet" href="style.css">
+
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+</head>
+<body>
+
+<h1>Dziennik elektroniczny</h1>
+
+<!-- Logowanie -->
+<div id="loginDiv">
+    <h2>Zaloguj się</h2>
+    <input type="email" id="email" placeholder="Email"><br>
+    <input type="password" id="password" placeholder="Hasło"><br>
+    <button id="loginBtn">Zaloguj</button>
+    <p id="loginError" style="color:red;"></p>
+</div>
+
+<!-- Panel dziennika -->
+<div id="dziennikDiv" style="display:none;">
+    <h2>Witaj, <span id="userName"></span></h2>
+    <button id="logoutBtn">Wyloguj</button>
+
+    <div>
+        <label for="klasaSelect">Wybierz klasę:</label>
+        <select id="klasaSelect"><option value="">-- Wybierz --</option></select>
+        <button id="zaladujKlase">Załaduj klasę</button>
+    </div>
+
+    <div id="panele" style="display:none;">
+        <button class="panelBtn" data-panel="realizacja">Realizacja zajęć</button>
+        <button class="panelBtn" data-panel="frekwencja" disabled>Frekwencja</button>
+        <button class="panelBtn" data-panel="uwagi" disabled>Uwagi</button>
+        <button class="panelBtn" data-panel="oceny" disabled>Oceny</button>
+        <button class="panelBtn" data-panel="zadania" disabled>Zadania</button>
+        <button class="panelBtn" data-panel="plan" disabled>Plan zajęć</button>
+    </div>
+
+    <div id="panelContent"></div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
