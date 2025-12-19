@@ -2,7 +2,7 @@
 <html lang="pl">
 <head>
 <meta charset="UTF-8">
-<title>Dziennik elektroniczny - Mega wersja</title>
+<title>Dziennik elektroniczny - Dashboard</title>
 <link rel="stylesheet" href="style.css">
 
 <!-- Firebase SDK -->
@@ -10,47 +10,50 @@
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
-<!-- Content Security Policy -->
-<meta http-equiv="Content-Security-Policy" content="
-  default-src 'self';
-  script-src 'self' https://www.gstatic.com https://www.googleapis.com https://identitytoolkit.googleapis.com;
-  connect-src 'self' https://identitytoolkit.googleapis.com https://firestore.googleapis.com https://www.googleapis.com https://www.gstatic.com;
-  style-src 'self' 'unsafe-inline';
-  img-src 'self' data:;
-">
-
-<style>
-body { font-family: Arial, sans-serif; padding: 20px; background:#f4f4f4; }
-h1,h2 { color:#333; }
-#panelContent { margin-top:20px; }
-table { border-collapse: collapse; width: 100%; margin-top:10px; background:#fff; box-shadow:0 0 5px rgba(0,0,0,0.1);}
-table th, table td { border:1px solid #ccc; padding:8px; text-align:left;}
-textarea { width: 100%; height:60px; }
-input, select, textarea, button { margin:5px 0; padding:5px; }
-button { cursor:pointer; }
-#formularzUwagi { background:#fff; padding:15px; box-shadow:0 0 5px rgba(0,0,0,0.1); margin-bottom:20px; }
-#listaUwag p { background:#eee; padding:5px; margin:5px 0; border-left:4px solid #2196F3; }
-</style>
 </head>
 <body>
 
-<h1>Dziennik elektroniczny</h1>
+<!-- START PANEL -->
+<div id="startPanel">
+    <header>
+        <h1>Witaj, <span id="userName">Nauczyciel</span></h1>
+        <button id="logoutBtn">Wyloguj</button>
+    </header>
 
-<!-- Logowanie -->
-<div id="loginDiv">
-    <h2>Zaloguj się</h2>
-    <input type="email" id="email" placeholder="Email"><br>
-    <input type="password" id="password" placeholder="Hasło"><br>
-    <button id="loginBtn">Zaloguj</button>
-    <p id="loginError" style="color:red;"></p>
+    <section id="infoStart">
+        <div class="infoCard" id="imieninyCard">
+            <h2>Imieniny dziś</h2>
+            <ul id="imieninyList"></ul>
+        </div>
+        <div class="infoCard" id="testyCard">
+            <h2>Najbliższe testy</h2>
+            <ul id="testyList"></ul>
+        </div>
+        <div class="infoCard" id="dyrekcjaCard">
+            <h2>Informacje od dyrekcji</h2>
+            <ul id="infoDyrekcjaList"></ul>
+        </div>
+        <div class="infoCard" id="dniWolneCard">
+            <h2>Najbliższe dni wolne</h2>
+            <ul id="dniWolneList"></ul>
+        </div>
+        <div class="infoCard" id="zastepstwaCard">
+            <h2>Zastępstwa</h2>
+            <ul id="zastepstwaList"></ul>
+        </div>
+    </section>
+
+    <button id="openDziennikBtn">Przejdź do dziennika</button>
 </div>
 
-<!-- Panel dziennika -->
+<!-- PANEL DZIEŃNIKA -->
 <div id="dziennikDiv" style="display:none;">
-    <h2>Witaj, <span id="userName"></span></h2>
-    <button id="logoutBtn">Wyloguj</button>
+    <header>
+        <h1>Dziennik elektroniczny - <span id="currentClass"></span></h1>
+        <button id="backToStart">Powrót do panelu start</button>
+    </header>
 
-    <div>
+    <div id="klasaSelector">
         <label for="klasaSelect">Wybierz klasę:</label>
         <select id="klasaSelect"><option value="">-- Wybierz --</option></select>
         <button id="zaladujKlase">Załaduj klasę</button>
