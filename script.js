@@ -93,7 +93,7 @@ function showLoading(text = "Proszę czekać…") {
 }
 
 function hideLoading() {
-  const minTime = 300; // brak jumpscare
+  const minTime = 300; // minimalny czas – brak jumpscare
   const elapsed = Date.now() - loadingStartTime;
   const delay = Math.max(minTime - elapsed, 0);
 
@@ -102,6 +102,7 @@ function hideLoading() {
     if (overlay) overlay.style.display = "none";
   }, delay);
 }
+
 
 // WYLOGOWANIE
 logoutBtn.addEventListener('click', ()=> location.reload());
