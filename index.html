@@ -9,6 +9,28 @@
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+<!-- Content Security Policy -->
+<meta http-equiv="Content-Security-Policy" content="
+  default-src 'self';
+  script-src 'self' https://www.gstatic.com https://www.googleapis.com https://identitytoolkit.googleapis.com;
+  connect-src 'self' https://identitytoolkit.googleapis.com https://firestore.googleapis.com https://www.googleapis.com https://www.gstatic.com;
+  style-src 'self' 'unsafe-inline';
+  img-src 'self' data:;
+">
+
+<style>
+body { font-family: Arial, sans-serif; padding: 20px; background:#f4f4f4; }
+h1,h2 { color:#333; }
+#panelContent { margin-top:20px; }
+table { border-collapse: collapse; width: 100%; margin-top:10px; background:#fff; box-shadow:0 0 5px rgba(0,0,0,0.1);}
+table th, table td { border:1px solid #ccc; padding:8px; text-align:left;}
+textarea { width: 100%; height:60px; }
+input, select, textarea, button { margin:5px 0; padding:5px; }
+button { cursor:pointer; }
+#formularzUwagi { background:#fff; padding:15px; box-shadow:0 0 5px rgba(0,0,0,0.1); margin-bottom:20px; }
+#listaUwag p { background:#eee; padding:5px; margin:5px 0; border-left:4px solid #2196F3; }
+</style>
 </head>
 <body>
 

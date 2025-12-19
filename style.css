@@ -1,18 +1,152 @@
-body { font-family: Arial, sans-serif; margin: 20px; background: #f0f0f0; }
-h1 { text-align: center; }
-input, select, textarea { padding: 6px; margin: 5px 0; width: 200px; }
-textarea { width: 90%; height: 50px; }
-button { padding: 8px 16px; margin: 5px; cursor: pointer; }
-button:disabled { background: #ccc; cursor: not-allowed; }
-#panelContent { margin-top: 20px; background: white; padding: 20px; border: 1px solid #ccc; min-height: 200px; }
-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-th, td { border: 1px solid #ccc; padding: 5px; text-align: center; }
-th { background: #333; color: white; }
-.frekwencja-obecny { background-color: #c8e6c9; }
-.frekwencja-nieobecny { background-color: #ffcdd2; }
-.frekwencja-spozniony { background-color: #fff9c4; }
-.ocena-bdb { background-color: #c8e6c9; }
-.ocena-db { background-color: #fff9c4; }
-.ocena-dst { background-color: #ffe0b2; }
-.ocena-dop { background-color: #ffccbc; }
-.ocena-nds { background-color: #ffcdd2; }
+/* --- Globalne --- */
+body {
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f5f6fa;
+    margin: 0;
+    padding: 0 20px;
+    color: #333;
+}
+
+h1, h2, h3 {
+    color: #2f3640;
+}
+
+button {
+    background-color: #4cd137;
+    border: none;
+    padding: 8px 14px;
+    color: #fff;
+    border-radius: 5px;
+    transition: background-color 0.2s ease;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #44bd32;
+}
+
+input, select, textarea {
+    width: 100%;
+    padding: 8px;
+    margin-top: 5px;
+    margin-bottom: 10px;
+    border: 1px solid #dcdde1;
+    border-radius: 5px;
+    box-sizing: border-box;
+    font-size: 14px;
+}
+
+/* --- Logowanie --- */
+#loginDiv {
+    max-width: 400px;
+    margin: 50px auto;
+    background: #fff;
+    padding: 25px;
+    border-radius: 10px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+/* --- Panel dziennika --- */
+#dziennikDiv {
+    max-width: 900px;
+    margin: 20px auto;
+}
+
+#dziennikDiv > div {
+    margin-bottom: 20px;
+}
+
+#panele button {
+    margin-right: 10px;
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+
+/* --- PanelContent --- */
+#panelContent {
+    margin-top: 20px;
+}
+
+/* --- Tabele --- */
+table {
+    border-collapse: collapse;
+    width: 100%;
+    background: #fff;
+    border-radius: 5px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+table th, table td {
+    padding: 10px;
+    text-align: left;
+    border-bottom: 1px solid #dcdde1;
+}
+
+table th {
+    background: #f0f0f0;
+    color: #2f3640;
+}
+
+/* --- Tekstarea i przyciski w tabeli --- */
+textarea {
+    width: 100%;
+    min-height: 50px;
+    resize: vertical;
+    border: 1px solid #dcdde1;
+    border-radius: 5px;
+    padding: 5px;
+}
+
+table button {
+    background-color: #273c75;
+}
+
+table button:hover {
+    background-color: #192a56;
+}
+
+/* --- Formularz uwag --- */
+#formularzUwagi {
+    background: #fff;
+    padding: 15px;
+    border-radius: 10px;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+    margin-bottom: 20px;
+}
+
+#formularzUwagi label {
+    font-weight: bold;
+    margin-top: 10px;
+    display: block;
+}
+
+/* --- Lista uwag --- */
+#listaUwag {
+    background: #f1f2f6;
+    padding: 15px;
+    border-radius: 10px;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+#listaUwag p {
+    background: #fff;
+    padding: 8px;
+    margin: 5px 0;
+    border-left: 5px solid #40739e;
+    border-radius: 5px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+}
+
+/* --- Responsywność --- */
+@media (max-width: 768px) {
+    #dziennikDiv {
+        padding: 0 10px;
+    }
+    
+    #panele button {
+        width: 100%;
+        margin-bottom: 10px;
+    }
+}

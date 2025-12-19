@@ -1,3 +1,12 @@
+const KATEGORIE_UWAG = [
+  "wypełnianie obowiązków ucznia",
+  "zaangażowanie społeczne",
+  "kultura osobista",
+  "dbałość o bezpieczeństwo i zdrowie",
+  "szacunek do innych osób",
+  "zachowanie na lekcji"
+];
+
 // Konfiguracja Firebase
 const firebaseConfig = {
     apiKey: "AIzaSyCpZFyGA92f5600MVKWYhOsJ0eXhKAN0DA",
@@ -40,23 +49,16 @@ logoutBtn.addEventListener('click', () => auth.signOut().then(()=>location.reloa
 
 function loadTeacherData(uid) {
     db.collection("nauczyciele").doc(uid).get().then(doc => {
-        if (!doc.exists) {
-            alert("Brak danych nauczyciela!");
-            return;
-        }
+        if (!doc.exists) { alert("Brak danych nauczyciela!"); return; }
 
         const data = doc.data();
-
-        // IMIĘ
         userName.textContent = data.imie || "Nauczyciel";
 
-        // WIDOK
         loginDiv.style.display = 'none';
         dziennikDiv.style.display = 'block';
 
-        // ŁADOWANIE WSZYSTKICH KLAS
+        // Ładowanie wszystkich klas
         klasaSelect.innerHTML = '<option value="">-- Wybierz --</option>';
-
         db.collection("klasy").get().then(snapshot => {
             snapshot.forEach(doc => {
                 const opt = document.createElement('option');
@@ -65,11 +67,8 @@ function loadTeacherData(uid) {
                 klasaSelect.appendChild(opt);
             });
         });
-    }).catch(err => {
-        console.error("Błąd:", err);
-    });
+    }).catch(err => console.error("Błąd:", err));
 }
-
 
 // Załaduj klasę
 zaladujKlaseBtn.addEventListener('click',()=>{
@@ -84,18 +83,62 @@ zaladujKlaseBtn.addEventListener('click',()=>{
 panelBtns.forEach(btn=>{
     btn.addEventListener('click',()=>{
         const panel=btn.dataset.panel;
-        if(panel==='realizacja'){
-            panelContent.innerHTML=`<h2>Realizacja zajęć - ${aktualnaKlasa}</h2>`;
-            panelBtns.forEach(b=>{if(b.dataset.panel!=='realizacja') b.disabled=false;});
-            loadPanelData(panel,true);
-        }else{
-            panelContent.innerHTML=`<h2>${panel.charAt(0).toUpperCase()+panel.slice(1)} - ${aktualnaKlasa}</h2>`;
-            loadPanelData(panel,true);
-        }
+        if(panel==='uwagi'){ pokazPanelUwagi(); return; }
+
+        panelContent.innerHTML=`<h2>${panel.charAt(0).toUpperCase()+panel.slice(1)} - ${aktualnaKlasa}</h2>`;
+        if(panel==='realizacja') panelBtns.forEach(b=>{if(b.dataset.panel!=='realizacja') b.disabled=false;});
+        loadPanelData(panel,true);
     });
 });
 
-// Ładowanie paneli i edycja
+// Panel Uwagi w stylu Vulcan
+function pokazPanelUwagi() {
+    panelContent.innerHTML = `
+        <h2>Uwagi - ${aktualnaKlasa}</h2>
+        <div id="formularzUwagi">
+            <label for="uczenUwagi">Uczeń (ID):</label>
+            <input type="text" id="uczenUwagi" placeholder="np. u1">
+
+            <label for="kategoriaUwagi">Kategoria:</label>
+            <select id="kategoriaUwagi">
+                <option value="">-- Wybierz kategorię --</option>
+                ${KATEGORIE_UWAG.map(k => `<option value="${k}">${k}</option>`).join('')}
+            </select>
+
+            <label for="trescUwagi">Treść uwagi:</label>
+            <textarea id="trescUwagi" placeholder="Wpisz treść uwagi..."></textarea>
+
+            <button id="dodajUwageBtn">Dodaj uwagę</button>
+        </div>
+        <div id="listaUwag"><h3>Lista uwag:</h3></div>
+    `;
+
+    db.collection("klasy").doc(aktualnaKlasa).collection("uwagi").get()
+      .then(snapshot => {
+          const lista = document.getElementById("listaUwag");
+          snapshot.docs.forEach(doc => {
+              const d = doc.data();
+              lista.innerHTML += `<p><strong>${doc.id}</strong> [${d.kategoria}] - ${d.tresc}</p>`;
+          });
+      });
+
+    document.getElementById("dodajUwageBtn").addEventListener("click", () => {
+        const uczen = document.getElementById("uczenUwagi").value.trim();
+        const kategoria = document.getElementById("kategoriaUwagi").value;
+        const tresc = document.getElementById("trescUwagi").value.trim();
+        if (!uczen || !kategoria || !tresc) return alert("Wypełnij wszystkie pola!");
+
+        db.collection("klasy").doc(aktualnaKlasa)
+          .collection("uwagi").doc(uczen).set({ kategoria, tresc }, { merge: true })
+          .then(() => {
+              alert("Uwaga dodana!");
+              pokazPanelUwagi(); 
+          })
+          .catch(err => alert("Błąd: " + err));
+    });
+}
+
+// Funkcje ogólne paneli
 function loadPanelData(panel, editable=false){
     db.collection("klasy").doc(aktualnaKlasa).collection(panel).get()
     .then(snapshot=>{
@@ -113,7 +156,6 @@ function loadPanelData(panel, editable=false){
     }).catch(err=>console.error(err));
 }
 
-// Zapis dokumentu
 function saveDoc(panel, docId){
     const val=document.getElementById(`data_${docId}`).value;
     let data;
