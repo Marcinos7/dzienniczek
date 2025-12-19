@@ -182,3 +182,69 @@ function saveDoc(panel, docId){
   .then(()=>alert("Zapisano!"))
   .catch(err=>alert("Błąd: "+err));
 }
+
+function loadRealizacja() {
+    db.collection("klasy").doc(aktualnaKlasa).collection("realizacja").get()
+    .then(snapshot => {
+        if(snapshot.empty){
+            panelContent.innerHTML = "<p>Brak przedmiotów.</p>";
+            return;
+        }
+
+        let html = '';
+
+        snapshot.docs.forEach(subjDoc => {
+            const przedmiot = subjDoc.id;
+            html += `<h3>${przedmiot}</h3>`;
+            html += `<table class="realizacja-table">
+            <tr>
+                <th>Data</th>
+                <th>Temat</th>
+                <th>Godzina lekcyjna</th>
+                <th>Akcja</th>
+            </tr>`;
+
+            db.collection("klasy").doc(aktualnaKlasa)
+              .collection("realizacja").doc(przedmiot)
+              .collection("daty").orderBy("data", "desc").get()
+            .then(docsSnap => {
+                docsSnap.forEach(doc => {
+                    const data = doc.data();
+                    html += `<tr>
+                        <td>${doc.id}</td>
+                        <td><input type="text" id="temat_${przedmiot}_${doc.id}" value="${data.temat || ''}"></td>
+                        <td><input type="text" id="godzina_${przedmiot}_${doc.id}" value="${data.godzina || ''}"></td>
+                        <td><button onclick="saveRealizacja('${przedmiot}','${doc.id}')">Zapisz</button></td>
+                    </tr>`;
+                });
+                html += `</table><button onclick="dodajDzien('${przedmiot}')">Dodaj nowy dzień</button>`;
+                panelContent.innerHTML += html;
+            });
+        });
+    });
+}
+
+function saveRealizacja(przedmiot, docId){
+    const data = {
+        temat: document.getElementById(`temat_${przedmiot}_${docId}`).value,
+        godzina: document.getElementById(`godzina_${przedmiot}_${docId}`).value
+    };
+    db.collection("klasy").doc(aktualnaKlasa)
+      .collection("realizacja").doc(przedmiot)
+      .collection("daty").doc(docId)
+      .set(data)
+      .then(()=> alert("Zapisano!"))
+      .catch(err => alert("Błąd: "+err));
+}
+
+function dodajDzien(przedmiot){
+    const newDate = prompt("Podaj datę (YYYY-MM-DD):");
+    if(newDate){
+        db.collection("klasy").doc(aktualnaKlasa)
+          .collection("realizacja").doc(przedmiot)
+          .collection("daty").doc(newDate)
+          .set({temat:'', godzina:''})
+          .then(() => loadRealizacja());
+    }
+}
+
