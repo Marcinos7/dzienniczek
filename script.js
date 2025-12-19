@@ -50,13 +50,7 @@ loginBtn.addEventListener('click', () => {
     .catch(err => loginError.textContent = err.message);
 });
 // Logowanie po kliknięciu przycisku
-loginBtn.addEventListener('click', () => {
-    const email = document.getElementById('email').value;
-    const password = document.getElementById('password').value;
-    auth.signInWithEmailAndPassword(email, password)
-        .then(userCred => loadTeacherData(userCred.user.uid))
-        .catch(err => loginError.textContent = err.message);
-});
+
 
 // Logowanie po wciśnięciu Enter w polu hasła
 document.getElementById('password').addEventListener('keydown', (e) => {
