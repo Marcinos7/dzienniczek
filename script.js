@@ -72,6 +72,42 @@ document.getElementById('email').addEventListener('keydown', (e) => {
     }
 });
 
+// =======================
+// LOADER „PROSZĘ CZEKAĆ…”
+// =======================
+
+let loadingStartTime = 0;
+
+function showLoading(text = "Proszę czekać…") {
+  loadingStartTime = Date.now();
+
+  let overlay = document.getElementById("loadingOverlay");
+  if (!overlay) {
+    overlay = document.createElement("div");
+    overlay.id = "loadingOverlay";
+    overlay.innerHTML = `
+      <div class="loaderBox">
+        <div class="spinner"></div>
+        <p id="loadingText">${text}</p>
+      </div>
+    `;
+    document.body.appendChild(overlay);
+  }
+
+  document.getElementById("loadingText").textContent = text;
+  overlay.style.display = "flex";
+}
+
+function hideLoading() {
+  const minTime = 300; // brak jumpscare
+  const elapsed = Date.now() - loadingStartTime;
+  const delay = Math.max(minTime - elapsed, 0);
+
+  setTimeout(() => {
+    const overlay = document.getElementById("loadingOverlay");
+    if (overlay) overlay.style.display = "none";
+  }, delay);
+}
 
 // WYLOGOWANIE
 logoutBtn.addEventListener('click', ()=> location.reload());
