@@ -1,5 +1,5 @@
 const firebaseConfig = {
-    apiKey: "TU_WSTAW_SWÓJ_API_KEY",
+    apiKey: "AIzaSyCpZFyGA92f5600MVKWYhOsJ0eXhKAN0DA",
     authDomain: "dzienniczek-a488a.firebaseapp.com",
     projectId: "dzienniczek-a488a",
     storageBucket: "dzienniczek-a488a.firebasestorage.app",
