@@ -86,11 +86,15 @@ function showLoading(text = "Proszę czekać…") {
       </div>
     `;
     document.body.appendChild(overlay);
+  } else {
+    // tylko gdy overlay już istnieje
+    const loadingTextElem = overlay.querySelector("#loadingText");
+    if (loadingTextElem) loadingTextElem.textContent = text;
   }
 
-  document.getElementById("loadingText").textContent = text;
   overlay.style.display = "flex";
 }
+
 
 function hideLoading() {
   const minTime = 300; // minimalny czas – brak jumpscare
