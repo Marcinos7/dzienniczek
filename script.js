@@ -45,20 +45,10 @@ let aktualnaKlasa = null;
 loginBtn.addEventListener('click', () => {
   const email = document.getElementById('email').value;
   const password = document.getElementById('password').value;
-
-  showLoading("Logowanie…");
-
   auth.signInWithEmailAndPassword(email,password)
-    .then(userCred => {
-      hideLoading();
-      loadTeacherData(userCred.user.uid);
-    })
-    .catch(err => {
-      hideLoading();
-      loginError.textContent = err.message;
-    });
+    .then(userCred => loadTeacherData(userCred.user.uid))
+    .catch(err => loginError.textContent = err.message);
 });
-
 // Logowanie po kliknięciu przycisku
 
 
