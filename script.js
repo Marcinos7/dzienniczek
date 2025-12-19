@@ -49,6 +49,29 @@ loginBtn.addEventListener('click', () => {
     .then(userCred => loadTeacherData(userCred.user.uid))
     .catch(err => loginError.textContent = err.message);
 });
+// Logowanie po kliknięciu przycisku
+loginBtn.addEventListener('click', () => {
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
+    auth.signInWithEmailAndPassword(email, password)
+        .then(userCred => loadTeacherData(userCred.user.uid))
+        .catch(err => loginError.textContent = err.message);
+});
+
+// Logowanie po wciśnięciu Enter w polu hasła
+document.getElementById('password').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+        loginBtn.click();
+    }
+});
+
+// Opcjonalnie: żeby działało też w polu email
+document.getElementById('email').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+        loginBtn.click();
+    }
+});
+
 
 // WYLOGOWANIE
 logoutBtn.addEventListener('click', ()=> location.reload());
