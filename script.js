@@ -192,22 +192,7 @@ panelBtns.forEach(btn=>{
 });
 
 // ŁADOWANIE PANELI
-function loadPanelData(panel, editable=false){
-  db.collection("klasy").doc(aktualnaKlasa).collection(panel).get()
-  .then(snapshot=>{
-    if(snapshot.empty){panelContent.innerHTML+="<p>Brak danych.</p>"; return;}
-    let html="<table><tr><th>Uczeń/Zadanie</th><th>Dane</th><th>Akcja</th></tr>";
-    snapshot.docs.forEach(doc=>{
-      html+=`<tr>
-        <td>${doc.id}</td>
-        <td>${editable? `<textarea id="data_${doc.id}">${JSON.stringify(doc.data())}</textarea>`: JSON.stringify(doc.data())}</td>
-        <td>${editable? `<button onclick="saveDoc('${panel}','${doc.id}')">Zapisz</button>`:''}</td>
-      </tr>`;
-    });
-    html+="</table>";
-    panelContent.innerHTML+=html;
-  }).catch(err=>console.error(err));
-}
+
 
 // ZAPIS
 function saveDoc(panel, docId){
