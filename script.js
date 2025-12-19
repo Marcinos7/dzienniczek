@@ -38,22 +38,38 @@ loginBtn.addEventListener('click', () => {
 // Wylogowanie
 logoutBtn.addEventListener('click', () => auth.signOut().then(()=>location.reload()));
 
-// Po zalogowaniu
-function loadTeacherData(uid){
-    db.collection("nauczyciele").doc(uid).get().then(doc=>{
-        if(!doc.exists) return alert("Brak danych nauczyciela!");
+function loadTeacherData(uid) {
+    db.collection("nauczyciele").doc(uid).get().then(doc => {
+        if (!doc.exists) {
+            alert("Brak danych nauczyciela!");
+            return;
+        }
+
         const data = doc.data();
-        userName.textContent = data.imie;
-        loginDiv.style.display='none';
-        dziennikDiv.style.display='block';
-        klasaSelect.innerHTML='<option value="">-- Wybierz --</option>';
-        data.klasy.forEach(k=>{
-            const opt=document.createElement('option');
-            opt.value=k; opt.textContent=k;
-            klasaSelect.appendChild(opt);
+
+        // IMIĘ
+        userName.textContent = data.imie || "Nauczyciel";
+
+        // WIDOK
+        loginDiv.style.display = 'none';
+        dziennikDiv.style.display = 'block';
+
+        // ŁADOWANIE WSZYSTKICH KLAS
+        klasaSelect.innerHTML = '<option value="">-- Wybierz --</option>';
+
+        db.collection("klasy").get().then(snapshot => {
+            snapshot.forEach(doc => {
+                const opt = document.createElement('option');
+                opt.value = doc.id;
+                opt.textContent = doc.data().nazwa || doc.id;
+                klasaSelect.appendChild(opt);
+            });
         });
+    }).catch(err => {
+        console.error("Błąd:", err);
     });
 }
+
 
 // Załaduj klasę
 zaladujKlaseBtn.addEventListener('click',()=>{
