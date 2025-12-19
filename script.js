@@ -43,7 +43,7 @@ function loadTeacherData(uid){
     db.collection("nauczyciele").doc(uid).get().then(doc=>{
         if(!doc.exists) return alert("Brak danych nauczyciela!");
         const data = doc.data();
-        userName.textContent = data.name;
+        userName.textContent = data.imie;
         loginDiv.style.display='none';
         dziennikDiv.style.display='block';
         klasaSelect.innerHTML='<option value="">-- Wybierz --</option>';
