@@ -176,25 +176,27 @@ zaladujKlaseBtn.addEventListener('click',()=>{
 });
 
 // PANELE
-panelBtns.forEach(btn=>{
-  btn.addEventListener('click',()=>{
+panelBtns.forEach(btn => {
+  btn.addEventListener("click", () => {
+    showLoading("Ładowanie panelu…");
+
     const panel = btn.dataset.panel;
-    if(panel==='realizacja'){
-      panelContent.innerHTML=`<h2>Realizacja zajęć - ${aktualnaKlasa}</h2>`;
-      panelBtns.forEach(b=>{if(b.dataset.panel!=='realizacja') b.disabled=false;});
-      loadPanelData(panel,true);
-    } else {
-      panelContent.innerHTML=`<h2>${panel.charAt(0).toUpperCase()+panel.slice(1)} - ${aktualnaKlasa}</h2>`;
-      loadPanelData(panel,true);
-    }
+    panelContent.innerHTML = "";
+
+    loadPanelData(panel, true)
+      .finally(() => hideLoading());
   });
 });
 
+
 // ŁADOWANIE PANELI
 function loadPanelData(panel, editable=false){
-  db.collection("klasy").doc(aktualnaKlasa).collection(panel).get()
-  .then(snapshot=>{
-    if(snapshot.empty){panelContent.innerHTML+="<p>Brak danych.</p>"; return;}
+  return db.collection("klasy").doc(aktualnaKlasa).collection(panel).get()
+  .then(snapshot => {
+    if(snapshot.empty){
+      panelContent.innerHTML+="<p>Brak danych.</p>";
+      return;
+    }
     let html="<table><tr><th>Uczeń/Zadanie</th><th>Dane</th><th>Akcja</th></tr>";
     snapshot.docs.forEach(doc=>{
       html+=`<tr>
@@ -205,8 +207,12 @@ function loadPanelData(panel, editable=false){
     });
     html+="</table>";
     panelContent.innerHTML+=html;
-  }).catch(err=>console.error(err));
+  }).catch(err=>{
+    console.error(err);
+    panelContent.innerHTML+="<p>Błąd przy ładowaniu danych.</p>";
+  });
 }
+
 
 // ZAPIS
 function saveDoc(panel, docId){
