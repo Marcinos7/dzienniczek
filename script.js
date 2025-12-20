@@ -14,8 +14,11 @@ const godzinyLekcji = [
   "10:45-11:30", "11:45-12:30", "12:50-13:35", "13:40-14:25", "14:30-15:15"
 ];
 
-let wybranaLekcja = null;
+let wybranaLekcjaIndex = null;
+let wybranyDzien = null;
+let wybranyPrzedmiot = null;
 
+// Wczytanie planu lekcji
 document.getElementById("loadPlanBtn").addEventListener("click", () => {
   const dzien = document.getElementById("daySelect").value;
   loadPlanLekcji(dzien);
@@ -36,11 +39,11 @@ function loadPlanLekcji(dzien) {
       let html = "";
 
       for (let i = 0; i < godzinyLekcji.length; i++) {
-        const lekcja = data[i.toString()] || "-";
-        html += `<tr onclick="selectLesson(this, '${lekcja}')">
+        const przedmiot = data[i.toString()] || "-";
+        html += `<tr onclick="selectLesson(this, '${przedmiot}')">
           <td>${i}</td>
           <td>${godzinyLekcji[i]}</td>
-          <td>${lekcja}</td>
+          <td>${przedmiot}</td>
         </tr>`;
       }
 
@@ -52,19 +55,19 @@ function loadPlanLekcji(dzien) {
     });
 }
 
-let wybranaLekcjaIndex = null;
-
-function selectLesson(row, lekcja) {
+// Kliknięcie w lekcję
+function selectLesson(row, przedmiot) {
   document.querySelectorAll(".plan-table tbody tr").forEach(r => r.classList.remove("active"));
   row.classList.add("active");
 
-  wybranaLekcjaIndex = row.cells[0].textContent; // indeks lekcji w planie
-  const dzien = document.getElementById("daySelect").value;
+  wybranaLekcjaIndex = row.cells[0].textContent;
+  wybranyDzien = document.getElementById("daySelect").value;
+  wybranyPrzedmiot = przedmiot;
 
   // Wypełnij modal
-  document.getElementById("modalNauczyciel").value = userName.textContent; 
-  document.getElementById("modalKlasa").value = aktualnaKlasa || "Brak klasy";
-  document.getElementById("modalTemat").value = lekcja || "";
+  document.getElementById("modalNauczyciel").value = userName.textContent;
+  document.getElementById("modalPrzedmiot").value = przedmiot;
+  document.getElementById("modalTemat").value = "";
 
   document.getElementById("lessonModal").style.display = "flex";
 }
@@ -74,46 +77,29 @@ document.getElementById("cancelLessonBtn").addEventListener("click", () => {
   document.getElementById("lessonModal").style.display = "none";
 });
 
-// Zapisz realizację
+// Zapis realizacji lekcji
 document.getElementById("saveLessonBtn").addEventListener("click", () => {
   const temat = document.getElementById("modalTemat").value;
   const nauczyciel = document.getElementById("modalNauczyciel").value;
-  const dzien = document.getElementById("daySelect").value;
 
   if(!temat) return alert("Wpisz temat lekcji!");
 
-  // Zapis w Firestore w kolekcji "realizacja"
-  db.collection("planLekcji").doc(dzien)
+  db.collection("planLekcji").doc(wybranyDzien)
     .collection("realizacja").doc(`lekcja${wybranaLekcjaIndex}`)
     .set({
       temat: temat,
       nauczyciel: nauczyciel,
-      klasa: aktualnaKlasa,
-      godzina: wybranaLekcjaIndex
+      godzina: wybranaLekcjaIndex,
+      przedmiot: wybranyPrzedmiot
     })
     .then(() => {
       alert("Zapisano realizację!");
       document.getElementById("lessonModal").style.display = "none";
+      loadPlanLekcji(wybranyDzien); // odśwież tabelę
     })
     .catch(err => alert("Błąd zapisu: " + err));
 });
 
-
-function selectLesson(row, data) {
-  document.querySelectorAll(".plan-table tbody tr").forEach(r =>
-    r.classList.remove("active")
-  );
-
-  row.classList.add("active");
-  wybranaLekcja = data;
-
-  console.log("Wybrana lekcja:", wybranaLekcja);
-
-  // np. odblokowanie paneli
-  // document.querySelector('[data-panel="frekwencja"]').disabled = false;
-  // document.querySelector('[data-panel="uwagi"]').disabled = false;
-  // document.querySelector('[data-panel="oceny"]').disabled = false;
-}
 
 // KONFIGURACJA FIREBASE
 const firebaseConfig = {
