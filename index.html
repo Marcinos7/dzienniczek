@@ -68,7 +68,18 @@
     <button id="backToDashboardBtn">Powrót</button>
   </header>
 
+  <div>
+    <label for="klasaSelect">Wybierz klasę:</label>
+    <select id="klasaSelect"><option value="">-- Wybierz --</option></select>
+    <button id="zaladujKlase">Załaduj klasę</button>
+  </div>
 
+  <div id="panele" style="display:none;">
+    <button class="panelBtn" data-panel="realizacja">Realizacja zajęć</button>
+    <button class="panelBtn" data-panel="frekwencja" disabled>Frekwencja</button>
+    <button class="panelBtn" data-panel="uwagi" disabled>Uwagi</button>
+    <button class="panelBtn" data-panel="oceny" disabled>Oceny</button>
+  </div>
 
   <div id="realizacjaPanel">
 
