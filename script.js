@@ -25,7 +25,7 @@ function loadPlanLekcji(dzien) {
   const tbody = document.getElementById("planTableBody");
   tbody.innerHTML = "<tr><td colspan='3'>Ładowanie...</td></tr>";
 
-  db.collection("planlekcji").doc(dzien).get()
+  db.collection("planLekcji").doc(dzien).get()
     .then(doc => {
       if (!doc.exists) {
         tbody.innerHTML = "<tr><td colspan='3'>Brak planu</td></tr>";
