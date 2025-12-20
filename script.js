@@ -18,34 +18,50 @@ let wybranaLekcjaIndex = null;
 let wybranyDzien = null;
 let wybranyPrzedmiot = null;
 
-// Wczytanie planu lekcji
+// Funkcja do obliczania numeru tygodnia ISO
+function getWeekNumber(d) {
+  d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+  const dayNum = d.getUTCDay() || 7;
+  d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+  const yearStart = new Date(Date.UTC(d.getUTCFullYear(),0,1));
+  return Math.ceil((((d - yearStart) / 86400000) + 1)/7);
+}
+
+// Ładowanie planu dla wybranego tygodnia
 document.getElementById("loadPlanBtn").addEventListener("click", () => {
-  const dzien = document.getElementById("daySelect").value;
-  loadPlanLekcji(dzien);
+  const tydzien = parseInt(document.getElementById("tydzienSelect").value);
+  loadPlanTygodnia(tydzien);
 });
 
-function loadPlanLekcji(dzien) {
+function loadPlanTygodnia(tydzien) {
   const tbody = document.getElementById("planTableBody");
   tbody.innerHTML = "<tr><td colspan='3'>Ładowanie...</td></tr>";
 
-  db.collection("planLekcji").doc(dzien).get()
-    .then(docSnap => {
-      if (!docSnap.exists) {
-        tbody.innerHTML = "<tr><td colspan='3'>Brak planu</td></tr>";
+  db.collection("planLekcji").get()
+    .then(snapshot => {
+      const dniWTygodniu = snapshot.docs
+        .filter(doc => getWeekNumber(new Date(doc.id)) === tydzien)
+        .sort((a,b) => new Date(a.id) - new Date(b.id));
+
+      if(dniWTygodniu.length === 0){
+        tbody.innerHTML = "<tr><td colspan='3'>Brak planu w tym tygodniu</td></tr>";
         return;
       }
 
-      const data = docSnap.data();
       let html = "";
+      dniWTygodniu.forEach(doc => {
+        const dzien = doc.id;
+        const data = doc.data();
 
-      for (let i = 0; i < godzinyLekcji.length; i++) {
-        const przedmiot = data[i.toString()] || "-";
-        html += `<tr onclick="selectLesson(this, '${przedmiot}')">
-          <td>${i}</td>
-          <td>${godzinyLekcji[i]}</td>
-          <td>${przedmiot}</td>
-        </tr>`;
-      }
+        for(let i=0;i<godzinyLekcji.length;i++){
+          const przedmiot = data[i.toString()] || "-";
+          html += `<tr onclick="selectLesson(this, '${przedmiot}', '${dzien}')">
+            <td>${i}</td>
+            <td>${godzinyLekcji[i]}</td>
+            <td>${przedmiot} (${dzien})</td>
+          </tr>`;
+        }
+      });
 
       tbody.innerHTML = html;
     })
@@ -56,12 +72,12 @@ function loadPlanLekcji(dzien) {
 }
 
 // Kliknięcie w lekcję
-function selectLesson(row, przedmiot) {
+function selectLesson(row, przedmiot, dzien) {
   document.querySelectorAll(".plan-table tbody tr").forEach(r => r.classList.remove("active"));
   row.classList.add("active");
 
   wybranaLekcjaIndex = row.cells[0].textContent;
-  wybranyDzien = document.getElementById("daySelect").value;
+  wybranyDzien = dzien;
   wybranyPrzedmiot = przedmiot;
 
   // Wypełnij modal
@@ -95,11 +111,10 @@ document.getElementById("saveLessonBtn").addEventListener("click", () => {
     .then(() => {
       alert("Zapisano realizację!");
       document.getElementById("lessonModal").style.display = "none";
-      loadPlanLekcji(wybranyDzien); // odśwież tabelę
+      loadPlanTygodnia(getWeekNumber(new Date(wybranyDzien))); // odśwież tabelę
     })
     .catch(err => alert("Błąd zapisu: " + err));
 });
-
 
 // KONFIGURACJA FIREBASE
 const firebaseConfig = {
