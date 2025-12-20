@@ -26,17 +26,17 @@ function loadPlanLekcji(dzien) {
   tbody.innerHTML = "<tr><td colspan='3'>Ładowanie...</td></tr>";
 
   db.collection("planLekcji").doc(dzien).get()
-    .then(doc => {
-      if (!doc.exists) {
+    .then(docSnap => {
+      if (!docSnap.exists) {
         tbody.innerHTML = "<tr><td colspan='3'>Brak planu</td></tr>";
         return;
       }
 
-      const data = doc.data();
+      const data = docSnap.data();
       let html = "";
 
       for (let i = 0; i < godzinyLekcji.length; i++) {
-        const lekcja = data[i.toString()] || ""; // <-- KONIECZNIE toString()
+        const lekcja = data[i.toString()] || "-";
         html += `<tr onclick="selectLesson(this, '${lekcja}')">
           <td>${i}</td>
           <td>${godzinyLekcji[i]}</td>
@@ -47,7 +47,7 @@ function loadPlanLekcji(dzien) {
       tbody.innerHTML = html;
     })
     .catch(err => {
-      console.error(err);
+      console.error("Błąd Firestore:", err);
       tbody.innerHTML = "<tr><td colspan='3'>Błąd ładowania</td></tr>";
     });
 }
