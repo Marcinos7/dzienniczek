@@ -7,6 +7,17 @@ const KATEGORIE_UWAG = [
   "szacunek do innych osób",
   "zachowanie na lekcji"
 ];
+const godzinyLekcji = [
+  "7:10–7:55",
+  "8:00–8:45",
+  "8:55–9:40",
+  "9:50–10:35",
+  "10:45–11:30",
+  "11:45–12:30",
+  "12:50–13:35",
+  "13:40–14:25",
+  "14:30–15:15"
+];
 
 // KONFIGURACJA FIREBASE
 const firebaseConfig = {
