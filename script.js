@@ -52,6 +52,51 @@ function loadPlanLekcji(dzien) {
     });
 }
 
+let wybranaLekcjaIndex = null;
+
+function selectLesson(row, lekcja) {
+  document.querySelectorAll(".plan-table tbody tr").forEach(r => r.classList.remove("active"));
+  row.classList.add("active");
+
+  wybranaLekcjaIndex = row.cells[0].textContent; // indeks lekcji w planie
+  const dzien = document.getElementById("daySelect").value;
+
+  // Wypełnij modal
+  document.getElementById("modalNauczyciel").value = userName.textContent; 
+  document.getElementById("modalKlasa").value = aktualnaKlasa || "Brak klasy";
+  document.getElementById("modalTemat").value = lekcja || "";
+
+  document.getElementById("lessonModal").style.display = "flex";
+}
+
+// Anuluj modal
+document.getElementById("cancelLessonBtn").addEventListener("click", () => {
+  document.getElementById("lessonModal").style.display = "none";
+});
+
+// Zapisz realizację
+document.getElementById("saveLessonBtn").addEventListener("click", () => {
+  const temat = document.getElementById("modalTemat").value;
+  const nauczyciel = document.getElementById("modalNauczyciel").value;
+  const dzien = document.getElementById("daySelect").value;
+
+  if(!temat) return alert("Wpisz temat lekcji!");
+
+  // Zapis w Firestore w kolekcji "realizacja"
+  db.collection("planLekcji").doc(dzien)
+    .collection("realizacja").doc(`lekcja${wybranaLekcjaIndex}`)
+    .set({
+      temat: temat,
+      nauczyciel: nauczyciel,
+      klasa: aktualnaKlasa,
+      godzina: wybranaLekcjaIndex
+    })
+    .then(() => {
+      alert("Zapisano realizację!");
+      document.getElementById("lessonModal").style.display = "none";
+    })
+    .catch(err => alert("Błąd zapisu: " + err));
+});
 
 
 function selectLesson(row, data) {
