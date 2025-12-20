@@ -260,28 +260,54 @@ panelBtns.forEach(btn => {
 
 
 // ŁADOWANIE PANELI
-function loadPanelData(panel, editable=false){
-  return db.collection("klasy").doc(aktualnaKlasa).collection(panel).get()
-  .then(snapshot => {
-    if(snapshot.empty){
-      panelContent.innerHTML+="<p>Brak danych.</p>";
-      return;
-    }
-    let html="<table><tr><th>Uczeń/Zadanie</th><th>Dane</th><th>Akcja</th></tr>";
-    snapshot.docs.forEach(doc=>{
-      html+=`<tr>
-        <td>${doc.id}</td>
-        <td>${editable? `<textarea id="data_${doc.id}">${JSON.stringify(doc.data())}</textarea>`: JSON.stringify(doc.data())}</td>
-        <td>${editable? `<button onclick="saveDoc('${panel}','${doc.id}')">Zapisz</button>`:''}</td>
-      </tr>`;
+function loadRealizacjaPanel() {
+  if (!aktualnaKlasa) return;
+
+  const panelContent = document.getElementById("panelContent");
+  panelContent.innerHTML = "<h2>Realizacja zajęć</h2>";
+
+  db.collection("klasy").doc(aktualnaKlasa).collection("realizacja").get()
+    .then(snapshot => {
+      if (snapshot.empty) {
+        panelContent.innerHTML += "<p>Brak lekcji.</p>";
+        return;
+      }
+
+      let html = `<table>
+        <tr>
+          <th>Data</th>
+          <th>Przedmiot</th>
+          <th>Nauczyciel</th>
+          <th>Temat</th>
+          <th>Godzina lekcyjna</th>
+          <th>Akcja</th>
+        </tr>`;
+
+      snapshot.docs.forEach(doc => {
+        const data = doc.data();
+        html += `<tr>
+          <td>${doc.id}</td>
+          <td>${data.przedmiot || ""}</td>
+          <td>${data.nauczyciel || ""}</td>
+          <td><input type="text" id="temat_${doc.id}" value="${data.temat || ""}"></td>
+          <td>${data.godzina || ""}</td>
+          <td><button onclick="saveRealizacja('${doc.id}')">Zapisz</button></td>
+        </tr>`;
+      });
+
+      html += "</table>";
+      panelContent.innerHTML += html;
     });
-    html+="</table>";
-    panelContent.innerHTML+=html;
-  }).catch(err=>{
-    console.error(err);
-    panelContent.innerHTML+="<p>Błąd przy ładowaniu danych.</p>";
-  });
 }
+
+function saveRealizacja(docId) {
+  const temat = document.getElementById(`temat_${docId}`).value;
+  db.collection("klasy").doc(aktualnaKlasa).collection("realizacja").doc(docId)
+    .update({ temat })
+    .then(() => alert("Zapisano!"))
+    .catch(err => alert("Błąd: " + err));
+}
+
 
 
 // ZAPIS
