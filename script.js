@@ -7,17 +7,76 @@ const KATEGORIE_UWAG = [
   "szacunek do innych osób",
   "zachowanie na lekcji"
 ];
+// GODZINY LEKCJI
 const godzinyLekcji = [
-  "7:10–7:55",
-  "8:00–8:45",
-  "8:55–9:40",
-  "9:50–10:35",
-  "10:45–11:30",
-  "11:45–12:30",
-  "12:50–13:35",
-  "13:40–14:25",
-  "14:30–15:15"
+  "7:10-7:55",
+  "8:00-8:45",
+  "8:55-9:40",
+  "9:50-10:35",
+  "10:45-11:30",
+  "11:45-12:30",
+  "12:50-13:35",
+  "13:40-14:25",
+  "14:30-15:15"
 ];
+
+// ZMIENNA NA WYBRANĄ LEKCJĘ
+let wybranaLekcja = null;
+
+// OBSŁUGA PRZYCISKU "POKAŻ PLAN"
+document.getElementById("loadPlanBtn").addEventListener("click", loadPlan);
+
+function loadPlan() {
+  const day = document.getElementById("daySelect").value;
+  const tbody = document.getElementById("planTableBody");
+
+  tbody.innerHTML = "<tr><td colspan='3'>Ładowanie...</td></tr>";
+
+  db.collection("planlekcji").doc(day).get().then(doc => {
+    if (!doc.exists) {
+      tbody.innerHTML = "<tr><td colspan='3'>Brak planu</td></tr>";
+      return;
+    }
+
+    const data = doc.data();
+    tbody.innerHTML = "";
+
+    godzinyLekcji.forEach((godzina, i) => {
+      const przedmiot = data[`lekcja${i}`] || "-";
+
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${i}</td>
+        <td>${godzina}</td>
+        <td>${przedmiot}</td>
+      `;
+
+      tr.addEventListener("click", () => selectLesson(tr, {
+        dzien: day,
+        lekcja: i,
+        godzina,
+        przedmiot
+      }));
+
+      tbody.appendChild(tr);
+    });
+  });
+}
+
+// FUNKCJA WYBIERANIA LEKCJI
+function selectLesson(row, data) {
+  document.querySelectorAll(".plan-table tbody tr").forEach(r =>
+    r.classList.remove("active")
+  );
+
+  row.classList.add("active");
+  wybranaLekcja = data;
+
+  console.log("Wybrana lekcja:", wybranaLekcja);
+
+  // tu możesz odblokować inne panele np. frekwencję, uwagi, oceny
+  // document.querySelector('[data-panel="frekwencja"]').disabled = false;
+}
 
 // KONFIGURACJA FIREBASE
 const firebaseConfig = {
