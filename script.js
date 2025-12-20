@@ -33,27 +33,25 @@ function loadPlanLekcji(dzien) {
       }
 
       const data = doc.data();
-      tbody.innerHTML = "";
+      let html = "";
 
       for (let i = 0; i < godzinyLekcji.length; i++) {
-        const lekcja = data[`lekcja${i}`] || "";
-        const tr = document.createElement("tr");
-
-        tr.innerHTML = `
+        const lekcja = data[i] || ""; // <-- teraz odczytuje po numerze pola
+        html += `<tr onclick="selectLesson(this, '${lekcja}')">
           <td>${i}</td>
           <td>${godzinyLekcji[i]}</td>
           <td>${lekcja}</td>
-        `;
-
-        tr.addEventListener("click", () => selectLesson(tr, { dzien, numer: i, przedmiot: lekcja }));
-        tbody.appendChild(tr);
+        </tr>`;
       }
+
+      tbody.innerHTML = html;
     })
     .catch(err => {
       console.error(err);
       tbody.innerHTML = "<tr><td colspan='3'>Błąd ładowania</td></tr>";
     });
 }
+
 
 function selectLesson(row, data) {
   document.querySelectorAll(".plan-table tbody tr").forEach(r =>
