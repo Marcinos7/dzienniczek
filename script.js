@@ -189,31 +189,32 @@ function showLoading(text = "Proszę czekać…") {
   overlay.style.display = "flex";
 }
 
-//KUPA DO OCEN
+//KUPA OGÓLNA
 
 
 
 
 // ==========================================
-// NOWY PANEL OCEN - POPRAWIONA LOGIKA
+// SYSTEM ZARZĄDZANIA LEKCJĄ - LOGIKA
 // ==========================================
 
-// Pobieramy elementy (bezpiecznie)
 const sekcjaStep1 = document.getElementById('step-1');
 const sekcjaStep2 = document.getElementById('step-2');
 const sekcjaStep3 = document.getElementById('step-3');
 const sekcjaStep4 = document.getElementById('step-4');
+const sekcjaStep5 = document.getElementById('step-5');
+
 const guzikStartOceny = document.getElementById('btn-start');
 const listaKlasOceny = document.getElementById('select-klasa');
 
 let wybranaKlasaDlaOcen = "";
+let aktywnyPrzedmiot = "";
+let aktywnyNumerLekcji = "";
 
-// 1. Otwieranie panelu ocen i ładowanie klas
+// 1. Ładowanie klas
 if (guzikStartOceny) {
     guzikStartOceny.addEventListener('click', () => {
-        // Czyścimy listę
         if(listaKlasOceny) listaKlasOceny.innerHTML = '<option value="">-- wybierz --</option>';
-
         db.collection("klasy").get()
             .then((snapshot) => {
                 snapshot.forEach((doc) => {
@@ -222,12 +223,10 @@ if (guzikStartOceny) {
                     opt.textContent = doc.id;
                     listaKlasOceny.appendChild(opt);
                 });
-                
-                // Przełączanie widoku
                 if(sekcjaStep1) sekcjaStep1.style.display = 'none';
                 if(sekcjaStep2) sekcjaStep2.style.display = 'block';
             })
-            .catch(err => console.error("Błąd ładowania klas do ocen:", err));
+            .catch(err => console.error("Błąd klas:", err));
     });
 }
 
@@ -250,23 +249,20 @@ document.querySelectorAll('.day-btn').forEach(btnDnia => {
         if(listaLekcjiHtml) listaLekcjiHtml.innerHTML = "<li>Ładowanie...</li>";
         if(sekcjaStep4) sekcjaStep4.style.display = 'block';
 
-        // POBIERANIE Z GŁÓWNEJ KOLEKCJI planLekcji
         db.collection("planLekcji").doc(dzienTygodnia).get()
             .then(docSnap => {
                 if (docSnap.exists) {
                     const danePlanu = docSnap.data();
                     listaLekcjiHtml.innerHTML = "";
-                    
-                    // Sortujemy pola 0, 1, 2...
                     const numeryLekcji = Object.keys(danePlanu).sort((a, b) => Number(a) - Number(b));
 
                     numeryLekcji.forEach(nr => {
                         let li = document.createElement('li');
-                        li.style.padding = "8px";
+                        li.style.padding = "10px";
                         li.style.borderBottom = "1px solid #ddd";
                         li.innerHTML = `
                             <strong>Lekcja ${nr}:</strong> ${danePlanu[nr]} 
-                            <button onclick="wybierzLekcjeDoOcen('${danePlanu[nr]}', '${nr}')" style="float:right;">
+                            <button onclick="wybierzLekcjeDoOcen('${danePlanu[nr]}', '${nr}')" style="float:right; cursor:pointer;">
                                 Wybierz
                             </button>
                         `;
@@ -276,10 +272,35 @@ document.querySelectorAll('.day-btn').forEach(btnDnia => {
                     listaLekcjiHtml.innerHTML = `<li>Brak dokumentu "${dzienTygodnia}" w kolekcji planLekcji.</li>`;
                 }
             })
-            .catch(err => {
-                console.error("Błąd pobierania planu:", err);
-                listaLekcjiHtml.innerHTML = "<li>Błąd połączenia z bazą danych.</li>";
-            });
+            .catch(err => console.error("Błąd planu:", err));
+    });
+});
+
+// 4. FUNKCJA WYBORU LEKCJI (Menu Modułów)
+window.wybierzLekcjeDoOcen = function(przedmiot, nr) {
+    aktywnyPrzedmiot = przedmiot;
+    aktywnyNumerLekcji = nr;
+
+    // Ustawienie nagłówka w menu
+    const tytul = document.getElementById('info-lekcja-tytul');
+    if(tytul) tytul.textContent = `Lekcja ${nr}: ${przedmiot} (Klasa ${wybranaKlasaDlaOcen})`;
+
+    // Pokaż krok 5 (wybór panelu)
+    if(sekcjaStep5) {
+        sekcjaStep5.style.display = 'block';
+        sekcjaStep5.scrollIntoView({ behavior: 'smooth' });
+    }
+};
+
+// 5. Obsługa nawigacji wewnątrz lekcji
+document.querySelectorAll('.panel-nav-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+        const cel = e.target.getAttribute('data-target');
+        
+        // Tutaj będziemy podpinać konkretne funkcje w przyszłości
+        console.log(`Przejście do: ${cel} | Klasa: ${wybranaKlasaDlaOcen} | Przedmiot: ${aktywnyPrzedmiot}`);
+        
+        alert(`Wybrałeś panel: ${cel.toUpperCase()}\nKlasa: ${wybranaKlasaDlaOcen}\nLekcja: ${aktywnyPrzedmiot}`);
     });
 });
 
