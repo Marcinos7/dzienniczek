@@ -428,6 +428,7 @@ document.getElementById('btn-zapisz-wszystkie-oceny').addEventListener('click', 
       })
       .then(() => {
           alert(`Zapisano kolumnę ocen: ${temat} (${licznik} ocen)`);
+          wyczyscPanelOcen(); // <--- CZYŚCIMY TUTAJ
           backToMenu();
       })
       .catch(err => {
@@ -435,7 +436,21 @@ document.getElementById('btn-zapisz-wszystkie-oceny').addEventListener('click', 
           alert("Błąd: " + err.message);
       });
 });
+function wyczyscPanelOcen() {
+    // 1. Czyścimy temat
+    const inputTemat = document.getElementById('ocena-temat');
+    if (inputTemat) inputTemat.value = "";
 
+    // 2. Czyścimy listę uczniów (usuwamy wiersze)
+    const tbody = document.getElementById('lista-uczniow-oceny');
+    if (tbody) tbody.innerHTML = "";
+
+    // 3. Ukrywamy kontener tabeli
+    const kontenerTabeli = document.getElementById('tabela-uczniow-kontener');
+    if (kontenerTabeli) kontenerTabeli.style.display = 'none';
+
+    console.log("Panel ocen został wyczyszczony.");
+}
 
 
 
