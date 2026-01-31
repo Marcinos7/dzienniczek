@@ -65,6 +65,38 @@
   </header>
 
   
+
+  <div id="realizacjaPanel">
+
+  <h2>Realizacja zajęć – plan lekcji</h2>
+
+  <div class="plan-controls">
+    <label>Dzień tygodnia:</label>
+    <select id="daySelect">
+      <option value="poniedzialek">Poniedziałek</option>
+      <option value="wtorek">Wtorek</option>
+      <option value="sroda">Środa</option>
+      <option value="czwartek">Czwartek</option>
+      <option value="piatek">Piątek</option>
+    </select>
+
+    <button id="loadPlanBtn">Pokaż plan</button>
+  </div>
+
+  <table class="plan-table">
+    <thead>
+      <tr>
+        <th>Lekcja</th>
+        <th>Godzina</th>
+        <th>Przedmiot</th>
+      </tr>
+    </thead>
+    <tbody id="planTableBody">
+      <tr><td colspan="3">Wybierz dzień</td></tr>
+    </tbody>
+  </table>
+
+</div>
 <div id="app">
     <div id="step-1">
         <button id="btn-start">Panel ocen w dzienniku</button>
