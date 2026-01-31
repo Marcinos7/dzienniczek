@@ -194,81 +194,90 @@ function showLoading(text = "Proszę czekać…") {
 
 
 
-// PANEL OCEN - LOGIKA (STYL FIREBASE V8)
+// ==========================================
+// NOWY PANEL OCEN - POPRAWIONA LOGIKA
+// ==========================================
 
-// 1. Kliknięcie w start i pobranie klas
-if (btnStart) {
-    btnStart.addEventListener('click', () => {
-        console.log("Startujemy panel ocen...");
-        // Czyścimy listę przed załadowaniem
-        selectKlasa.innerHTML = '<option value="">-- wybierz --</option>';
+// Pobieramy elementy (bezpiecznie)
+const sekcjaStep1 = document.getElementById('step-1');
+const sekcjaStep2 = document.getElementById('step-2');
+const sekcjaStep3 = document.getElementById('step-3');
+const sekcjaStep4 = document.getElementById('step-4');
+const guzikStartOceny = document.getElementById('btn-start');
+const listaKlasOceny = document.getElementById('select-klasa');
+
+let wybranaKlasaDlaOcen = "";
+
+// 1. Otwieranie panelu ocen i ładowanie klas
+if (guzikStartOceny) {
+    guzikStartOceny.addEventListener('click', () => {
+        // Czyścimy listę
+        if(listaKlasOceny) listaKlasOceny.innerHTML = '<option value="">-- wybierz --</option>';
 
         db.collection("klasy").get()
-            .then((querySnapshot) => {
-                querySnapshot.forEach((doc) => {
-                    let option = document.createElement('option');
-                    option.value = doc.id;
-                    option.textContent = doc.id;
-                    selectKlasa.appendChild(option);
+            .then((snapshot) => {
+                snapshot.forEach((doc) => {
+                    let opt = document.createElement('option');
+                    opt.value = doc.id;
+                    opt.textContent = doc.id;
+                    listaKlasOceny.appendChild(opt);
                 });
-
-                step1.style.display = 'none';
-                step2.style.display = 'block';
+                
+                // Przełączanie widoku
+                if(sekcjaStep1) sekcjaStep1.style.display = 'none';
+                if(sekcjaStep2) sekcjaStep2.style.display = 'block';
             })
-            .catch((error) => {
-                console.error("Błąd pobierania klas:", error);
-                alert("Nie udało się pobrać klas. Sprawdź połączenie.");
-            });
+            .catch(err => console.error("Błąd ładowania klas do ocen:", err));
     });
 }
 
-// 2. Po wybraniu klasy pokaż wybór dnia
-if (selectKlasa) {
-    selectKlasa.addEventListener('change', (e) => {
+// 2. Wybór klasy
+if (listaKlasOceny) {
+    listaKlasOceny.addEventListener('change', (e) => {
         if(e.target.value) {
-            wybranaKlasaId = e.target.value;
-            step3.style.display = 'block';
+            wybranaKlasaDlaOcen = e.target.value;
+            if(sekcjaStep3) sekcjaStep3.style.display = 'block';
         }
     });
 }
 
-// 3. Pobieranie planu lekcji po kliknięciu w dzień
-document.querySelectorAll('.day-btn').forEach(button => {
-    button.addEventListener('click', (e) => {
-        const dzien = e.target.getAttribute('data-day');
-        const lessonList = document.getElementById('lesson-list');
-        lessonList.innerHTML = "<li>Ładowanie planu...</li>";
-        step4.style.display = 'block';
+// 3. Wybór dnia i pobieranie planu
+document.querySelectorAll('.day-btn').forEach(btnDnia => {
+    btnDnia.addEventListener('click', (e) => {
+        const dzienTygodnia = e.target.getAttribute('data-day');
+        const listaLekcjiHtml = document.getElementById('lesson-list');
+        
+        if(listaLekcjiHtml) listaLekcjiHtml.innerHTML = "<li>Ładowanie...</li>";
+        if(sekcjaStep4) sekcjaStep4.style.display = 'block';
 
-        // Ścieżka: klasy -> {wybranaKlasaId} -> planLekcji -> {dzien}
-        db.collection("klasy").doc(wybranaKlasaId).collection("planLekcji").doc(dzien).get()
+        // Uwaga: Sprawdzamy czy plan jest w klasie, czy w ogólnym planie
+        db.collection("klasy").doc(wybranaKlasaDlaOcen).collection("planLekcji").doc(dzienTygodnia).get()
             .then(docSnap => {
                 if (docSnap.exists) {
-                    const data = docSnap.data();
-                    lessonList.innerHTML = "";
+                    const danePlanu = docSnap.data();
+                    listaLekcjiHtml.innerHTML = "";
                     
-                    // Sortujemy klucze (0, 1, 2...) i tworzymy listę
-                    Object.keys(data).sort((a, b) => Number(a) - Number(b)).forEach(key => {
+                    Object.keys(danePlanu).sort((a,b) => Number(a) - Number(b)).forEach(nr => {
                         let li = document.createElement('li');
-                        li.className = "lesson-item"; // Możesz dodać style w CSS
-                        li.innerHTML = `<strong>Lekcja ${key}:</strong> ${data[key]}`;
+                        li.style.margin = "10px 0";
+                        li.innerHTML = `<strong>Lekcja ${nr}:</strong> ${danePlanu[nr]} `;
                         
-                        // Dodajemy guzik "Wstaw ocenę" od razu, żeby przygotować grunt pod potem
-                        let btn = document.createElement('button');
-                        btn.textContent = "Wstaw ocenę";
-                        btn.onclick = () => alert(`Otwieram ocenianie dla: ${data[key]}`);
-                        
-                        li.appendChild(btn);
-                        lessonList.appendChild(li);
+                        let btnOcen = document.createElement('button');
+                        btnOcen.textContent = "Wybierz do oceniania";
+                        btnOcen.style.marginLeft = "10px";
+                        btnOcen.onclick = () => {
+                             alert("Wybrano: " + danePlanu[nr] + ". Teraz możemy załadować listę uczniów!");
+                             // Tutaj w przyszłości dodamy funkcję loadUczniowie(wybranaKlasaDlaOcen)
+                        };
+
+                        li.appendChild(btnOcen);
+                        listaLekcjiHtml.appendChild(li);
                     });
                 } else {
-                    lessonList.innerHTML = "<li>Brak planu na ten dzień w tej klasie.</li>";
+                    listaLekcjiHtml.innerHTML = "<li>Brak planu dla tej klasy na ten dzień.</li>";
                 }
             })
-            .catch(err => {
-                console.error("Błąd:", err);
-                lessonList.innerHTML = "<li>Błąd ładowania danych.</li>";
-            });
+            .catch(err => console.error("Błąd planu:", err));
     });
 });
 
