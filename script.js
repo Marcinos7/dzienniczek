@@ -388,54 +388,52 @@ document.getElementById('btn-zapisz-wszystkie-oceny').addEventListener('click', 
     const ocenyInputs = document.querySelectorAll('.ocena-input');
     const komentarzeInputs = document.querySelectorAll('.komentarz-input');
 
-    if (!temat) return alert("Błąd: Temat jest wymagany do zapisu!");
+    if (!temat) return alert("Musisz wpisać temat, aby stworzyć dokument oceny!");
 
-    let licznikZapisanych = 0;
-    const batch = db.batch(); // Używamy batcha, żeby zapisać wszystko "za jednym zamachem"
+    // Przygotowujemy obiekt, w którym zapiszemy wszystkie oceny
+    // format: { "u1": "5", "u2": "3" }
+    let mapaOcen = {};
+    let mapaKomentarzy = {};
+    let licznik = 0;
 
     ocenyInputs.forEach((select, index) => {
+        const studentUid = select.getAttribute('data-uid'); // u1, u2...
         const ocenaWartosc = select.value;
-        const studentUid = select.getAttribute('data-uid'); // np. "u1"
         const komentarz = komentarzeInputs[index].value;
 
-        // Zapisujemy tylko jeśli wybrano jakąś ocenę
         if (ocenaWartosc !== "") {
-            // Referencja do nowej kolekcji 'oceny' wewnątrz klasy
-            const nowaOcenaRef = db.collection("klasy")
-                                   .doc(wybranaKlasaDlaOcen)
-                                   .collection("oceny")
-                                   .doc(); // Automatyczne ID dla dokumentu oceny
-
-            batch.set(nowaOcenaRef, {
-                studentId: studentUid,
-                ocena: ocenaWartosc,
-                temat: temat,
-                data: dataOceny,
-                przedmiot: aktywnyPrzedmiot,
-                komentarz: komentarz,
-                nauczyciel: userName.textContent, // Wyciągamy imię zalogowanego nauczyciela
-                timestamp: firebase.firestore.FieldValue.serverTimestamp() // Dokładny czas zapisu
-            });
-            licznikZapisanych++;
+            mapaOcen[studentUid] = ocenaWartosc;
+            if (komentarz) {
+                mapaKomentarzy[studentUid] = komentarz;
+            }
+            licznik++;
         }
     });
 
-    if (licznikZapisanych === 0) {
-        return alert("Nie wpisano żadnych ocen do zapisania.");
-    }
+    if (licznik === 0) return alert("Nie wpisano żadnych ocen!");
 
-    try {
-        await batch.commit();
-        alert(`Sukces! Zapisano ${licznikZapisanych} ocen do bazy.`);
-        
-        // Opcjonalnie: czyścimy formularz po zapisie
-        document.getElementById('ocena-temat').value = "";
-        document.getElementById('tabela-uczniow-kontener').style.display = 'none';
-        backToMenu();
-    } catch (error) {
-        console.error("Błąd zapisu ocen:", error);
-        alert("Wystąpił błąd podczas zapisu: " + error.message);
-    }
+    // Referencja do JEDNEGO dokumentu o nazwie tematu
+    // Używamy .set(), żeby stworzyć lub nadpisać ten temat
+    db.collection("klasy")
+      .doc(wybranaKlasaDlaOcen)
+      .collection("oceny")
+      .doc(temat) // Dokument nazywa się tak jak temat
+      .set({
+          data: dataOceny,
+          przedmiot: aktywnyPrzedmiot,
+          nauczyciel: userName.textContent,
+          oceny: mapaOcen,       // Wszystkie oceny w jednym polu
+          komentarze: mapaKomentarzy,
+          timestamp: firebase.firestore.FieldValue.serverTimestamp()
+      })
+      .then(() => {
+          alert(`Zapisano kolumnę ocen: ${temat} (${licznik} ocen)`);
+          backToMenu();
+      })
+      .catch(err => {
+          console.error("Błąd zapisu:", err);
+          alert("Błąd: " + err.message);
+      });
 });
 
 
