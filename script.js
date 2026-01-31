@@ -328,21 +328,31 @@ document.getElementById('btn-generuj-tabele').addEventListener('click', () => {
     tbody.innerHTML = "<tr><td colspan='4'>Ładowanie listy uczniów...</td></tr>";
     document.getElementById('tabela-uczniow-kontener').style.display = 'block';
 
-    // Ścieżka: klasy -> {klasaId} -> uczniowie
-    db.collection("klasy").doc(wybranaKlasaDlaOcen).collection("uczniowie").orderBy("numer").get()
+    console.log("Próba pobrania uczniów dla klasy:", wybranaKlasaDlaOcen);
+    
+    // ŚCIEŻKA: klasy -> {wybranaKlasaDlaOcen} -> uczniowie
+    // Upewnij się, że w Firebase kolekcja nazywa się "uczniowie" (małymi literami)
+    db.collection("klasy").doc(wybranaKlasaDlaOcen).collection("uczniowie").get()
         .then(snapshot => {
+            console.log("Czy kolekcja istnieje?", !snapshot.empty);
+            console.log("Liczba znalezionych dokumentów:", snapshot.size);
+
             tbody.innerHTML = "";
+            
             if(snapshot.empty) {
-                tbody.innerHTML = "<tr><td colspan='4'>Brak uczniów w tej klasie.</td></tr>";
+                tbody.innerHTML = "<tr><td colspan='4'>Brak uczniów. Sprawdź konsolę (F12)!</td></tr>";
+                console.warn("UWAGA: Firebase nie znalazł nic w ścieżce: klasy /", wybranaKlasaDlaOcen, "/ uczniowie");
                 return;
             }
 
             snapshot.forEach(docStudent => {
                 const u = docStudent.data();
+                console.log("Wczytano ucznia:", u); // Zobaczysz czy pola imie/nazwisko się zgadzają
+
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
-                    <td>${u.numer}</td>
-                    <td>${u.imie} ${u.nazwisko}</td>
+                    <td>${u.numer || '?'}</td>
+                    <td>${u.imie || ''} ${u.nazwisko || ''}</td>
                     <td>
                         <select class="ocena-input" data-uid="${docStudent.id}">
                             <option value="">brak</option>
@@ -360,7 +370,10 @@ document.getElementById('btn-generuj-tabele').addEventListener('click', () => {
                 tbody.appendChild(tr);
             });
         })
-        .catch(err => console.error("Błąd pobierania uczniów:", err));
+        .catch(err => {
+            console.error("Błąd krytyczny Firestore:", err);
+            tbody.innerHTML = `<tr><td colspan='4'>Błąd: ${err.message}</td></tr>`;
+        });
 });
 
 // Funkcja powrotu
