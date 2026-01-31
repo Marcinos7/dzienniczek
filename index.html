@@ -2,7 +2,7 @@
 <html lang="pl">
 <head>
 <meta charset="UTF-8">
-<title>Dziennik elektroniczny - Mega Panel</title>
+<title>Dziennik elektroniczny</title>
 <link rel="stylesheet" href="style.css">
 
 <!-- Firebase SDK -->
@@ -36,10 +36,6 @@
   </header>
 
   <div class="dashboard-grid">
-    <div class="card" id="imieninyCard">
-      <h3>Imieniny dzisiaj</h3>
-      <ul id="imieninyList"><li>Ładowanie...</li></ul>
-    </div>
     <div class="card" id="testyCard">
       <h3>Najbliższe testy</h3>
       <ul id="testyList"><li>Brak danych</li></ul>
@@ -69,38 +65,6 @@
   </header>
 
   
-
-  <div id="realizacjaPanel">
-
-  <h2>Realizacja zajęć – plan lekcji</h2>
-
-  <div class="plan-controls">
-    <label>Dzień tygodnia:</label>
-    <select id="daySelect">
-      <option value="poniedzialek">Poniedziałek</option>
-      <option value="wtorek">Wtorek</option>
-      <option value="sroda">Środa</option>
-      <option value="czwartek">Czwartek</option>
-      <option value="piatek">Piątek</option>
-    </select>
-
-    <button id="loadPlanBtn">Pokaż plan</button>
-  </div>
-
-  <table class="plan-table">
-    <thead>
-      <tr>
-        <th>Lekcja</th>
-        <th>Godzina</th>
-        <th>Przedmiot</th>
-      </tr>
-    </thead>
-    <tbody id="planTableBody">
-      <tr><td colspan="3">Wybierz dzień</td></tr>
-    </tbody>
-  </table>
-
-</div>
 <div id="app">
     <div id="step-1">
         <button id="btn-start">Panel ocen w dzienniku</button>
