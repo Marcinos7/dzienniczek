@@ -188,6 +188,75 @@ function showLoading(text = "Proszę czekać…") {
   overlay.style.display = "flex";
 }
 
+//KUPA DO OCEN
+
+
+
+
+// Zakładamy, że 'db' to zainicjalizowany Firestore
+const step1 = document.getElementById('step-1');
+const step2 = document.getElementById('step-2');
+const step3 = document.getElementById('step-3');
+const step4 = document.getElementById('step-4');
+
+let wybranaKlasaId = "";
+
+// 1. Kliknięcie w start i pobranie klas
+document.getElementById('btn-start').addEventListener('click', async () => {
+    step1.style.display = 'none';
+    step2.style.display = 'block';
+    
+    const klasySnapshot = await getDocs(collection(db, "klasy"));
+    const select = document.getElementById('select-klasa');
+    
+    klasySnapshot.forEach(doc => {
+        let option = document.createElement('option');
+        option.value = doc.id; // ID dokumentu klasy
+        option.textContent = doc.data().nazwa || doc.id; 
+        select.appendChild(option);
+    });
+});
+
+// 2. Po wybraniu klasy pokaż wybór dnia
+document.getElementById('select-klasa').addEventListener('change', (e) => {
+    if(e.target.value) {
+        wybranaKlasaId = e.target.value;
+        step3.style.display = 'block';
+    }
+});
+
+// 3. Pobieranie planu lekcji po kliknięciu w dzień
+document.querySelectorAll('.day-btn').forEach(button => {
+    button.addEventListener('click', async (e) => {
+        const dzien = e.target.getAttribute('data-day');
+        const lessonList = document.getElementById('lesson-list');
+        lessonList.innerHTML = "Ładowanie...";
+        step4.style.display = 'block';
+
+        // Ścieżka: klasy -> {wybranaKlasa} -> planLekcji -> {dzien}
+        const docRef = doc(db, "klasy", wybranaKlasaId, "planLekcji", dzien);
+        const docSnap = await getDoc(docRef);
+
+        if (docSnap.exists()) {
+            const data = docSnap.data();
+            lessonList.innerHTML = "";
+            
+            // Sortujemy pola (0, 1, 2 itd.) i wyświetlamy
+            Object.keys(data).sort().forEach(key => {
+                let li = document.createElement('li');
+                li.textContent = `Lekcja ${key}: ${data[key]}`;
+                lessonList.appendChild(li);
+            });
+        } else {
+            lessonList.innerHTML = "Brak planu na ten dzień.";
+        }
+    });
+});
+
+
+
+
+
 
 function hideLoading() {
   const minTime = 300; // minimalny czas – brak jumpscare

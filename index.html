@@ -101,7 +101,34 @@
   </table>
 
 </div>
+<div id="app">
+    <div id="step-1">
+        <button id="btn-start">Panel ocen w dzienniku</button>
+    </div>
 
+    <div id="step-2" style="display:none;">
+        <h3>Wybierz klasę:</h3>
+        <select id="select-klasa">
+            <option value="">-- wybierz --</option>
+        </select>
+    </div>
+
+    <div id="step-3" style="display:none;">
+        <h3>Wybierz dzień tygodnia:</h3>
+        <div id="days-buttons">
+            <button class="day-btn" data-day="poniedzialek">Poniedziałek</button>
+            <button class="day-btn" data-day="wtorek">Wtorek</button>
+            <button class="day-btn" data-day="sroda">Środa</button>
+            <button class="day-btn" data-day="czwartek">Czwartek</button>
+            <button class="day-btn" data-day="piatek">Piątek</button>
+        </div>
+    </div>
+
+    <div id="step-4" style="display:none;">
+        <h3>Plan lekcji na wybrany dzień:</h3>
+        <ul id="lesson-list"></ul>
+    </div>
+</div>
 </div>
 <!-- MODAL REALIZACJI LEKCJI -->
 <div id="lessonModal" class="modal" style="display:none;">
