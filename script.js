@@ -1,3 +1,11 @@
+import { 
+    getFirestore, 
+    collection, 
+    getDocs, 
+    doc, 
+    getDoc 
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
 // KATEGORIE UWAG
 const KATEGORIE_UWAG = [
   "wypełnianie obowiązków ucznia",
@@ -202,20 +210,40 @@ const step4 = document.getElementById('step-4');
 let wybranaKlasaId = "";
 
 // 1. Kliknięcie w start i pobranie klas
-document.getElementById('btn-start').addEventListener('click', async () => {
-    step1.style.display = 'none';
-    step2.style.display = 'block';
-    
-    const klasySnapshot = await getDocs(collection(db, "klasy"));
-    const select = document.getElementById('select-klasa');
-    
-    klasySnapshot.forEach(doc => {
-        let option = document.createElement('option');
-        option.value = doc.id; // ID dokumentu klasy
-        option.textContent = doc.data().nazwa || doc.id; 
-        select.appendChild(option);
+// Upewnij się, że te zmienne są zdefiniowane na początku
+const btnStart = document.getElementById('btn-start');
+const selectKlasa = document.getElementById('select-klasa');
+
+if (btnStart) {
+    btnStart.addEventListener('click', async () => {
+        console.log("Startujemy...");
+        try {
+            // SPRAWDZENIE: Czy getDocs jest zaimportowane?
+            if (typeof getDocs === 'undefined') {
+                throw new Error("getDocs nie jest zdefiniowane! Sprawdź importy na górze pliku.");
+            }
+
+            const querySnapshot = await getDocs(collection(db, "klasy"));
+            
+            if (selectKlasa) {
+                selectKlasa.innerHTML = '<option value="">-- wybierz --</option>';
+                querySnapshot.forEach((doc) => {
+                    let option = document.createElement('option');
+                    option.value = doc.id;
+                    option.textContent = doc.id;
+                    selectKlasa.appendChild(option);
+                });
+
+                document.getElementById('step-1').style.display = 'none';
+                document.getElementById('step-2').style.display = 'block';
+            }
+        } catch (error) {
+            console.error("Wystąpił błąd:", error);
+        }
     });
-});
+} else {
+    console.error("Nie znaleziono przycisku o ID 'btn-start' w HTML!");
+}
 
 // 2. Po wybraniu klasy pokaż wybór dnia
 document.getElementById('select-klasa').addEventListener('change', (e) => {
