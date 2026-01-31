@@ -194,32 +194,17 @@ function showLoading(text = "Proszę czekać…") {
 
 
 
-// Zakładamy, że 'db' to zainicjalizowany Firestore
-const step1 = document.getElementById('step-1');
-const step2 = document.getElementById('step-2');
-const step3 = document.getElementById('step-3');
-const step4 = document.getElementById('step-4');
-
-let wybranaKlasaId = "";
+// PANEL OCEN - LOGIKA (STYL FIREBASE V8)
 
 // 1. Kliknięcie w start i pobranie klas
-// Upewnij się, że te zmienne są zdefiniowane na początku
-const btnStart = document.getElementById('btn-start');
-const selectKlasa = document.getElementById('select-klasa');
-
 if (btnStart) {
-    btnStart.addEventListener('click', async () => {
-        console.log("Startujemy...");
-        try {
-            // SPRAWDZENIE: Czy getDocs jest zaimportowane?
-            if (typeof getDocs === 'undefined') {
-                throw new Error("getDocs nie jest zdefiniowane! Sprawdź importy na górze pliku.");
-            }
+    btnStart.addEventListener('click', () => {
+        console.log("Startujemy panel ocen...");
+        // Czyścimy listę przed załadowaniem
+        selectKlasa.innerHTML = '<option value="">-- wybierz --</option>';
 
-            const querySnapshot = await getDocs(collection(db, "klasy"));
-            
-            if (selectKlasa) {
-                selectKlasa.innerHTML = '<option value="">-- wybierz --</option>';
+        db.collection("klasy").get()
+            .then((querySnapshot) => {
                 querySnapshot.forEach((doc) => {
                     let option = document.createElement('option');
                     option.value = doc.id;
@@ -227,50 +212,63 @@ if (btnStart) {
                     selectKlasa.appendChild(option);
                 });
 
-                document.getElementById('step-1').style.display = 'none';
-                document.getElementById('step-2').style.display = 'block';
-            }
-        } catch (error) {
-            console.error("Wystąpił błąd:", error);
-        }
+                step1.style.display = 'none';
+                step2.style.display = 'block';
+            })
+            .catch((error) => {
+                console.error("Błąd pobierania klas:", error);
+                alert("Nie udało się pobrać klas. Sprawdź połączenie.");
+            });
     });
-} else {
-    console.error("Nie znaleziono przycisku o ID 'btn-start' w HTML!");
 }
 
 // 2. Po wybraniu klasy pokaż wybór dnia
-document.getElementById('select-klasa').addEventListener('change', (e) => {
-    if(e.target.value) {
-        wybranaKlasaId = e.target.value;
-        step3.style.display = 'block';
-    }
-});
+if (selectKlasa) {
+    selectKlasa.addEventListener('change', (e) => {
+        if(e.target.value) {
+            wybranaKlasaId = e.target.value;
+            step3.style.display = 'block';
+        }
+    });
+}
 
 // 3. Pobieranie planu lekcji po kliknięciu w dzień
 document.querySelectorAll('.day-btn').forEach(button => {
-    button.addEventListener('click', async (e) => {
+    button.addEventListener('click', (e) => {
         const dzien = e.target.getAttribute('data-day');
         const lessonList = document.getElementById('lesson-list');
-        lessonList.innerHTML = "Ładowanie...";
+        lessonList.innerHTML = "<li>Ładowanie planu...</li>";
         step4.style.display = 'block';
 
-        // Ścieżka: klasy -> {wybranaKlasa} -> planLekcji -> {dzien}
-        const docRef = doc(db, "klasy", wybranaKlasaId, "planLekcji", dzien);
-        const docSnap = await getDoc(docRef);
-
-        if (docSnap.exists()) {
-            const data = docSnap.data();
-            lessonList.innerHTML = "";
-            
-            // Sortujemy pola (0, 1, 2 itd.) i wyświetlamy
-            Object.keys(data).sort().forEach(key => {
-                let li = document.createElement('li');
-                li.textContent = `Lekcja ${key}: ${data[key]}`;
-                lessonList.appendChild(li);
+        // Ścieżka: klasy -> {wybranaKlasaId} -> planLekcji -> {dzien}
+        db.collection("klasy").doc(wybranaKlasaId).collection("planLekcji").doc(dzien).get()
+            .then(docSnap => {
+                if (docSnap.exists) {
+                    const data = docSnap.data();
+                    lessonList.innerHTML = "";
+                    
+                    // Sortujemy klucze (0, 1, 2...) i tworzymy listę
+                    Object.keys(data).sort((a, b) => Number(a) - Number(b)).forEach(key => {
+                        let li = document.createElement('li');
+                        li.className = "lesson-item"; // Możesz dodać style w CSS
+                        li.innerHTML = `<strong>Lekcja ${key}:</strong> ${data[key]}`;
+                        
+                        // Dodajemy guzik "Wstaw ocenę" od razu, żeby przygotować grunt pod potem
+                        let btn = document.createElement('button');
+                        btn.textContent = "Wstaw ocenę";
+                        btn.onclick = () => alert(`Otwieram ocenianie dla: ${data[key]}`);
+                        
+                        li.appendChild(btn);
+                        lessonList.appendChild(li);
+                    });
+                } else {
+                    lessonList.innerHTML = "<li>Brak planu na ten dzień w tej klasie.</li>";
+                }
+            })
+            .catch(err => {
+                console.error("Błąd:", err);
+                lessonList.innerHTML = "<li>Błąd ładowania danych.</li>";
             });
-        } else {
-            lessonList.innerHTML = "Brak planu na ten dzień.";
-        }
     });
 });
 
