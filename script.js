@@ -250,34 +250,36 @@ document.querySelectorAll('.day-btn').forEach(btnDnia => {
         if(listaLekcjiHtml) listaLekcjiHtml.innerHTML = "<li>Ładowanie...</li>";
         if(sekcjaStep4) sekcjaStep4.style.display = 'block';
 
-        // Uwaga: Sprawdzamy czy plan jest w klasie, czy w ogólnym planie
-        db.collection("klasy").doc(wybranaKlasaDlaOcen).collection("planLekcji").doc(dzienTygodnia).get()
+        // POBIERANIE Z GŁÓWNEJ KOLEKCJI planLekcji
+        db.collection("planLekcji").doc(dzienTygodnia).get()
             .then(docSnap => {
                 if (docSnap.exists) {
                     const danePlanu = docSnap.data();
                     listaLekcjiHtml.innerHTML = "";
                     
-                    Object.keys(danePlanu).sort((a,b) => Number(a) - Number(b)).forEach(nr => {
-                        let li = document.createElement('li');
-                        li.style.margin = "10px 0";
-                        li.innerHTML = `<strong>Lekcja ${nr}:</strong> ${danePlanu[nr]} `;
-                        
-                        let btnOcen = document.createElement('button');
-                        btnOcen.textContent = "Wybierz do oceniania";
-                        btnOcen.style.marginLeft = "10px";
-                        btnOcen.onclick = () => {
-                             alert("Wybrano: " + danePlanu[nr] + ". Teraz możemy załadować listę uczniów!");
-                             // Tutaj w przyszłości dodamy funkcję loadUczniowie(wybranaKlasaDlaOcen)
-                        };
+                    // Sortujemy pola 0, 1, 2...
+                    const numeryLekcji = Object.keys(danePlanu).sort((a, b) => Number(a) - Number(b));
 
-                        li.appendChild(btnOcen);
+                    numeryLekcji.forEach(nr => {
+                        let li = document.createElement('li');
+                        li.style.padding = "8px";
+                        li.style.borderBottom = "1px solid #ddd";
+                        li.innerHTML = `
+                            <strong>Lekcja ${nr}:</strong> ${danePlanu[nr]} 
+                            <button onclick="wybierzLekcjeDoOcen('${danePlanu[nr]}', '${nr}')" style="float:right;">
+                                Wybierz
+                            </button>
+                        `;
                         listaLekcjiHtml.appendChild(li);
                     });
                 } else {
-                    listaLekcjiHtml.innerHTML = "<li>Brak planu dla tej klasy na ten dzień.</li>";
+                    listaLekcjiHtml.innerHTML = `<li>Brak dokumentu "${dzienTygodnia}" w kolekcji planLekcji.</li>`;
                 }
             })
-            .catch(err => console.error("Błąd planu:", err));
+            .catch(err => {
+                console.error("Błąd pobierania planu:", err);
+                listaLekcjiHtml.innerHTML = "<li>Błąd połączenia z bazą danych.</li>";
+            });
     });
 });
 
