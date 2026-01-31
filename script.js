@@ -363,6 +363,7 @@ document.getElementById('btn-generuj-tabele').addEventListener('click', () => {
                             <option value="2">2</option>
                             <option value="1">1</option>
                             <option value="np">np</option>
+                            <option value="nb">nb</option>
                         </select>
                     </td>
                     <td><input type="text" class="komentarz-input" placeholder="notatka..." data-uid="${docStudent.id}"></td>
@@ -381,7 +382,61 @@ window.backToMenu = function() {
     sekcjaStep6.style.display = 'none';
     document.getElementById('step-5').style.display = 'block';
 };
+document.getElementById('btn-zapisz-wszystkie-oceny').addEventListener('click', async () => {
+    const temat = document.getElementById('ocena-temat').value;
+    const dataOceny = document.getElementById('ocena-data').value;
+    const ocenyInputs = document.querySelectorAll('.ocena-input');
+    const komentarzeInputs = document.querySelectorAll('.komentarz-input');
 
+    if (!temat) return alert("Błąd: Temat jest wymagany do zapisu!");
+
+    let licznikZapisanych = 0;
+    const batch = db.batch(); // Używamy batcha, żeby zapisać wszystko "za jednym zamachem"
+
+    ocenyInputs.forEach((select, index) => {
+        const ocenaWartosc = select.value;
+        const studentUid = select.getAttribute('data-uid'); // np. "u1"
+        const komentarz = komentarzeInputs[index].value;
+
+        // Zapisujemy tylko jeśli wybrano jakąś ocenę
+        if (ocenaWartosc !== "") {
+            // Referencja do nowej kolekcji 'oceny' wewnątrz klasy
+            const nowaOcenaRef = db.collection("klasy")
+                                   .doc(wybranaKlasaDlaOcen)
+                                   .collection("oceny")
+                                   .doc(); // Automatyczne ID dla dokumentu oceny
+
+            batch.set(nowaOcenaRef, {
+                studentId: studentUid,
+                ocena: ocenaWartosc,
+                temat: temat,
+                data: dataOceny,
+                przedmiot: aktywnyPrzedmiot,
+                komentarz: komentarz,
+                nauczyciel: userName.textContent, // Wyciągamy imię zalogowanego nauczyciela
+                timestamp: firebase.firestore.FieldValue.serverTimestamp() // Dokładny czas zapisu
+            });
+            licznikZapisanych++;
+        }
+    });
+
+    if (licznikZapisanych === 0) {
+        return alert("Nie wpisano żadnych ocen do zapisania.");
+    }
+
+    try {
+        await batch.commit();
+        alert(`Sukces! Zapisano ${licznikZapisanych} ocen do bazy.`);
+        
+        // Opcjonalnie: czyścimy formularz po zapisie
+        document.getElementById('ocena-temat').value = "";
+        document.getElementById('tabela-uczniow-kontener').style.display = 'none';
+        backToMenu();
+    } catch (error) {
+        console.error("Błąd zapisu ocen:", error);
+        alert("Wystąpił błąd podczas zapisu: " + error.message);
+    }
+});
 
 
 
