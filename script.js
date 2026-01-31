@@ -303,6 +303,71 @@ document.querySelectorAll('.panel-nav-btn').forEach(btn => {
         alert(`Wybrałeś panel: ${cel.toUpperCase()}\nKlasa: ${wybranaKlasaDlaOcen}\nLekcja: ${aktywnyPrzedmiot}`);
     });
 });
+// --- DODATKOWE ZMIENNE ---
+const sekcjaStep6 = document.getElementById('step-6-oceny');
+
+// Obsługa przycisku "Oceny" w Kroku 5
+document.querySelector('[data-target="oceny"]').addEventListener('click', () => {
+    // 1. Ukrywamy poprzednie kroki
+    document.querySelectorAll('[id^="step-"]').forEach(s => s.style.display = 'none');
+    
+    // 2. Pokazujemy panel ocen
+    sekcjaStep6.style.display = 'block';
+
+    // 3. Automatyczna data (YYYY-MM-DD)
+    const dzis = new Date().toISOString().split('T')[0];
+    document.getElementById('ocena-data').value = dzis;
+});
+
+// GENEROWANIE TABELI UCZNIÓW
+document.getElementById('btn-generuj-tabele').addEventListener('click', () => {
+    const temat = document.getElementById('ocena-temat').value;
+    if(!temat) return alert("Musisz wpisać temat oceny!");
+
+    const tbody = document.getElementById('lista-uczniow-oceny');
+    tbody.innerHTML = "<tr><td colspan='4'>Ładowanie listy uczniów...</td></tr>";
+    document.getElementById('tabela-uczniow-kontener').style.display = 'block';
+
+    // Ścieżka: klasy -> {klasaId} -> uczniowie
+    db.collection("klasy").doc(wybranaKlasaDlaOcen).collection("uczniowie").orderBy("numer").get()
+        .then(snapshot => {
+            tbody.innerHTML = "";
+            if(snapshot.empty) {
+                tbody.innerHTML = "<tr><td colspan='4'>Brak uczniów w tej klasie.</td></tr>";
+                return;
+            }
+
+            snapshot.forEach(docStudent => {
+                const u = docStudent.data();
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${u.numer}</td>
+                    <td>${u.imie} ${u.nazwisko}</td>
+                    <td>
+                        <select class="ocena-input" data-uid="${docStudent.id}">
+                            <option value="">brak</option>
+                            <option value="6">6</option>
+                            <option value="5">5</option>
+                            <option value="4">4</option>
+                            <option value="3">3</option>
+                            <option value="2">2</option>
+                            <option value="1">1</option>
+                            <option value="np">np</option>
+                        </select>
+                    </td>
+                    <td><input type="text" class="komentarz-input" placeholder="notatka..." data-uid="${docStudent.id}"></td>
+                `;
+                tbody.appendChild(tr);
+            });
+        })
+        .catch(err => console.error("Błąd pobierania uczniów:", err));
+});
+
+// Funkcja powrotu
+window.backToMenu = function() {
+    sekcjaStep6.style.display = 'none';
+    document.getElementById('step-5').style.display = 'block';
+};
 
 
 

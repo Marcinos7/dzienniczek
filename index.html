@@ -108,6 +108,37 @@
         <button class="panel-nav-btn" data-target="projekty">📂 Projekty</button>
     </div>
 </div>
+<div id="step-6-oceny" style="display:none; padding: 20px;">
+    <button onclick="backToMenu()" style="margin-bottom: 15px;">⬅ Powrót do menu lekcji</button>
+    
+    <div id="setup-oceny" style="background: #eee; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+        <h3>Konfiguracja kolumny ocen</h3>
+        <label>Temat (za co ocena):</label>
+        <input type="text" id="ocena-temat" placeholder="np. Sprawdzian: Gęstość zaludnienia">
+        
+        <label>Data:</label>
+        <input type="text" id="ocena-data" readonly> <button id="btn-generuj-tabele" style="background: #4CAF50; color: white;">Zatwierdź i wpisz oceny</button>
+    </div>
+
+    <div id="tabela-uczniow-kontener" style="display:none;">
+        <table border="1" style="width:100%; border-collapse: collapse; text-align: left;">
+            <thead>
+                <tr style="background: #ddd;">
+                    <th>Nr</th>
+                    <th>Imię i Nazwisko</th>
+                    <th>Ocena</th>
+                    <th>Komentarz (opcjonalnie)</th>
+                </tr>
+            </thead>
+            <tbody id="lista-uczniow-oceny">
+                </tbody>
+        </table>
+        <br>
+        <button id="btn-zapisz-wszystkie-oceny" style="padding: 10px 20px; background: #2196F3; color: white; font-weight: bold;">
+            Zapisz wszystkie oceny do bazy
+        </button>
+    </div>
+</div>
  
 <div id="app">
     <div id="step-1">
