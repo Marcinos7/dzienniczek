@@ -608,12 +608,41 @@ openDziennikBtn.addEventListener('click', ()=>{
   dziennikDiv.style.display='flex';
 });
 
-// POWRÓT DO DASHBOARD
-backToDashboardBtn.addEventListener('click', ()=>{
-  dziennikDiv.style.display='none';
-  dashboardDiv.style.display='flex';
+// POWRÓT DO DASHBOARD Z RESETEM
+backToDashboardBtn.addEventListener('click', () => {
+  // Najpierw sprzątamy w środku dziennika
+  resetDziennikDoPoczatku();
+  
+  // Potem zmieniamy widok
+  dziennikDiv.style.display = 'none';
+  dashboardDiv.style.display = 'flex';
 });
+function resetDziennikDoPoczatku() {
+    // 1. Czyścimy zmienne globalne
+    wybranaKlasaDlaOcen = "";
+    aktywnyPrzedmiot = "";
+    aktywnyNumerLekcji = "";
 
+    // 2. Resetujemy listę rozwijaną klas (wybieramy pustą opcję)
+    if(listaKlasOceny) listaKlasOceny.value = "";
+
+    // 3. Ukrywamy wszystkie kroki (od 2 do 7)
+    const kroki = ['step-2', 'step-3', 'step-4', 'step-5', 'step-6-oceny', 'step-7-uwagi'];
+    kroki.forEach(id => {
+        const el = document.getElementById(id);
+        if(el) el.style.display = 'none';
+    });
+
+    // 4. Upewniamy się, że Krok 1 (przycisk startowy) jest widoczny, 
+    // a Krok 2 (wybór klasy) też, jeśli tak masz w logice otwierania.
+    if(sekcjaStep1) sekcjaStep1.style.display = 'block';
+    
+    // 5. Czyścimy listę lekcji z poprzedniego wyboru
+    const listaLekcjiHtml = document.getElementById('lesson-list');
+    if(listaLekcjiHtml) listaLekcjiHtml.innerHTML = "";
+
+    console.log("Dziennik został zresetowany do stanu początkowego.");
+}
 // ZAŁADUJ KLASĘ
 zaladujKlaseBtn.addEventListener('click',()=>{
   const klasa = klasaSelect.value;
