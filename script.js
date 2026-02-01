@@ -944,101 +944,59 @@ function loadRealizacja() {
 // ==========================================
 // LOGIKA MODUŁU: DZIENNIK ODDZIAŁU
 // ==========================================
-
-// ==========================================
-// LOGIKA MODUŁU: DZIENNIK ODDZIAŁU
-// ==========================================
-
-// 1. OTWARCIE USTAWIEŃ (KROK 9)
-// Po kliknięciu głównego przycisku w KROKU 1
+// 1. Wejście do Dziennika Oddziału z przycisku głównego (btn-dzod)
 document.getElementById('btn-dzod').addEventListener('click', function() {
-    // Ukrywamy widok startowy
     document.getElementById('step-1').style.display = 'none';
-    // Pokazujemy formularz wyboru
     document.getElementById('step-9-oddzial-setup').style.display = 'block';
-    
-    // Pobieramy klasy z bazy Firebase
     zaladujKlasyDoOddzialu();
 });
 
-// 2. FUNKCJA ŁADOWANIA KLAS Z FIREBASE
+// 2. Pobieranie klas z Firebase
 function zaladujKlasyDoOddzialu() {
-    const selectKlasa = document.getElementById('lista-klas-oddzial');
-    
-    db.collection("klasy").get().then((querySnapshot) => {
-        // Czyścimy listę i dodajemy opcję startową
-        selectKlasa.innerHTML = '<option value="">-- wybierz klasę --</option>';
-        
-        querySnapshot.forEach((doc) => {
+    const select = document.getElementById('lista-klas-oddzial');
+    db.collection("klasy").get().then((snapshot) => {
+        select.innerHTML = '<option value="">-- wybierz klasę --</option>';
+        snapshot.forEach((doc) => {
             let opt = document.createElement('option');
             opt.value = doc.id;
             opt.textContent = `Klasa ${doc.id}`;
-            selectKlasa.appendChild(opt);
+            select.appendChild(opt);
         });
-    }).catch(err => {
-        console.error("Błąd ładowania klas:", err);
-        alert("Błąd połączenia z bazą danych.");
     });
 }
 
-// 3. OBSŁUGA KASKADOWEGO WYBORU (Klasa -> Przedmiot -> Przycisk)
-// Gdy wybierzesz klasę, pokaż wybór przedmiotu
+// 3. Pokazywanie przycisku "Otwórz" po wybraniu klasy
 document.getElementById('lista-klas-oddzial').addEventListener('change', function() {
-    const kontenerPrzedmiot = document.getElementById('kontener-przedmiot-oddzial');
-    const selectPrzedmiot = document.getElementById('lista-przedmiotow-oddzial');
-
+    const btn = document.getElementById('btn-wejdz-do-menu-oddzialu');
     if (this.value !== "") {
-        kontenerPrzedmiot.style.display = 'block';
-        
-        // Wypełniamy przedmioty z Twojej stałej PRZEDMIOTY
-        selectPrzedmiot.innerHTML = '<option value="">-- wybierz przedmiot --</option>';
-        PRZEDMIOTY.forEach(p => {
-            let opt = document.createElement('option');
-            opt.value = p;
-            opt.textContent = p;
-            selectPrzedmiot.appendChild(opt);
-        });
+        btn.style.display = 'block';
     } else {
-        kontenerPrzedmiot.style.display = 'none';
-        document.getElementById('btn-final-wejscie').style.display = 'none';
+        btn.style.display = 'none';
     }
 });
 
-// Gdy wybierzesz przedmiot, pokaż zielony przycisk wejścia
-document.getElementById('lista-przedmiotow-oddzial').addEventListener('change', function() {
-    const btnFinal = document.getElementById('btn-final-wejscie');
-    if (this.value !== "") {
-        btnFinal.style.display = 'block';
-    } else {
-        btnFinal.style.display = 'none';
-    }
-});
-
-// 4. WEJŚCIE DO MENU GŁÓWNEGO ODDZIAŁU (KROK 10)
-document.getElementById('btn-final-wejscie').addEventListener('click', function() {
+// 4. Przejście do Menu Głównego (Krok 10)
+document.getElementById('btn-wejdz-do-menu-oddzialu').addEventListener('click', function() {
     const wybranaKlasa = document.getElementById('lista-klas-oddzial').value;
-    const wybranyPrzedmiot = document.getElementById('lista-przedmiotow-oddzial').value;
-
-    // Przełączamy widoki
+    
+    // Przełącz widok
     document.getElementById('step-9-oddzial-setup').style.display = 'none';
     document.getElementById('step-10-oddzial-menu').style.display = 'block';
-
-    // Aktualizujemy fioletowy pasek informacyjny
-    document.getElementById('naglowek-oddzial').textContent = `Klasa: ${wybranaKlasa} | Przedmiot: ${wybranyPrzedmiot}`;
+    
+    // Ustaw nagłówek
+    document.getElementById('naglowek-wybrana-klasa').textContent = `Klasa: ${wybranaKlasa}`;
 });
 
-// FUNKCJA POWROTU DO DASHBOARDU
-window.backToDashboardFromOddzial = function() {
+// FUNKCJE POWROTU
+function backToDashboardFromOddzial() {
     document.getElementById('step-9-oddzial-setup').style.display = 'none';
     document.getElementById('step-1').style.display = 'block';
-};
+}
 
-// FUNKCJA POWROTU DO USTAWIEŃ (Z KROKU 10 DO 9)
-window.backToOddzialSetup = function() {
+function backToStep9() {
     document.getElementById('step-10-oddzial-menu').style.display = 'none';
     document.getElementById('step-9-oddzial-setup').style.display = 'block';
-};
-
+}
 
 
 

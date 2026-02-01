@@ -197,44 +197,31 @@
 
 <div id="step-9-oddzial-setup" style="display:none; padding: 20px;">
     <button onclick="backToDashboardFromOddzial()">⬅ Powrót</button>
-    <h2 style="color: #8e44ad;">Dziennik oddziału - Ustawienia</h2>
+    <h2 style="color: #8e44ad;">Dziennik oddziału</h2>
     
     <div style="margin: 20px 0;">
-        <label><strong>1. Wybierz klasę:</strong></label><br>
+        <label><strong>Wybierz klasę:</strong></label><br>
         <select id="lista-klas-oddzial" style="width: 250px; padding: 10px; margin-top: 5px;">
             <option value="">-- wybierz klasę --</option>
         </select>
     </div>
 
-    <div id="kontener-przedmiot-oddzial" style="display:none; margin-bottom: 20px;">
-        <label><strong>2. Wybierz przedmiot:</strong></label><br>
-        <select id="lista-przedmiotow-oddzial" style="width: 250px; padding: 10px; margin-top: 5px;">
-            <option value="">-- wybierz przedmiot --</option>
-        </select>
-    </div>
-
-    <button id="btn-final-wejscie" style="display:none; background: #27ae60; color: white; padding: 12px 25px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">
-        OTWÓRZ PANEL ODDZIAŁU
+    <button id="btn-wejdz-do-menu-oddzialu" style="display:none; background: #27ae60; color: white; padding: 12px 25px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">
+        OTWÓRZ MENU ODDZIAŁU
     </button>
 </div>
+
 <div id="step-10-oddzial-menu" style="display:none; padding: 20px;">
-    <button onclick="backToOddzialSetup()" style="margin-bottom: 20px;">⬅ Zmień klasę</button>
+    <button onclick="backToStep9()" style="margin-bottom: 20px;">⬅ Zmień klasę</button>
     
     <div style="background: #8e44ad; color: white; padding: 15px; border-radius: 10px; margin-bottom: 20px;">
-        <h3 id="naglowek-oddzial-klasa">Klasa: --</h3>
+        <h3 id="naglowek-wybrana-klasa" style="margin:0;">Klasa: --</h3>
     </div>
 
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
-        <button class="panel-nav-btn" onclick="otworzListeUczniow()">👥 Lista oddziału</button>
-        <button class="panel-nav-btn" onclick="pokazWyborPrzedmiotuDlaOcen()">🎓 Oceny semestralne i końcowe</button>
-        <button class="panel-nav-btn" onclick="otworzWydruki()">🖨️ Wydruki</button>
-    </div>
-
-    <div id="sekcja-wyboru-przedmiotu-oceny" style="display:none; margin-top: 20px; padding: 15px; border: 2px dashed #8e44ad; border-radius: 10px;">
-        <label><strong>Wybierz przedmiot dla ocen:</strong></label><br>
-        <select id="lista-przedmiotow-final" style="width: 100%; padding: 10px; margin: 10px 0;">
-            </select>
-        <button id="btn-wejdz-w-oceny" class="full-width-btn" style="background: #27ae60; color: white;">PRZEJDŹ DO OCEN</button>
+    <div style="display: grid; grid-template-columns: 1fr; gap: 10px; max-width: 300px;">
+        <button class="panel-nav-btn" onclick="alert('Lista uczniów - wkrótce')">👥 Lista oddziału</button>
+        <button class="panel-nav-btn" onclick="alert('Oceny - wkrótce')">🎓 Oceny semestralne i końcowe</button>
+        <button class="panel-nav-btn" onclick="alert('Wydruki - wkrótce')">🖨️ Wydruki</button>
     </div>
 </div>
 
