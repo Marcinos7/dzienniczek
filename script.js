@@ -306,27 +306,17 @@ document.querySelectorAll('.panel-nav-btn').forEach(btn => {
 // --- DODATKOWE ZMIENNE ---
 const sekcjaStep6 = document.getElementById('step-6-oceny');
 
-
 // Obsługa przycisku "Oceny" w Kroku 5
 document.querySelector('[data-target="oceny"]').addEventListener('click', () => {
-    // 1. Czyścimy panel, żeby nie było śmieci z poprzedniej lekcji
-    wyczyscPanelOcen();
-
-    // 2. Ładujemy przyciski z istniejącymi tematami do edycji
-    zaladujIstniejaceTematy(); 
-
-    // 3. Ukrywamy poprzednie kroki
+    // 1. Ukrywamy poprzednie kroki
     document.querySelectorAll('[id^="step-"]').forEach(s => s.style.display = 'none');
     
-    // 4. Pokazujemy panel ocen
-    if(sekcjaStep6) {
-        sekcjaStep6.style.display = 'block';
-    }
+    // 2. Pokazujemy panel ocen
+    sekcjaStep6.style.display = 'block';
 
-    // 5. Automatyczna data (YYYY-MM-DD)
+    // 3. Automatyczna data (YYYY-MM-DD)
     const dzis = new Date().toISOString().split('T')[0];
-    const inputData = document.getElementById('ocena-data');
-    if(inputData) inputData.value = dzis;
+    document.getElementById('ocena-data').value = dzis;
 });
 
 // GENEROWANIE TABELI UCZNIÓW
@@ -386,98 +376,6 @@ document.getElementById('btn-generuj-tabele').addEventListener('click', () => {
             tbody.innerHTML = `<tr><td colspan='4'>Błąd: ${err.message}</td></tr>`;
         });
 });
-
-//to ogolnie sraczka do edit ocen
-// Funkcja wywoływana przy wchodzeniu w panel ocen
-function zaladujIstniejaceTematy() {
-    const kontener = document.getElementById('przyciski-tematow');
-    kontener.innerHTML = "Ładowanie...";
-
-    db.collection("klasy").doc(wybranaKlasaDlaOcen)
-      .collection("oceny")
-      .where("przedmiot", "==", aktywnyPrzedmiot) // Tylko oceny z tego przedmiotu
-      .get()
-      .then(snapshot => {
-          kontener.innerHTML = "";
-          if(snapshot.empty) {
-              kontener.innerHTML = "<small>Brak zapisanych tematów dla tego przedmiotu.</small>";
-              return;
-          }
-
-          snapshot.forEach(doc => {
-              const btn = document.createElement('button');
-              btn.textContent = doc.id; // Nazwa dokumentu to temat
-              btn.style.margin = "5px";
-              btn.className = "btn-edycja";
-              btn.onclick = () => wczytajTematDoEdycji(doc.id, doc.data());
-              kontener.appendChild(btn);
-          });
-      });
-}
-
-// Funkcja, która "wpisuje" zapisane oceny z powrotem do tabeli
-async function wczytajTematDoEdycji(tematId, dane) {
-    // 1. Ustawiamy temat i datę
-    document.getElementById('ocena-temat').value = tematId;
-    document.getElementById('ocena-data').value = dane.data;
-
-    // 2. Musimy najpierw wygenerować czystą tabelę uczniów
-    // Używamy Twojej istniejącej logiki (btn-generuj-tabele)
-    // ale musimy poczekać aż uczniowie się załadują
-    await generujTabeleUczniowBezAlertu(); 
-
-    // 3. Po wygenerowaniu tabeli, wstawiamy oceny z mapy
-    const ocenyZMapy = dane.oceny || {};
-    const komentarzeZMapy = dane.komentarze || {};
-
-    document.querySelectorAll('.ocena-input').forEach(select => {
-        const uid = select.getAttribute('data-uid');
-        if(ocenyZMapy[uid]) {
-            select.value = ocenyZMapy[uid];
-        }
-    });
-
-    document.querySelectorAll('.komentarz-input').forEach(input => {
-        const uid = input.getAttribute('data-uid');
-        if(komentarzeZMapy[uid]) {
-            input.value = komentarzeZMapy[uid];
-        }
-    });
-
-    alert("Wczytano dane tematu: " + tematId + ". Możesz teraz poprawić oceny i kliknąć Zapisz.");
-}
-
-// Pomocnicza funkcja (kopia Twojego btn-generuj-tabele bez zbędnych alertów)
-function generujTabeleUczniowBezAlertu() {
-    return db.collection("klasy").doc(wybranaKlasaDlaOcen).collection("uczniowie").orderBy("numer").get()
-        .then(snapshot => {
-            const tbody = document.getElementById('lista-uczniow-oceny');
-            tbody.innerHTML = "";
-            document.getElementById('tabela-uczniow-kontener').style.display = 'block';
-            
-            snapshot.forEach(docStudent => {
-                const u = docStudent.data();
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td>${u.numer}</td>
-                    <td>${u.imie} ${u.nazwisko}</td>
-                    <td>
-                        <select class="ocena-input" data-uid="${docStudent.id}">
-                            <option value="">brak</option><option value="6">6</option>
-                            <option value="5">5</option><option value="4">4</option>
-                            <option value="3">3</option><option value="2">2</option>
-                            <option value="1">1</option><option value="np">np</option>
-                        </select>
-                    </td>
-                    <td><input type="text" class="komentarz-input" data-uid="${docStudent.id}"></td>
-                `;
-                tbody.appendChild(tr);
-            });
-        });
-}
-
-
-
 
 // Funkcja powrotu
 window.backToMenu = function() {
