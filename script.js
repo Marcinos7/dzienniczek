@@ -774,23 +774,7 @@ function loadTeacherData(uid){
 
   
 
-    // ZAŁADUJ IMIENINY Z API
-    fetch('https://api.abalin.net/today?country=pl')
-      .then(r=>r.json())
-      .then(d=>{
-        const ul = document.getElementById('imieninyList');
-        ul.innerHTML = '';
-        if(d && d.data && d.data.namedays && d.data.namedays.pl){
-          const names = d.data.namedays.pl.split(', ');
-          names.forEach(n=>{
-            const li = document.createElement('li');
-            li.textContent = n;
-            ul.appendChild(li);
-          });
-        } else {
-          ul.innerHTML = '<li>Brak danych</li>';
-        }
-      });
+    
   });
 }
 
