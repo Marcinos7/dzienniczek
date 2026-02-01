@@ -396,6 +396,11 @@ document.getElementById('btn-generuj-tabele').addEventListener('click', () => {
 });
 let wybranaDataProjektu = "";
 
+
+
+
+
+
 // 1. Otwieranie panelu projektów
 document.querySelector('[data-target="projekty"]').addEventListener('click', () => {
     document.getElementById('step-5').style.display = 'none';
@@ -482,30 +487,142 @@ document.getElementById('btn-zapisz-projekt').addEventListener('click', () => {
     });
 });
 
-<div id="step-8-projekty" style="display:none; padding: 20px;">
-    <button onclick="backToMenuFromProjekty()" style="margin-bottom: 15px;">⬅ Powrót do menu</button>
+let obecnaDataKalendarza = new Date();
+let wybranaDataDlaProjektu = "";
+
+// 1. Otwieranie panelu
+document.querySelector('[data-target="projekty"]').addEventListener('click', () => {
+    document.getElementById('step-5').style.display = 'none';
+    document.getElementById('step-8-projekty').style.display = 'block';
+    rysujKalendarz();
+});
+
+// 2. Funkcja główna rysująca kalendarz
+async function rysujKalendarz() {
+    const cells = document.getElementById('calendar-cells');
+    const tytul = document.getElementById('kalendarz-tytul');
+    cells.innerHTML = "";
+
+    const rok = obecnaDataKalendarza.getFullYear();
+    const miesiac = obecnaDataKalendarza.getMonth();
     
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-        <button onclick="zmienMiesiac(-1)">◀ Poprzedni</button>
-        <h2 id="kalendarz-tytul" style="margin: 0;">Miesiąc Rok</h2>
-        <button onclick="zmienMiesiac(1)">Następny ▶</button>
-    </div>
+    const nazwyMiesiecy = ["Styczeń", "Luty", "Marzec", "Kwiecień", "Maj", "Czerwiec", "Lipiec", "Sierpień", "Wrzesień", "Październik", "Listopad", "Grudzień"];
+    tytul.textContent = `${nazwyMiesiecy[miesiac]} ${rok}`;
 
-    <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; text-align: center; font-weight: bold; background: #eee; padding: 10px 0;">
-        <div>Pon</div><div>Wt</div><div>Śr</div><div>Czw</div><div>Pt</div><div>Sob</div><div>Ndz</div>
-    </div>
+    const pierwszyDzienMiesiaca = new Date(rok, miesiac, 1).getDay();
+    const dniWMiesiacu = new Date(rok, miesiac + 1, 0).getDate();
+    
+    // Korekta na poniedziałek jako pierwszy dzień tygodnia
+    let przesuniecie = pierwszyDzienMiesiaca === 0 ? 6 : pierwszyDzienMiesiaca - 1;
 
-    <div id="calendar-cells" style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; background: #ddd; border: 1px solid #ddd;">
-        </div>
+    // Puste kratki na początku
+    for (let i = 0; i < przesuniecie; i++) {
+        let emptyDiv = document.createElement('div');
+        emptyDiv.style = "background: #ecf0f1; min-height: 110px; border: 1px solid #bdc3c7;";
+        cells.appendChild(emptyDiv);
+    }
 
-    <div id="modal-projekt" style="display:none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 20px; border: 2px solid #333; z-index: 1000; border-radius: 12px; box-shadow: 0 0 20px rgba(0,0,0,0.5); width: 320px;">
-        <h4 id="modal-data-display">Dodaj wydarzenie</h4>
-        <div style="margin-top: 15px; display: flex; justify-content: space-between;">
-            <button onclick="zamknijModalProjektu()">Anuluj</button>
-            <button id="btn-zapisz-projekt" style="background: #27ae60; color: white;">Zapisz</button>
-        </div>
-    </div>
-</div>
+    // Kratki dni
+    for (let dzien = 1; dzien <= dniWMiesiacu; dzien++) {
+        const dataStr = `${rok}-${String(miesiac + 1).padStart(2, '0')}-${String(dzien).padStart(2, '0')}`;
+        
+        const cell = document.createElement('div');
+        cell.style = "background: white; min-height: 110px; padding: 5px; border: 1px solid #bdc3c7; position: relative; overflow-y: auto;";
+        cell.innerHTML = `
+            <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                <span style="font-weight: bold; color: #34495e;">${dzien}</span>
+                <button onclick="otworzModalProjektu('${dataStr}')" style="background: #3498db; color: white; border: none; border-radius: 3px; cursor: pointer; font-size: 12px; padding: 0 5px;">+</button>
+            </div>
+            <div id="projekty-lista-${dataStr}" style="display: flex; flex-direction: column; gap: 2px;"></div>
+        `;
+        cells.appendChild(cell);
+        wczytajWydarzeniaDlaDnia(dataStr);
+    }
+}
+
+// 3. Przełączanie miesięcy
+window.zmienMiesiac = function(kierunek) {
+    obecnaDataKalendarza.setMonth(obecnaDataKalendarza.getMonth() + kierunek);
+    rysujKalendarz();
+};
+
+// 4. Modal i przedmioty
+window.otworzModalProjektu = function(data) {
+    wybranaDataDlaProjektu = data;
+    document.getElementById('modal-data-display').textContent = `Wybrana data: ${data}`;
+    
+    const selectP = document.getElementById('projekt-przedmiot');
+    selectP.innerHTML = "";
+    // Używamy Twojej stałej PRZEDMIOTY
+    PRZEDMIOTY.forEach(p => {
+        let opt = document.createElement('option');
+        opt.value = p;
+        opt.textContent = p;
+        if(p === aktywnyPrzedmiot) opt.selected = true;
+        selectP.appendChild(opt);
+    });
+
+    document.getElementById('modal-projekt').style.display = 'block';
+};
+
+window.zamknijModalProjektu = function() {
+    document.getElementById('modal-projekt').style.display = 'none';
+    document.getElementById('projekt-tresc').value = "";
+};
+
+// 5. Zapis do bazy
+document.getElementById('btn-zapisz-projekt').addEventListener('click', () => {
+    const typ = document.getElementById('projekt-typ').value;
+    const przedmiot = document.getElementById('projekt-przedmiot').value;
+    const tresc = document.getElementById('projekt-tresc').value;
+
+    if(!tresc) return alert("Wpisz treść!");
+
+    db.collection("klasy").doc(wybranaKlasaDlaOcen).collection("terminarz").add({
+        data: wybranaDataDlaProjektu,
+        typ: typ,
+        przedmiot: przedmiot,
+        tresc: tresc,
+        nauczyciel: userName.textContent,
+        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+    }).then(() => {
+        zamknijModalProjektu();
+        rysujKalendarz();
+    }).catch(err => alert("Błąd zapisu: " + err));
+});
+
+// 6. Odczyt z bazy
+function wczytajWydarzeniaDlaDnia(data) {
+    db.collection("klasy").doc(wybranaKlasaDlaOcen).collection("terminarz")
+      .where("data", "==", data).get()
+      .then(snapshot => {
+          const kontener = document.getElementById(`projekty-lista-${data}`);
+          if(!kontener) return;
+          snapshot.forEach(doc => {
+              const d = doc.data();
+              let kolor = "#d1d8e0"; 
+              if(d.typ === 'sprawdzian') kolor = "#ff7675";
+              if(d.typ === 'kartkówka') kolor = "#ffeaa7";
+              if(d.typ === 'zadanie domowe') kolor = "#74b9ff";
+
+              let badge = document.createElement('div');
+              badge.style = `background: ${kolor}; font-size: 9px; padding: 2px; border-radius: 2px; border: 1px solid rgba(0,0,0,0.1); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: help;`;
+              badge.title = `${d.typ.toUpperCase()}: ${d.tresc}`;
+              badge.textContent = `${d.przedmiot}: ${d.tresc}`;
+              kontener.appendChild(badge);
+          });
+      });
+}
+
+window.backToMenuFromProjekty = function() {
+    document.getElementById('step-8-projekty').style.display = 'none';
+    document.getElementById('step-5').style.display = 'block';
+};
+
+
+
+
+
 // Funkcja powrotu
 window.backToMenu = function() {
     sekcjaStep6.style.display = 'none';

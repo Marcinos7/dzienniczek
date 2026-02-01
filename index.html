@@ -139,62 +139,68 @@
         </button>
     </div>
 </div>
- <div id="step-8-projekty" style="display:none; padding: 20px;">
-    <button onclick="backToMenuFromProjekty()" style="margin-bottom: 15px;">⬅ Powrót do menu</button>
-    <h3 id="projekty-tytul">Terminarz dla klasy: ---</h3>
 
-    <div class="calendar-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-top: 20px;">
-        </div>
 
-    <div id="modal-projekt" style="display:none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 20px; border: 2px solid #333; z-index: 1000; border-radius: 12px; box-shadow: 0 0 20px rgba(0,0,0,0.5); width: 300px;">
-        <h4>Dodaj do terminarza</h4>
-        <p id="modal-data-display" style="font-weight: bold;"></p>
-        
-        <label>Typ:</label><br>
-        <select id="projekt-typ" style="width:100%; margin-bottom: 10px;">
-            <option value="sprawdzian">Sprawdzian</option>
-            <option value="kartkówka">Kartkówka</option>
-            <option value="odpowiedź ustna">Odpowiedź ustna</option>
-            <option value="zadanie domowe">Zadanie domowe</option>
-            <option value="praca lekcyjna">Praca lekcyjna</option>
-        </select>
 
-        <label>Przedmiot:</label><br>
-        <select id="projekt-przedmiot" style="width:100%; margin-bottom: 10px;"></select>
 
-        <label>Treść:</label><br>
-        <textarea id="projekt-tresc" style="width:100%; height: 60px;" placeholder="np. Rozdział 3: Mezopotamia"></textarea>
 
-        <div style="margin-top: 15px; display: flex; justify-content: space-between;">
-            <button onclick="zamknijModalProjektu()">Anuluj</button>
-            <button id="btn-zapisz-projekt" style="background: #27ae60; color: white;">Zapisz</button>
-        </div>
-    </div>
-</div>
-<div id="step-8-projekty" style="display:none; padding: 20px;">
-    <button onclick="backToMenuFromProjekty()" style="margin-bottom: 15px;">⬅ Powrót do menu</button>
+<div id="step-8-projekty" style="display:none; padding: 20px; font-family: Arial, sans-serif;">
+    <button onclick="backToMenuFromProjekty()" style="margin-bottom: 15px; padding: 8px 15px; cursor: pointer;">⬅ Powrót do menu</button>
     
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-        <button onclick="zmienMiesiac(-1)">◀ Poprzedni</button>
-        <h2 id="kalendarz-tytul" style="margin: 0;">Miesiąc Rok</h2>
-        <button onclick="zmienMiesiac(1)">Następny ▶</button>
-    </div>
-
-    <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; text-align: center; font-weight: bold; background: #eee; padding: 10px 0;">
-        <div>Pon</div><div>Wt</div><div>Śr</div><div>Czw</div><div>Pt</div><div>Sob</div><div>Ndz</div>
-    </div>
-
-    <div id="calendar-cells" style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; background: #ddd; border: 1px solid #ddd;">
+    <div style="background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <button onclick="zmienMiesiac(-1)" style="padding: 5px 15px; cursor: pointer;">◀ Poprzedni</button>
+            <h2 id="kalendarz-tytul" style="margin: 0; color: #2c3e50; text-transform: capitalize;">Miesiąc Rok</h2>
+            <button onclick="zmienMiesiac(1)" style="padding: 5px 15px; cursor: pointer;">Następny ▶</button>
         </div>
 
-    <div id="modal-projekt" style="display:none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 20px; border: 2px solid #333; z-index: 1000; border-radius: 12px; box-shadow: 0 0 20px rgba(0,0,0,0.5); width: 320px;">
-        <h4 id="modal-data-display">Dodaj wydarzenie</h4>
-        <div style="margin-top: 15px; display: flex; justify-content: space-between;">
-            <button onclick="zamknijModalProjektu()">Anuluj</button>
-            <button id="btn-zapisz-projekt" style="background: #27ae60; color: white;">Zapisz</button>
+        <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; text-align: center; font-weight: bold; background: #34495e; color: white; padding: 10px 0; border-radius: 5px 5px 0 0;">
+            <div>Pon</div><div>Wt</div><div>Śr</div><div>Czw</div><div>Pt</div><div>Sob</div><div>Ndz</div>
+        </div>
+
+        <div id="calendar-cells" style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; background: #bdc3c7; border: 2px solid #bdc3c7; border-radius: 0 0 5px 5px;">
+            </div>
+    </div>
+
+    <div id="modal-projekt" style="display:none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 25px; border-radius: 15px; box-shadow: 0 0 30px rgba(0,0,0,0.5); z-index: 2000; width: 350px;">
+        <h3 style="margin-top: 0; color: #2980b9;">Dodaj do terminarza</h3>
+        <p id="modal-data-display" style="font-weight: bold; color: #7f8c8d; border-bottom: 1px solid #eee; padding-bottom: 10px;"></p>
+        
+        <div style="margin-bottom: 10px;">
+            <label>Typ wydarzenia:</label><br>
+            <select id="projekt-typ" style="width:100%; padding: 8px; border-radius: 5px; border: 1px solid #ddd;">
+                <option value="sprawdzian">🔴 Sprawdzian</option>
+                <option value="kartkówka">🟡 Kartkówka</option>
+                <option value="odpowiedź ustna">🟢 Odpowiedź ustna</option>
+                <option value="zadanie domowe">🔵 Zadanie domowe</option>
+                <option value="praca lekcyjna">⚪ Praca lekcyjna</option>
+            </select>
+        </div>
+
+        <div style="margin-bottom: 10px;">
+            <label>Przedmiot:</label><br>
+            <select id="projekt-przedmiot" style="width:100%; padding: 8px; border-radius: 5px; border: 1px solid #ddd;"></select>
+        </div>
+
+        <div style="margin-bottom: 15px;">
+            <label>Treść / Temat:</label><br>
+            <textarea id="projekt-tresc" style="width:100%; height: 70px; padding: 8px; border-radius: 5px; border: 1px solid #ddd; resize: none;" placeholder="Wpisz szczegóły..."></textarea>
+        </div>
+
+        <div style="display: flex; justify-content: space-between;">
+            <button onclick="zamknijModalProjektu()" style="padding: 10px 20px; background: #95a5a6; color: white; border: none; border-radius: 5px; cursor: pointer;">Anuluj</button>
+            <button id="btn-zapisz-projekt" style="padding: 10px 20px; background: #27ae60; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">Zapisz w kalendarzu</button>
         </div>
     </div>
 </div>
+
+
+
+
+
+
+
+
 <div id="app">
     <div id="step-1">
         <button id="btn-start">Lekcja</button>
