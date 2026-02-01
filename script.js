@@ -945,14 +945,19 @@ function loadRealizacja() {
 // LOGIKA MODUŁU: DZIENNIK ODDZIAŁU
 // ==========================================
 
+// ==========================================
+// LOGIKA MODUŁU: DZIENNIK ODDZIAŁU
+// ==========================================
+
 // 1. OTWARCIE USTAWIEŃ (KROK 9)
 // Po kliknięciu głównego przycisku w KROKU 1
 document.getElementById('btn-dzod').addEventListener('click', function() {
-    console.log("Przycisk kliknięty!"); // To pojawi się w konsoli (F12)
-    alert("Przycisk działa!");         // To wyświetli okienko na ekranie
-    
+    // Ukrywamy widok startowy
     document.getElementById('step-1').style.display = 'none';
+    // Pokazujemy formularz wyboru
     document.getElementById('step-9-oddzial-setup').style.display = 'block';
+    
+    // Pobieramy klasy z bazy Firebase
     zaladujKlasyDoOddzialu();
 });
 
