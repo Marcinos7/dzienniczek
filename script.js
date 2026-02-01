@@ -1041,50 +1041,7 @@ window.backToOddzialSetup = function() {
 
 
 
-// 1. Funkcja wywoływana po kliknięciu "Oceny semestralne..."
-window.pokazWyborPrzedmiotuDlaOcen = function() {
-    const kontener = document.getElementById('sekcja-wyboru-przedmiotu-oceny');
-    const selectP = document.getElementById('lista-przedmiotow-final');
 
-    // Pokazujemy ukryty panel
-    kontener.style.display = 'block';
-
-    // Wypełniamy listę przedmiotów (jeśli jeszcze pusta)
-    selectP.innerHTML = '<option value="">-- wybierz przedmiot --</option>';
-    PRZEDMIOTY.forEach(p => {
-        let opt = document.createElement('option');
-        opt.value = p;
-        opt.textContent = p;
-        selectP.appendChild(opt);
-    });
-
-    // Przewijamy widok do wyboru przedmiotu
-    kontener.scrollIntoView({ behavior: 'smooth' });
-};
-
-// 2. Obsługa wejścia w oceny po wybraniu przedmiotu
-document.getElementById('btn-wejdz-w-oceny').addEventListener('click', () => {
-    const przedmiot = document.getElementById('lista-przedmiotow-final').value;
-    const klasa = document.getElementById('lista-klas-oddzial').value; // pobieramy klasę wybraną w Kroku 9
-
-    if (!przedmiot) return alert("Musisz wybrać przedmiot!");
-
-    console.log(`Wchodzę w oceny dla klasy ${klasa} z przedmiotu ${przedmiot}`);
-    // Tutaj dodasz funkcję, która faktycznie otwiera tabelę ocen
-    // np. otworzTabeleOcenKoncowych(klasa, przedmiot);
-});
-
-// 3. Pozostałe funkcje (bez przedmiotu)
-window.otworzListeUczniow = function() {
-    const klasa = document.getElementById('lista-klas-oddzial').value;
-    alert("Otwieram listę uczniów dla klasy: " + klasa);
-    // Tutaj logika ładowania samej listy uczniów
-};
-
-window.otworzWydruki = function() {
-    const klasa = document.getElementById('lista-klas-oddzial').value;
-    alert("Generowanie wydruków dla klasy: " + klasa);
-};
 
 
 
