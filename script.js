@@ -978,39 +978,48 @@ function loadRealizacja() {
     });
 }
 
-// Zmienne pomocnicze
+
+
+
+
+// Deklarujemy zmienne, żeby system pamiętał co wybraliśmy
 let wybranaKlasaOddzial = "";
 let wybranyPrzedmiotOddzial = "";
 
-// 1. Otwieranie Dziennika Oddziału
-document.getElementById('openOddzialBtn').addEventListener('click', () => {
-    dashboardDiv.style.display = 'none';
+// OŻYWIENIE PRZYCISKU "Dziennik oddziału"
+document.getElementById('btn-dzod').addEventListener('click', () => {
+    // 1. Chowamy dashboard (zakładam, że Twój główny div ma ID 'dashboard')
+    const dashboard = document.getElementById('dashboard');
+    if(dashboard) dashboard.style.display = 'none';
+
+    // 2. Pokazujemy sekcję konfiguracji
     document.getElementById('step-9-oddzial-setup').style.display = 'block';
-    
-    // Wypełniamy listę klas (zakładam, że masz funkcję pobierającą klasy)
+
+    // 3. Ładujemy klasy do listy
     zaladujKlasyDoOddzialu();
 });
 
-// 2. Ładowanie klas do selecta
+// Funkcja pobierająca klasy z Firebase
 function zaladujKlasyDoOddzialu() {
-    const select = document.getElementById('lista-klas-oddzial');
-    select.innerHTML = '<option value="">-- wybierz klasę --</option>';
+    const selectKlasa = document.getElementById('lista-klas-oddzial');
     
-    db.collection("klasy").get().then(snapshot => {
-        snapshot.forEach(doc => {
+    db.collection("klasy").get().then((querySnapshot) => {
+        selectKlasa.innerHTML = '<option value="">-- wybierz klasę --</option>';
+        querySnapshot.forEach((doc) => {
             let opt = document.createElement('option');
             opt.value = doc.id;
-            opt.textContent = doc.id;
-            select.appendChild(opt);
+            opt.textContent = `Klasa ${doc.id}`;
+            selectKlasa.appendChild(opt);
         });
     });
 }
 
-// 3. Po wybraniu klasy pokazujemy wybór przedmiotu
+// Reakcja na wybranie klasy
 document.getElementById('lista-klas-oddzial').addEventListener('change', (e) => {
     wybranaKlasaOddzial = e.target.value;
-    if (wybranaKlasaOddzial) {
-        document.getElementById('wybor-przedmiotu-oddzial').style.display = 'block';
+    if(wybranaKlasaOddzial) {
+        // Pokazujemy wybór przedmiotu
+        document.getElementById('kontener-przedmiot-oddzial').style.display = 'block';
         
         // Wypełniamy przedmioty z Twojej stałej PRZEDMIOTY
         const selectP = document.getElementById('lista-przedmiotow-oddzial');
@@ -1024,24 +1033,18 @@ document.getElementById('lista-klas-oddzial').addEventListener('change', (e) => 
     }
 });
 
-// 4. Po wybraniu przedmiotu pokazujemy przycisk wejścia
+// Reakcja na wybranie przedmiotu
 document.getElementById('lista-przedmiotow-oddzial').addEventListener('change', (e) => {
     wybranyPrzedmiotOddzial = e.target.value;
-    if (wybranyPrzedmiotOddzial) {
-        document.getElementById('btn-wejdz-do-oddzialu').style.display = 'inline-block';
+    if(wybranyPrzedmiotOddzial) {
+        document.getElementById('btn-wejdz-do-oddzialu').style.display = 'block';
     }
 });
 
-// 5. Wejście do menu głównego oddziału
-document.getElementById('btn-wejdz-do-oddzialu').addEventListener('click', () => {
+// Powrót do dashboardu
+window.backToDashboardFromOddzial = function() {
     document.getElementById('step-9-oddzial-setup').style.display = 'none';
-    document.getElementById('step-10-oddzial-menu').style.display = 'block';
-    document.getElementById('naglowek-oddzial').textContent = `Klasa: ${wybranaKlasaOddzial} | Przedmiot: ${wybranyPrzedmiotOddzial}`;
-});
-
-// Funkcje powrotu
-window.backToOddzialSetup = function() {
-    document.getElementById('step-10-oddzial-menu').style.display = 'none';
-    document.getElementById('step-9-oddzial-setup').style.display = 'block';
+    const dashboard = document.getElementById('dashboard');
+    if(dashboard) dashboard.style.display = 'flex'; // lub 'block' zależnie od Twojego CSS
 };
 
