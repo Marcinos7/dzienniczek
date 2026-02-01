@@ -944,16 +944,53 @@ function loadRealizacja() {
 // ==========================================
 // LOGIKA MODUŁU: DZIENNIK ODDZIAŁU
 // ==========================================
-// 1. Wejście do Dziennika Oddziału z przycisku głównego (btn-dzod)
-document.getElementById('btn-dzod').addEventListener('click', function() {
-    document.getElementById('step-1').style.display = 'none';
-    document.getElementById('step-9-oddzial-setup').style.display = 'block';
-    zaladujKlasyDoOddzialu();
+
+// Używamy window.onload lub sprawdzamy obecność elementów, aby uniknąć błędu "properties of null"
+document.addEventListener('DOMContentLoaded', function() {
+    
+    // 1. Wejście do Dziennika Oddziału z przycisku głównego
+    const btnDzod = document.getElementById('btn-dzod');
+    if (btnDzod) {
+        btnDzod.addEventListener('click', function() {
+            document.getElementById('step-1').style.display = 'none';
+            document.getElementById('step-9-oddzial-setup').style.display = 'block';
+            zaladujKlasyDoOddzialu();
+        });
+    }
+
+    // 2. Pokazywanie przycisku "Otwórz" po wybraniu klasy
+    const listaKlas = document.getElementById('lista-klas-oddzial');
+    if (listaKlas) {
+        listaKlas.addEventListener('change', function() {
+            const btn = document.getElementById('btn-wejdz-do-menu-oddzialu');
+            if (btn) {
+                btn.style.display = (this.value !== "") ? 'block' : 'none';
+            }
+        });
+    }
+
+    // 3. Przejście do Menu Głównego (Krok 10)
+    const btnWejdz = document.getElementById('btn-wejdz-do-menu-oddzialu');
+    if (btnWejdz) {
+        btnWejdz.addEventListener('click', function() {
+            const wybranaKlasa = document.getElementById('lista-klas-oddzial').value;
+            
+            // Przełącz widok
+            document.getElementById('step-9-oddzial-setup').style.display = 'none';
+            document.getElementById('step-10-oddzial-menu').style.display = 'block';
+            
+            // Ustaw nagłówek
+            const naglowek = document.getElementById('naglowek-wybrana-klasa');
+            if (naglowek) naglowek.textContent = `Klasa: ${wybranaKlasa}`;
+        });
+    }
 });
 
-// 2. Pobieranie klas z Firebase
+// 4. Pobieranie klas z Firebase (funkcja zostaje na zewnątrz)
 function zaladujKlasyDoOddzialu() {
     const select = document.getElementById('lista-klas-oddzial');
+    if (!select) return;
+
     db.collection("klasy").get().then((snapshot) => {
         select.innerHTML = '<option value="">-- wybierz klasę --</option>';
         snapshot.forEach((doc) => {
@@ -962,41 +999,19 @@ function zaladujKlasyDoOddzialu() {
             opt.textContent = `Klasa ${doc.id}`;
             select.appendChild(opt);
         });
-    });
+    }).catch(err => console.error("Błąd ładowania klas:", err));
 }
 
-// 3. Pokazywanie przycisku "Otwórz" po wybraniu klasy
-document.getElementById('lista-klas-oddzial').addEventListener('change', function() {
-    const btn = document.getElementById('btn-wejdz-do-menu-oddzialu');
-    if (this.value !== "") {
-        btn.style.display = 'block';
-    } else {
-        btn.style.display = 'none';
-    }
-});
-
-// 4. Przejście do Menu Głównego (Krok 10)
-document.getElementById('btn-wejdz-do-menu-oddzialu').addEventListener('click', function() {
-    const wybranaKlasa = document.getElementById('lista-klas-oddzial').value;
-    
-    // Przełącz widok
-    document.getElementById('step-9-oddzial-setup').style.display = 'none';
-    document.getElementById('step-10-oddzial-menu').style.display = 'block';
-    
-    // Ustaw nagłówek
-    document.getElementById('naglowek-wybrana-klasa').textContent = `Klasa: ${wybranaKlasa}`;
-});
-
-// FUNKCJE POWROTU
-function backToDashboardFromOddzial() {
+// FUNKCJE POWROTU (zostawiamy jako globalne, bo są wywoływane przez onclick w HTML)
+window.backToDashboardFromOddzial = function() {
     document.getElementById('step-9-oddzial-setup').style.display = 'none';
     document.getElementById('step-1').style.display = 'block';
-}
+};
 
-function backToStep9() {
+window.backToStep9 = function() {
     document.getElementById('step-10-oddzial-menu').style.display = 'none';
     document.getElementById('step-9-oddzial-setup').style.display = 'block';
-}
+};
 
 
 
