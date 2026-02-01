@@ -754,16 +754,7 @@ window.backToMenuFromUwagi = function() {
 
 
 
-function hideLoading() {
-  const minTime = 300; // minimalny czas – brak jumpscare
-  const elapsed = Date.now() - loadingStartTime;
-  const delay = Math.max(minTime - elapsed, 0);
 
-  setTimeout(() => {
-    const overlay = document.getElementById("loadingOverlay");
-    if (overlay) overlay.style.display = "none";
-  }, delay);
-}
 
 
 // WYLOGOWANIE
@@ -781,16 +772,7 @@ function loadTeacherData(uid){
     loginDiv.style.display='none';
     dashboardDiv.style.display='flex';
 
-    // ZAŁADUJ WSZYSTKIE KLASy
-    klasaSelect.innerHTML='<option value="">-- Wybierz --</option>';
-    db.collection("klasy").get().then(snapshot=>{
-      snapshot.forEach(doc=>{
-        const opt=document.createElement('option');
-        opt.value=doc.id;
-        opt.textContent=doc.id;
-        klasaSelect.appendChild(opt);
-      });
-    });
+  
 
     // ZAŁADUJ IMIENINY Z API
     fetch('https://api.abalin.net/today?country=pl')
