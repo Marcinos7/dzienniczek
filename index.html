@@ -95,43 +95,7 @@
     <button id="backToDashboardBtn">Powrót</button>
   </header>
 
-  <div id="dashboard">
-    <button id="openDziennikBtn">Lekcja (Dziennik przedmiotowy)</button>
-    
-    <button id="openOddzialBtn" style="background: #8e44ad; color: white;">
-        Dziennik oddziału
-    </button>
-</div>
-
-<div id="step-9-oddzial-setup" style="display:none; padding: 20px;">
-    <button onclick="backToDashboard()">⬅ Powrót</button>
-    <h2>Dziennik oddziału</h2>
-    
-    <div style="margin-bottom: 15px;">
-        <label>Wybierz klasę:</label><br>
-        <select id="lista-klas-oddzial" style="width: 200px; padding: 8px;"></select>
-    </div>
-
-    <div id="wybor-przedmiotu-oddzial" style="display:none; margin-bottom: 15px;">
-        <label>Wybierz przedmiot:</label><br>
-        <select id="lista-przedmiotow-oddzial" style="width: 200px; padding: 8px;"></select>
-    </div>
-
-    <button id="btn-wejdz-do-oddzialu" style="display:none; padding: 10px 20px; background: #27ae60; color: white;">
-        Otwórz panel oddziału
-    </button>
-</div>
-
-<div id="step-10-oddzial-menu" style="display:none; padding: 20px;">
-    <button onclick="backToOddzialSetup()">⬅ Zmień klasę/przedmiot</button>
-    <h3 id="naglowek-oddzial">Klasa: -- | Przedmiot: --</h3>
-    
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-top: 20px;">
-        <button class="menu-oddzial-btn" data-target="lista-oddzialu">Lista oddziału</button>
-        <button class="menu-oddzial-btn" data-target="oceny-koncowe">Oceny semestralne i końcowe</button>
-        <button class="menu-oddzial-btn" data-target="wydruki">Wydruki</button>
-    </div>
-</div>
+  
 <div id="step-5" style="display:none; margin-top: 20px; padding: 20px; border: 2px solid #4A90E2; border-radius: 10px; background-color: #f9f9f9;">
     <h3 id="info-lekcja-tytul" style="color: #4A90E2;">Wybrana lekcja</h3>
     <p>Wybierz panel, do którego chcesz się udać:</p>
