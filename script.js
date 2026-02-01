@@ -451,7 +451,96 @@ function wyczyscPanelOcen() {
 
     console.log("Panel ocen został wyczyszczony.");
 }
+// 1. Otwieranie panelu uwag
+document.querySelector('[data-target="uwagi"]').addEventListener('click', () => {
+    // Ukrywamy krok 5 (menu), pokazujemy krok 7
+    document.getElementById('step-5').style.display = 'none';
+    document.getElementById('step-7-uwagi').style.display = 'block';
 
+    // Wypełniamy select kategoriami
+    const selectKat = document.getElementById('uwaga-kategoria');
+    selectKat.innerHTML = '<option value="">-- wybierz kategorię --</option>';
+    KATEGORIE_UWAG.forEach(kat => {
+        let opt = document.createElement('option');
+        opt.value = kat;
+        opt.textContent = kat;
+        selectKat.appendChild(opt);
+    });
+
+    zaladujUczniowDoUwag();
+});
+
+// 2. Ładowanie uczniów z checkboxami
+function zaladujUczniowDoUwag() {
+    const kontener = document.getElementById('lista-uczniow-uwagi');
+    kontener.innerHTML = "Pobieranie uczniów...";
+
+    db.collection("klasy").doc(wybranaKlasaDlaOcen).collection("uczniowie").orderBy("numer").get()
+        .then(snapshot => {
+            kontener.innerHTML = "";
+            snapshot.forEach(doc => {
+                const u = doc.data();
+                const div = document.createElement('div');
+                div.style.padding = "5px 0";
+                div.style.borderBottom = "1px solid #eee";
+                div.innerHTML = `
+                    <label style="cursor:pointer;">
+                        <input type="checkbox" class="uwaga-uczen-checkbox" value="${doc.id}"> 
+                        ${u.numer}. ${u.imie} ${u.nazwisko}
+                    </label>
+                `;
+                kontener.appendChild(div);
+            });
+        });
+}
+
+// 3. Zapisywanie uwagi
+document.getElementById('btn-zapisz-uwage').addEventListener('click', async () => {
+    const kategoria = document.getElementById('uwaga-kategoria').value;
+    const tresc = document.getElementById('uwaga-tresc').value;
+    const zaznaczeniUczniowie = document.querySelectorAll('.uwaga-uczen-checkbox:checked');
+
+    if (!kategoria || !tresc || zaznaczeniUczniowie.length === 0) {
+        return alert("Uzupełnij kategorię, treść i zaznacz przynajmniej jednego ucznia!");
+    }
+
+    const batch = db.batch();
+    const dzis = new Date().toISOString().split('T')[0];
+
+    zaznaczeniUczniowie.forEach(checkbox => {
+        const studentId = checkbox.value;
+        const nowaUwagaRef = db.collection("klasy")
+                               .doc(wybranaKlasaDlaOcen)
+                               .collection("uwagi")
+                               .doc(); // Unikalne ID dla każdej uwagi
+
+        batch.set(nowaUwagaRef, {
+            studentId: studentId,
+            kategoria: kategoria,
+            tresc: tresc,
+            data: dzis,
+            nauczyciel: userName.textContent,
+            przedmiot: aktywnyPrzedmiot,
+            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        });
+    });
+
+    try {
+        await batch.commit();
+        alert(`Pomyślnie dodano uwagi dla ${zaznaczeniUczniowie.length} osób.`);
+        // Czyszczenie
+        document.getElementById('uwaga-tresc').value = "";
+        backToMenuFromUwagi();
+    } catch (err) {
+        console.error("Błąd uwag:", err);
+        alert("Błąd zapisu: " + err.message);
+    }
+});
+
+window.backToMenuFromUwagi = function() {
+    document.getElementById('step-7-uwagi').style.display = 'none';
+    document.getElementById('step-5').style.display = 'block';
+};
 
 
 
