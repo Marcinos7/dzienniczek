@@ -482,26 +482,30 @@ document.getElementById('btn-zapisz-projekt').addEventListener('click', () => {
     });
 });
 
-// 5. Pobieranie danych do kalendarza
-function wczytajWydarzeniaDlaDnia(data) {
-    db.collection("klasy").doc(wybranaKlasaDlaOcen).collection("terminarz")
-      .where("data", "==", data).get()
-      .then(snapshot => {
-          const kontener = document.getElementById(`projekty-${data}`);
-          snapshot.forEach(doc => {
-              const d = doc.data();
-              let p = document.createElement('div');
-              p.style = "background: #e8f4fd; margin-bottom: 5px; padding: 5px; border-left: 3px solid #3498db;";
-              p.innerHTML = `<strong>[${d.typ}]</strong><br>${d.przedmiot}: ${d.tresc}`;
-              kontener.appendChild(p);
-          });
-      });
-}
+<div id="step-8-projekty" style="display:none; padding: 20px;">
+    <button onclick="backToMenuFromProjekty()" style="margin-bottom: 15px;">⬅ Powrót do menu</button>
+    
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <button onclick="zmienMiesiac(-1)">◀ Poprzedni</button>
+        <h2 id="kalendarz-tytul" style="margin: 0;">Miesiąc Rok</h2>
+        <button onclick="zmienMiesiac(1)">Następny ▶</button>
+    </div>
 
-window.backToMenuFromProjekty = function() {
-    document.getElementById('step-8-projekty').style.display = 'none';
-    document.getElementById('step-5').style.display = 'block';
-};
+    <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; text-align: center; font-weight: bold; background: #eee; padding: 10px 0;">
+        <div>Pon</div><div>Wt</div><div>Śr</div><div>Czw</div><div>Pt</div><div>Sob</div><div>Ndz</div>
+    </div>
+
+    <div id="calendar-cells" style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; background: #ddd; border: 1px solid #ddd;">
+        </div>
+
+    <div id="modal-projekt" style="display:none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 20px; border: 2px solid #333; z-index: 1000; border-radius: 12px; box-shadow: 0 0 20px rgba(0,0,0,0.5); width: 320px;">
+        <h4 id="modal-data-display">Dodaj wydarzenie</h4>
+        <div style="margin-top: 15px; display: flex; justify-content: space-between;">
+            <button onclick="zamknijModalProjektu()">Anuluj</button>
+            <button id="btn-zapisz-projekt" style="background: #27ae60; color: white;">Zapisz</button>
+        </div>
+    </div>
+</div>
 // Funkcja powrotu
 window.backToMenu = function() {
     sekcjaStep6.style.display = 'none';
