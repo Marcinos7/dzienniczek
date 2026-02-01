@@ -8,6 +8,24 @@ const KATEGORIE_UWAG = [
   "szacunek do innych osób",
   "zachowanie na lekcji"
 ];
+// lista przedmiotów
+const PRZEDMIOTY = [
+  "biologia",
+  "chemia",
+  "edukacja dla bezpieczeństwa",
+  "fizyka",
+  "geografia",
+  "historia",
+  "informatyka",
+  "język angielski",
+  "język hiszpański",
+  "język polski",
+  "matematyka",
+  "religia",
+  "wiedza o społeczeństwie",
+  "wychowanie fizyczne"
+];
+
 
 // GODZINY LEKCJI
 const godzinyLekcji = [
@@ -376,7 +394,114 @@ document.getElementById('btn-generuj-tabele').addEventListener('click', () => {
             tbody.innerHTML = `<tr><td colspan='4'>Błąd: ${err.message}</td></tr>`;
         });
 });
+let wybranaDataProjektu = "";
 
+// 1. Otwieranie panelu projektów
+document.querySelector('[data-target="projekty"]').addEventListener('click', () => {
+    document.getElementById('step-5').style.display = 'none';
+    document.getElementById('step-8-projekty').style.display = 'block';
+    document.getElementById('projekty-tytul').textContent = `Terminarz dla klasy: ${wybranaKlasaDlaOcen}`;
+    
+    generujDniTygodnia();
+});
+
+// 2. Generowanie siatki kalendarza
+function generujDniTygodnia() {
+    const grid = document.querySelector('.calendar-grid');
+    grid.innerHTML = "";
+    const dniNazwy = ["Poniedziałek", "Wtorek", "Środa", "Czwartek", "Piątek", "Sobota", "Niedziela"];
+    
+    // Obliczamy daty bieżącego tygodnia
+    let dzis = new Date();
+    let dzienTyg = dzis.getDay(); // 0 (nd) - 6 (sb)
+    let roznica = dzis.getDate() - (dzienTyg === 0 ? 6 : dzienTyg - 1);
+    let poniedzialek = new Date(dzis.setDate(roznica));
+
+    dniNazwy.forEach((nazwa, i) => {
+        let dataDnia = new Date(poniedzialek);
+        dataDnia.setDate(poniedzialek.getDate() + i);
+        let isoData = dataDnia.toISOString().split('T')[0];
+
+        let divDzien = document.createElement('div');
+        divDzien.className = 'dzien-kolumna';
+        divDzien.style = "border: 1px solid #ccc; padding: 10px; min-height: 150px; background: #fff;";
+        divDzien.innerHTML = `
+            <div style="border-bottom: 2px solid #eee; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;">
+                <strong>${nazwa}</strong>
+                <button onclick="otworzModalProjektu('${isoData}')" style="background: #3498db; color: white; border: none; border-radius: 50%; width: 25px; height: 25px; cursor: pointer;">+</button>
+            </div>
+            <div id="projekty-${isoData}" style="font-size: 12px; color: #555;"></div>
+        `;
+        grid.appendChild(divDzien);
+        wczytajWydarzeniaDlaDnia(isoData);
+    });
+}
+
+// 3. Obsługa Modala
+window.otworzModalProjektu = function(data) {
+    wybranaDataProjektu = data;
+    document.getElementById('modal-data-display').textContent = `Data: ${data}`;
+    
+    // Wypełniamy listę przedmiotów z Twojej stałej PRZEDMIOTY
+    const selectP = document.getElementById('projekt-przedmiot');
+    selectP.innerHTML = "";
+    PRZEDMIOTY.forEach(p => {
+        let opt = document.createElement('option');
+        opt.value = p;
+        opt.textContent = p;
+        if(p === aktywnyPrzedmiot) opt.selected = true; // Domyślnie ten, który wybraliśmy w dzienniku
+        selectP.appendChild(opt);
+    });
+
+    document.getElementById('modal-projekt').style.display = 'block';
+};
+
+window.zamknijModalProjektu = function() {
+    document.getElementById('modal-projekt').style.display = 'none';
+    document.getElementById('projekt-tresc').value = "";
+};
+
+// 4. Zapis do Firebase (kolekcja 'terminarz' wewnątrz klasy)
+document.getElementById('btn-zapisz-projekt').addEventListener('click', () => {
+    const typ = document.getElementById('projekt-typ').value;
+    const przedmiot = document.getElementById('projekt-przedmiot').value;
+    const tresc = document.getElementById('projekt-tresc').value;
+
+    if(!tresc) return alert("Wpisz treść wydarzenia!");
+
+    db.collection("klasy").doc(wybranaKlasaDlaOcen).collection("terminarz").add({
+        data: wybranaDataProjektu,
+        typ: typ,
+        przedmiot: przedmiot,
+        tresc: tresc,
+        nauczyciel: userName.textContent,
+        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+    }).then(() => {
+        zamknijModalProjektu();
+        generujDniTygodnia(); // Odśwież kalendarz
+    });
+});
+
+// 5. Pobieranie danych do kalendarza
+function wczytajWydarzeniaDlaDnia(data) {
+    db.collection("klasy").doc(wybranaKlasaDlaOcen).collection("terminarz")
+      .where("data", "==", data).get()
+      .then(snapshot => {
+          const kontener = document.getElementById(`projekty-${data}`);
+          snapshot.forEach(doc => {
+              const d = doc.data();
+              let p = document.createElement('div');
+              p.style = "background: #e8f4fd; margin-bottom: 5px; padding: 5px; border-left: 3px solid #3498db;";
+              p.innerHTML = `<strong>[${d.typ}]</strong><br>${d.przedmiot}: ${d.tresc}`;
+              kontener.appendChild(p);
+          });
+      });
+}
+
+window.backToMenuFromProjekty = function() {
+    document.getElementById('step-8-projekty').style.display = 'none';
+    document.getElementById('step-5').style.display = 'block';
+};
 // Funkcja powrotu
 window.backToMenu = function() {
     sekcjaStep6.style.display = 'none';
