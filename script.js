@@ -579,6 +579,14 @@ window.backToMenuFromProjekty = function() {
 
 
 
+
+
+
+
+
+
+
+
 // Funkcja powrotu
 window.backToMenu = function() {
     sekcjaStep6.style.display = 'none';
@@ -970,27 +978,70 @@ function loadRealizacja() {
     });
 }
 
-function saveRealizacja(przedmiot, docId){
-    const data = {
-        temat: document.getElementById(`temat_${przedmiot}_${docId}`).value,
-        godzina: document.getElementById(`godzina_${przedmiot}_${docId}`).value
-    };
-    db.collection("klasy").doc(aktualnaKlasa)
-      .collection("realizacja").doc(przedmiot)
-      .collection("daty").doc(docId)
-      .set(data)
-      .then(()=> alert("Zapisano!"))
-      .catch(err => alert("Błąd: "+err));
+// Zmienne pomocnicze
+let wybranaKlasaOddzial = "";
+let wybranyPrzedmiotOddzial = "";
+
+// 1. Otwieranie Dziennika Oddziału
+document.getElementById('openOddzialBtn').addEventListener('click', () => {
+    dashboardDiv.style.display = 'none';
+    document.getElementById('step-9-oddzial-setup').style.display = 'block';
+    
+    // Wypełniamy listę klas (zakładam, że masz funkcję pobierającą klasy)
+    zaladujKlasyDoOddzialu();
+});
+
+// 2. Ładowanie klas do selecta
+function zaladujKlasyDoOddzialu() {
+    const select = document.getElementById('lista-klas-oddzial');
+    select.innerHTML = '<option value="">-- wybierz klasę --</option>';
+    
+    db.collection("klasy").get().then(snapshot => {
+        snapshot.forEach(doc => {
+            let opt = document.createElement('option');
+            opt.value = doc.id;
+            opt.textContent = doc.id;
+            select.appendChild(opt);
+        });
+    });
 }
 
-function dodajDzien(przedmiot){
-    const newDate = prompt("Podaj datę (YYYY-MM-DD):");
-    if(newDate){
-        db.collection("klasy").doc(aktualnaKlasa)
-          .collection("realizacja").doc(przedmiot)
-          .collection("daty").doc(newDate)
-          .set({temat:'', godzina:''})
-          .then(() => loadRealizacja());
+// 3. Po wybraniu klasy pokazujemy wybór przedmiotu
+document.getElementById('lista-klas-oddzial').addEventListener('change', (e) => {
+    wybranaKlasaOddzial = e.target.value;
+    if (wybranaKlasaOddzial) {
+        document.getElementById('wybor-przedmiotu-oddzial').style.display = 'block';
+        
+        // Wypełniamy przedmioty z Twojej stałej PRZEDMIOTY
+        const selectP = document.getElementById('lista-przedmiotow-oddzial');
+        selectP.innerHTML = '<option value="">-- wybierz przedmiot --</option>';
+        PRZEDMIOTY.forEach(p => {
+            let opt = document.createElement('option');
+            opt.value = p;
+            opt.textContent = p;
+            selectP.appendChild(opt);
+        });
     }
-}
+});
+
+// 4. Po wybraniu przedmiotu pokazujemy przycisk wejścia
+document.getElementById('lista-przedmiotow-oddzial').addEventListener('change', (e) => {
+    wybranyPrzedmiotOddzial = e.target.value;
+    if (wybranyPrzedmiotOddzial) {
+        document.getElementById('btn-wejdz-do-oddzialu').style.display = 'inline-block';
+    }
+});
+
+// 5. Wejście do menu głównego oddziału
+document.getElementById('btn-wejdz-do-oddzialu').addEventListener('click', () => {
+    document.getElementById('step-9-oddzial-setup').style.display = 'none';
+    document.getElementById('step-10-oddzial-menu').style.display = 'block';
+    document.getElementById('naglowek-oddzial').textContent = `Klasa: ${wybranaKlasaOddzial} | Przedmiot: ${wybranyPrzedmiotOddzial}`;
+});
+
+// Funkcje powrotu
+window.backToOddzialSetup = function() {
+    document.getElementById('step-10-oddzial-menu').style.display = 'none';
+    document.getElementById('step-9-oddzial-setup').style.display = 'block';
+};
 
