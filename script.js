@@ -466,26 +466,46 @@ window.zamknijModalProjektu = function() {
     document.getElementById('projekt-tresc').value = "";
 };
 
-// 4. Zapis do Firebase (kolekcja 'terminarz' wewnątrz klasy)
-document.getElementById('btn-zapisz-projekt').addEventListener('click', () => {
+// 4. Zapis do Firebase (KOLEKCJA 'terminarz' - WERSJA POPRAWIONA)
+document.getElementById('btn-zapisz-projekt').onclick = async function() {
+    const btn = this; // Odniesienie do przycisku
     const typ = document.getElementById('projekt-typ').value;
     const przedmiot = document.getElementById('projekt-przedmiot').value;
     const tresc = document.getElementById('projekt-tresc').value;
 
     if(!tresc) return alert("Wpisz treść wydarzenia!");
 
-    db.collection("klasy").doc(wybranaKlasaDlaOcen).collection("terminarz").add({
-        data: wybranaDataProjektu,
-        typ: typ,
-        przedmiot: przedmiot,
-        tresc: tresc,
-        nauczyciel: userName.textContent,
-        timestamp: firebase.firestore.FieldValue.serverTimestamp()
-    }).then(() => {
+    // 1. Blokujemy przycisk, aby zapobiec dublowaniu przy szybkim klikaniu
+    btn.disabled = true;
+    btn.textContent = "Zapisywanie...";
+
+    try {
+        // 2. Wysyłamy dane do Firebase
+        await db.collection("klasy")
+            .doc(wybranaKlasaDlaOcen)
+            .collection("terminarz")
+            .add({
+                data: wybranaDataDlaProjektu, // Upewnij się, że nazwa zmiennej zgadza się z tą w JS (wybranaDataDlaProjektu)
+                typ: typ,
+                przedmiot: przedmiot,
+                tresc: tresc,
+                nauczyciel: userName.textContent,
+                timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            });
+
+        // 3. Sukces: zamykamy okno i odświeżamy widok
         zamknijModalProjektu();
-        generujDniTygodnia(); // Odśwież kalendarz
-    });
-});
+        rysujKalendarz(); // Wywołujemy rysowanie miesiąca
+        
+    } catch (error) {
+        console.error("Błąd zapisu:", error);
+        alert("Wystąpił błąd podczas zapisu: " + error.message);
+    } finally {
+        // 4. Odblokowujemy przycisk niezależnie od wyniku
+        btn.disabled = false;
+        btn.textContent = "Zapisz w kalendarzu";
+    }
+};
 
 let obecnaDataKalendarza = new Date();
 let wybranaDataDlaProjektu = "";
