@@ -853,14 +853,7 @@ function resetDziennikDoPoczatku() {
 
     console.log("Dziennik został zresetowany do stanu początkowego.");
 }
-// ZAŁADUJ KLASĘ
-zaladujKlaseBtn.addEventListener('click',()=>{
-  const klasa = klasaSelect.value;
-  if(!klasa) return alert("Wybierz klasę!");
-  aktualnaKlasa = klasa;
-  paneleDiv.style.display='block';
-  panelContent.innerHTML="<p>Załaduj 'Realizacja zajęć', aby odblokować resztę paneli.</p>";
-});
+
 
 // PANELE
 panelBtns.forEach(btn => {
