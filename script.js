@@ -401,127 +401,73 @@ let wybranaDataProjektu = "";
 
 
 
+let obecnaDataKalendarza = new Date();
+let wybranaDataDlaProjektu = "";
+
 // 1. Otwieranie panelu projektów
 document.querySelector('[data-target="projekty"]').addEventListener('click', () => {
     document.getElementById('step-5').style.display = 'none';
     document.getElementById('step-8-projekty').style.display = 'block';
-    document.getElementById('projekty-tytul').textContent = `Terminarz dla klasy: ${wybranaKlasaDlaOcen}`;
     
-    generujDniTygodnia();
-});
-
-// 2. Generowanie siatki kalendarza
-function generujDniTygodnia() {
-    const grid = document.querySelector('.calendar-grid');
-    grid.innerHTML = "";
-    const dniNazwy = ["Poniedziałek", "Wtorek", "Środa", "Czwartek", "Piątek", "Sobota", "Niedziela"];
+    // RESET PRZYCISKU: Usuwamy wszystkie stare nasłuchiwacze, kopiując przycisk
+    const staryBtn = document.getElementById('btn-zapisz-projekt');
+    const nowyBtn = staryBtn.cloneNode(true);
+    staryBtn.parentNode.replaceChild(nowyBtn, staryBtn);
     
-    // Obliczamy daty bieżącego tygodnia
-    let dzis = new Date();
-    let dzienTyg = dzis.getDay(); // 0 (nd) - 6 (sb)
-    let roznica = dzis.getDate() - (dzienTyg === 0 ? 6 : dzienTyg - 1);
-    let poniedzialek = new Date(dzis.setDate(roznica));
-
-    dniNazwy.forEach((nazwa, i) => {
-        let dataDnia = new Date(poniedzialek);
-        dataDnia.setDate(poniedzialek.getDate() + i);
-        let isoData = dataDnia.toISOString().split('T')[0];
-
-        let divDzien = document.createElement('div');
-        divDzien.className = 'dzien-kolumna';
-        divDzien.style = "border: 1px solid #ccc; padding: 10px; min-height: 150px; background: #fff;";
-        divDzien.innerHTML = `
-            <div style="border-bottom: 2px solid #eee; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;">
-                <strong>${nazwa}</strong>
-                <button onclick="otworzModalProjektu('${isoData}')" style="background: #3498db; color: white; border: none; border-radius: 50%; width: 25px; height: 25px; cursor: pointer;">+</button>
-            </div>
-            <div id="projekty-${isoData}" style="font-size: 12px; color: #555;"></div>
-        `;
-        grid.appendChild(divDzien);
-        wczytajWydarzeniaDlaDnia(isoData);
-    });
-}
-
-// 3. Obsługa Modala
-window.otworzModalProjektu = function(data) {
-    wybranaDataProjektu = data;
-    document.getElementById('modal-data-display').textContent = `Data: ${data}`;
+    // Ponowne przypisanie logiki zapisu do czystego przycisku
+    inicjujLogikeZapisu();
     
-    // Wypełniamy listę przedmiotów z Twojej stałej PRZEDMIOTY
-    const selectP = document.getElementById('projekt-przedmiot');
-    selectP.innerHTML = "";
-    PRZEDMIOTY.forEach(p => {
-        let opt = document.createElement('option');
-        opt.value = p;
-        opt.textContent = p;
-        if(p === aktywnyPrzedmiot) opt.selected = true; // Domyślnie ten, który wybraliśmy w dzienniku
-        selectP.appendChild(opt);
-    });
-
-    document.getElementById('modal-projekt').style.display = 'block';
-};
-
-window.zamknijModalProjektu = function() {
-    document.getElementById('modal-projekt').style.display = 'none';
-    document.getElementById('projekt-tresc').value = "";
-};
-
-// 4. Zapis do Firebase (KOLEKCJA 'terminarz' - WERSJA POPRAWIONA)
-document.getElementById('btn-zapisz-projekt').onclick = async function() {
-    const btn = this; // Odniesienie do przycisku
-    const typ = document.getElementById('projekt-typ').value;
-    const przedmiot = document.getElementById('projekt-przedmiot').value;
-    const tresc = document.getElementById('projekt-tresc').value;
-
-    if(!tresc) return alert("Wpisz treść wydarzenia!");
-
-    // 1. Blokujemy przycisk, aby zapobiec dublowaniu przy szybkim klikaniu
-    btn.disabled = true;
-    btn.textContent = "Zapisywanie...";
-
-    try {
-        // 2. Wysyłamy dane do Firebase
-        await db.collection("klasy")
-            .doc(wybranaKlasaDlaOcen)
-            .collection("terminarz")
-            .add({
-                data: wybranaDataDlaProjektu, // Upewnij się, że nazwa zmiennej zgadza się z tą w JS (wybranaDataDlaProjektu)
-                typ: typ,
-                przedmiot: przedmiot,
-                tresc: tresc,
-                nauczyciel: userName.textContent,
-                timestamp: firebase.firestore.FieldValue.serverTimestamp()
-            });
-
-        // 3. Sukces: zamykamy okno i odświeżamy widok
-        zamknijModalProjektu();
-        rysujKalendarz(); // Wywołujemy rysowanie miesiąca
-        
-    } catch (error) {
-        console.error("Błąd zapisu:", error);
-        alert("Wystąpił błąd podczas zapisu: " + error.message);
-    } finally {
-        // 4. Odblokowujemy przycisk niezależnie od wyniku
-        btn.disabled = false;
-        btn.textContent = "Zapisz w kalendarzu";
-    }
-};
-
-let obecnaDataKalendarza = new Date();
-let wybranaDataDlaProjektu = "";
-
-// 1. Otwieranie panelu
-document.querySelector('[data-target="projekty"]').addEventListener('click', () => {
-    document.getElementById('step-5').style.display = 'none';
-    document.getElementById('step-8-projekty').style.display = 'block';
     rysujKalendarz();
 });
 
-// 2. Funkcja główna rysująca kalendarz
+// 2. Funkcja inicjująca zapis (wywoływana raz przy otwarciu panelu)
+function inicjujLogikeZapisu() {
+    const btn = document.getElementById('btn-zapisz-projekt');
+    
+    btn.onclick = async function() {
+        const typ = document.getElementById('projekt-typ').value;
+        const przedmiot = document.getElementById('projekt-przedmiot').value;
+        const tresc = document.getElementById('projekt-tresc').value;
+
+        if(!tresc) return alert("Wpisz treść wydarzenia!");
+
+        // Blokada przycisku
+        btn.disabled = true;
+        btn.textContent = "Zapisywanie...";
+
+        try {
+            await db.collection("klasy")
+                .doc(wybranaKlasaDlaOcen)
+                .collection("terminarz")
+                .add({
+                    data: wybranaDataDlaProjektu,
+                    typ: typ,
+                    przedmiot: przedmiot,
+                    tresc: tresc,
+                    nauczyciel: userName.textContent,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                });
+
+            zamknijModalProjektu();
+            rysujKalendarz(); // Odświeżenie widoku
+            
+        } catch (error) {
+            console.error("Błąd zapisu:", error);
+            alert("Błąd: " + error.message);
+        } finally {
+            btn.disabled = false;
+            btn.textContent = "Zapisz w kalendarzu";
+        }
+    };
+}
+
+// 3. Funkcja główna rysująca kalendarz miesięczny
 async function rysujKalendarz() {
     const cells = document.getElementById('calendar-cells');
     const tytul = document.getElementById('kalendarz-tytul');
-    cells.innerHTML = "";
+    if (!cells) return;
+    
+    cells.innerHTML = ""; // Czyścimy siatkę
 
     const rok = obecnaDataKalendarza.getFullYear();
     const miesiac = obecnaDataKalendarza.getMonth();
@@ -532,17 +478,17 @@ async function rysujKalendarz() {
     const pierwszyDzienMiesiaca = new Date(rok, miesiac, 1).getDay();
     const dniWMiesiacu = new Date(rok, miesiac + 1, 0).getDate();
     
-    // Korekta na poniedziałek jako pierwszy dzień tygodnia
+    // Korekta na polski tydzień (Poniedziałek = 0)
     let przesuniecie = pierwszyDzienMiesiaca === 0 ? 6 : pierwszyDzienMiesiaca - 1;
 
-    // Puste kratki na początku
+    // Puste kratki na początku miesiąca
     for (let i = 0; i < przesuniecie; i++) {
         let emptyDiv = document.createElement('div');
         emptyDiv.style = "background: #ecf0f1; min-height: 110px; border: 1px solid #bdc3c7;";
         cells.appendChild(emptyDiv);
     }
 
-    // Kratki dni
+    // Generowanie kratek dni
     for (let dzien = 1; dzien <= dniWMiesiacu; dzien++) {
         const dataStr = `${rok}-${String(miesiac + 1).padStart(2, '0')}-${String(dzien).padStart(2, '0')}`;
         
@@ -560,64 +506,15 @@ async function rysujKalendarz() {
     }
 }
 
-// 3. Przełączanie miesięcy
-window.zmienMiesiac = function(kierunek) {
-    obecnaDataKalendarza.setMonth(obecnaDataKalendarza.getMonth() + kierunek);
-    rysujKalendarz();
-};
-
-// 4. Modal i przedmioty
-window.otworzModalProjektu = function(data) {
-    wybranaDataDlaProjektu = data;
-    document.getElementById('modal-data-display').textContent = `Wybrana data: ${data}`;
-    
-    const selectP = document.getElementById('projekt-przedmiot');
-    selectP.innerHTML = "";
-    // Używamy Twojej stałej PRZEDMIOTY
-    PRZEDMIOTY.forEach(p => {
-        let opt = document.createElement('option');
-        opt.value = p;
-        opt.textContent = p;
-        if(p === aktywnyPrzedmiot) opt.selected = true;
-        selectP.appendChild(opt);
-    });
-
-    document.getElementById('modal-projekt').style.display = 'block';
-};
-
-window.zamknijModalProjektu = function() {
-    document.getElementById('modal-projekt').style.display = 'none';
-    document.getElementById('projekt-tresc').value = "";
-};
-
-// 5. Zapis do bazy
-document.getElementById('btn-zapisz-projekt').addEventListener('click', () => {
-    const typ = document.getElementById('projekt-typ').value;
-    const przedmiot = document.getElementById('projekt-przedmiot').value;
-    const tresc = document.getElementById('projekt-tresc').value;
-
-    if(!tresc) return alert("Wpisz treść!");
-
-    db.collection("klasy").doc(wybranaKlasaDlaOcen).collection("terminarz").add({
-        data: wybranaDataDlaProjektu,
-        typ: typ,
-        przedmiot: przedmiot,
-        tresc: tresc,
-        nauczyciel: userName.textContent,
-        timestamp: firebase.firestore.FieldValue.serverTimestamp()
-    }).then(() => {
-        zamknijModalProjektu();
-        rysujKalendarz();
-    }).catch(err => alert("Błąd zapisu: " + err));
-});
-
-// 6. Odczyt z bazy
+// 4. Pobieranie i wyświetlanie wydarzeń z usuwaniem
 function wczytajWydarzeniaDlaDnia(data) {
+    const kontener = document.getElementById(`projekty-lista-${data}`);
+    if(!kontener) return;
+    kontener.innerHTML = ""; // Czyścimy przed załadowaniem (zapobiega powielaniu widoku)
+
     db.collection("klasy").doc(wybranaKlasaDlaOcen).collection("terminarz")
       .where("data", "==", data).get()
       .then(snapshot => {
-          const kontener = document.getElementById(`projekty-lista-${data}`);
-          if(!kontener) return;
           snapshot.forEach(doc => {
               const d = doc.data();
               let kolor = "#d1d8e0"; 
@@ -626,13 +523,52 @@ function wczytajWydarzeniaDlaDnia(data) {
               if(d.typ === 'zadanie domowe') kolor = "#74b9ff";
 
               let badge = document.createElement('div');
-              badge.style = `background: ${kolor}; font-size: 9px; padding: 2px; border-radius: 2px; border: 1px solid rgba(0,0,0,0.1); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: help;`;
-              badge.title = `${d.typ.toUpperCase()}: ${d.tresc}`;
+              badge.style = `background: ${kolor}; font-size: 9px; padding: 2px; border-radius: 2px; border: 1px solid rgba(0,0,0,0.1); cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;`;
+              badge.title = `KLIKNIJ ABY USUNĄĆ | ${d.typ.toUpperCase()}: ${d.tresc}`;
               badge.textContent = `${d.przedmiot}: ${d.tresc}`;
+              
+              // DODATEK: Usuwanie po kliknięciu w "pasek"
+              badge.onclick = async (e) => {
+                  e.stopPropagation();
+                  if(confirm(`Czy na pewno usunąć: ${d.tresc}?`)) {
+                      await db.collection("klasy").doc(wybranaKlasaDlaOcen).collection("terminarz").doc(doc.id).delete();
+                      rysujKalendarz();
+                  }
+              };
+              
               kontener.appendChild(badge);
           });
       });
 }
+
+// 5. Nawigacja i Modal
+window.zmienMiesiac = function(kierunek) {
+    obecnaDataKalendarza.setMonth(obecnaDataKalendarza.getMonth() + kierunek);
+    rysujKalendarz();
+};
+
+window.otworzModalProjektu = function(data) {
+    wybranaDataDlaProjektu = data;
+    document.getElementById('modal-data-display').textContent = `Wybrana data: ${data}`;
+    
+    const selectP = document.getElementById('projekt-przedmiot');
+    if(selectP) {
+        selectP.innerHTML = "";
+        PRZEDMIOTY.forEach(p => {
+            let opt = document.createElement('option');
+            opt.value = p;
+            opt.textContent = p;
+            if(p === aktywnyPrzedmiot) opt.selected = true;
+            selectP.appendChild(opt);
+        });
+    }
+    document.getElementById('modal-projekt').style.display = 'block';
+};
+
+window.zamknijModalProjektu = function() {
+    document.getElementById('modal-projekt').style.display = 'none';
+    document.getElementById('projekt-tresc').value = "";
+};
 
 window.backToMenuFromProjekty = function() {
     document.getElementById('step-8-projekty').style.display = 'none';
