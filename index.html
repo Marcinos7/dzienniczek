@@ -217,6 +217,20 @@
         OTWÓRZ PANEL ODDZIAŁU
     </button>
 </div>
+<div id="step-10-oddzial-menu" style="display:none; padding: 20px;">
+    <button onclick="backToOddzialSetup()" style="margin-bottom: 20px;">⬅ Zmień klasę/przedmiot</button>
+    
+    <div style="background: #8e44ad; color: white; padding: 15px; border-radius: 10px; margin-bottom: 20px;">
+        <h3 id="naglowek-oddzial" style="margin:0;">Klasa: -- | Przedmiot: --</h3>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+        <button class="panel-nav-btn" onclick="otworzListeUczniow()">👥 Lista oddziału</button>
+        <button class="panel-nav-btn" onclick="otworzOcenyKoncowe()">🎓 Oceny semestralne i końcowe</button>
+        <button class="panel-nav-btn" onclick="otworzWydruki()">🖨️ Wydruki</button>
+    </div>
+</div>
+
 
 
 

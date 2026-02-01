@@ -982,32 +982,97 @@ function loadRealizacja() {
 
 
 
-// Obsługa kliknięcia w główny przycisk "Dziennik oddziału"
+// ==========================================
+// LOGIKA MODUŁU: DZIENNIK ODDZIAŁU
+// ==========================================
+
+// 1. OTWARCIE USTAWIEŃ (KROK 9)
+// Po kliknięciu głównego przycisku w KROKU 1
 document.getElementById('btn-dzod').addEventListener('click', function() {
     // Ukrywamy widok startowy
     document.getElementById('step-1').style.display = 'none';
-    
-    // Pokazujemy sekcję ustawień oddziału
+    // Pokazujemy formularz wyboru
     document.getElementById('step-9-oddzial-setup').style.display = 'block';
     
-    // Od razu wywołujemy funkcję, która pobierze klasy z bazy danych
+    // Pobieramy klasy z bazy Firebase
     zaladujKlasyDoOddzialu();
 });
 
-// Funkcja, która pobiera listę klas z Twojego Firebase
+// 2. FUNKCJA ŁADOWANIA KLAS Z FIREBASE
 function zaladujKlasyDoOddzialu() {
     const selectKlasa = document.getElementById('lista-klas-oddzial');
     
     db.collection("klasy").get().then((querySnapshot) => {
-        // Czyścimy listę i dodajemy opcję domyślną
+        // Czyścimy listę i dodajemy opcję startową
         selectKlasa.innerHTML = '<option value="">-- wybierz klasę --</option>';
         
         querySnapshot.forEach((doc) => {
             let opt = document.createElement('option');
             opt.value = doc.id;
-            opt.textContent = doc.id;
+            opt.textContent = `Klasa ${doc.id}`;
             selectKlasa.appendChild(opt);
         });
+    }).catch(err => {
+        console.error("Błąd ładowania klas:", err);
+        alert("Błąd połączenia z bazą danych.");
     });
 }
+
+// 3. OBSŁUGA KASKADOWEGO WYBORU (Klasa -> Przedmiot -> Przycisk)
+// Gdy wybierzesz klasę, pokaż wybór przedmiotu
+document.getElementById('lista-klas-oddzial').addEventListener('change', function() {
+    const kontenerPrzedmiot = document.getElementById('kontener-przedmiot-oddzial');
+    const selectPrzedmiot = document.getElementById('lista-przedmiotow-oddzial');
+
+    if (this.value !== "") {
+        kontenerPrzedmiot.style.display = 'block';
+        
+        // Wypełniamy przedmioty z Twojej stałej PRZEDMIOTY
+        selectPrzedmiot.innerHTML = '<option value="">-- wybierz przedmiot --</option>';
+        PRZEDMIOTY.forEach(p => {
+            let opt = document.createElement('option');
+            opt.value = p;
+            opt.textContent = p;
+            selectPrzedmiot.appendChild(opt);
+        });
+    } else {
+        kontenerPrzedmiot.style.display = 'none';
+        document.getElementById('btn-final-wejscie').style.display = 'none';
+    }
+});
+
+// Gdy wybierzesz przedmiot, pokaż zielony przycisk wejścia
+document.getElementById('lista-przedmiotow-oddzial').addEventListener('change', function() {
+    const btnFinal = document.getElementById('btn-final-wejscie');
+    if (this.value !== "") {
+        btnFinal.style.display = 'block';
+    } else {
+        btnFinal.style.display = 'none';
+    }
+});
+
+// 4. WEJŚCIE DO MENU GŁÓWNEGO ODDZIAŁU (KROK 10)
+document.getElementById('btn-final-wejscie').addEventListener('click', function() {
+    const wybranaKlasa = document.getElementById('lista-klas-oddzial').value;
+    const wybranyPrzedmiot = document.getElementById('lista-przedmiotow-oddzial').value;
+
+    // Przełączamy widoki
+    document.getElementById('step-9-oddzial-setup').style.display = 'none';
+    document.getElementById('step-10-oddzial-menu').style.display = 'block';
+
+    // Aktualizujemy fioletowy pasek informacyjny
+    document.getElementById('naglowek-oddzial').textContent = `Klasa: ${wybranaKlasa} | Przedmiot: ${wybranyPrzedmiot}`;
+});
+
+// FUNKCJA POWROTU DO DASHBOARDU
+window.backToDashboardFromOddzial = function() {
+    document.getElementById('step-9-oddzial-setup').style.display = 'none';
+    document.getElementById('step-1').style.display = 'block';
+};
+
+// FUNKCJA POWROTU DO USTAWIEŃ (Z KROKU 10 DO 9)
+window.backToOddzialSetup = function() {
+    document.getElementById('step-10-oddzial-menu').style.display = 'none';
+    document.getElementById('step-9-oddzial-setup').style.display = 'block';
+};
 
