@@ -1075,3 +1075,69 @@ window.backToOddzialSetup = function() {
     document.getElementById('step-9-oddzial-setup').style.display = 'block';
 };
 
+
+
+
+
+//SPRAWDZANIE
+// Ta funkcja czeka, aż strona się załaduje, żeby nie było błędu "null"
+window.addEventListener('DOMContentLoaded', () => {
+    
+    const btnDzod = document.getElementById('btn-dzod');
+
+    if (btnDzod) {
+        btnDzod.onclick = function() {
+            // 1. Ukrywamy start
+            document.getElementById('step-1').style.display = 'none';
+            // 2. Pokazujemy ustawienia oddziału
+            document.getElementById('step-9-oddzial-setup').style.display = 'block';
+            // 3. Odpalamy ładowanie klas
+            zaladujKlasyDoOddzialu();
+        };
+    }
+
+    // Obsługa wyboru klasy -> pokazuje przedmioty
+    document.getElementById('lista-klas-oddzial').onchange = function() {
+        if (this.value !== "") {
+            document.getElementById('kontener-przedmiot-oddzial').style.display = 'block';
+            const selectP = document.getElementById('lista-przedmiotow-oddzial');
+            selectP.innerHTML = '<option value="">-- wybierz przedmiot --</option>';
+            PRZEDMIOTY.forEach(p => {
+                let opt = document.createElement('option');
+                opt.value = p; opt.textContent = p;
+                selectP.appendChild(opt);
+            });
+        }
+    };
+
+    // Obsługa wyboru przedmiotu -> pokazuje zielony guzik
+    document.getElementById('lista-przedmiotow-oddzial').onchange = function() {
+        if (this.value !== "") {
+            document.getElementById('btn-final-wejscie').style.display = 'block';
+        }
+    };
+
+    // Wejście do finalnego menu (Step 10)
+    document.getElementById('btn-final-wejscie').onclick = function() {
+        const klasa = document.getElementById('lista-klas-oddzial').value;
+        const przedmiot = document.getElementById('lista-przedmiotow-oddzial').value;
+
+        document.getElementById('step-9-oddzial-setup').style.display = 'none';
+        document.getElementById('step-10-oddzial-menu').style.display = 'block';
+        document.getElementById('naglowek-oddzial').textContent = `Klasa: ${klasa} | Przedmiot: ${przedmiot}`;
+    };
+});
+
+// Funkcja ładująca klasy (musi być poza klamrą window, żeby była dostępna)
+function zaladujKlasyDoOddzialu() {
+    const select = document.getElementById('lista-klas-oddzial');
+    db.collection("klasy").get().then((snapshot) => {
+        select.innerHTML = '<option value="">-- wybierz klasę --</option>';
+        snapshot.forEach((doc) => {
+            let opt = document.createElement('option');
+            opt.value = doc.id;
+            opt.textContent = doc.id;
+            select.appendChild(opt);
+        });
+    });
+}
