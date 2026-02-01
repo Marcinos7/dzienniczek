@@ -941,6 +941,94 @@ function loadRealizacja() {
 
 
 
+
+
+
+
+
+// --- FUNKCJE LISTY UCZNIÓW ---
+
+// 1. Otwieranie widoku listy
+window.otworzListeUczniow = function() {
+    const klasaId = document.getElementById('lista-klas-oddzial').value;
+    if (!klasaId) return alert("Błąd: Nie wybrano klasy!");
+
+    document.getElementById('step-10-oddzial-menu').style.display = 'none';
+    document.getElementById('step-11-lista-uczniow').style.display = 'block';
+    document.getElementById('tytul-listy-klasa').textContent = `Lista uczniów - Klasa ${klasaId}`;
+    
+    pobierzUczniow(klasaId);
+};
+
+// 2. Pobieranie danych z Firebase (Twoja struktura)
+function pobierzUczniow(klasaId) {
+    const tbody = document.getElementById('tabela-uczniow-body');
+    tbody.innerHTML = '<tr><td colspan="3" style="padding:20px; text-align:center;">Ładowanie danych...</td></tr>';
+
+    db.collection("klasy").doc(klasaId).collection("uczniowie").orderBy("numer")
+    .get().then((snapshot) => {
+        tbody.innerHTML = '';
+        
+        if (snapshot.empty) {
+            tbody.innerHTML = '<tr><td colspan="3" style="padding:20px; text-align:center;">Brak uczniów w tej klasie.</td></tr>';
+            return;
+        }
+
+        snapshot.forEach((doc) => {
+            const u = doc.data();
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td style="padding: 10px; border: 1px solid #ddd; text-align: center;">${u.numer || ''}</td>
+                <td style="padding: 10px; border: 1px solid #ddd;">${u.imie} ${u.nazwisko}</td>
+                <td style="padding: 10px; border: 1px solid #ddd; text-align: center;">
+                    <button onclick="usunUcznia('${klasaId}', '${doc.id}')" style="background:none; border:none; color:#e74c3c; cursor:pointer; font-weight:bold;">Usuń</button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }).catch(err => {
+        console.error("Błąd pobierania:", err);
+        tbody.innerHTML = '<tr><td colspan="3" style="color:red;">Błąd ładowania bazy.</td></tr>';
+    });
+}
+
+// 3. Dodawanie nowego ucznia
+window.dodajUczniaDoBazy = function() {
+    const klasaId = document.getElementById('lista-klas-oddzial').value;
+    const nr = document.getElementById('nowy-uczen-numer').value;
+    const imie = document.getElementById('nowy-uczen-imie').value;
+    const nazwisko = document.getElementById('nowy-uczen-nazwisko').value;
+
+    if (!imie || !nazwisko || !nr) return alert("Wypełnij wszystkie pola (Nr, Imię, Nazwisko)!");
+
+    db.collection("klasy").doc(klasaId).collection("uczniowie").add({
+        imie: imie,
+        nazwisko: nazwisko,
+        numer: parseInt(nr)
+    }).then(() => {
+        // Czyścimy formularz
+        document.getElementById('nowy-uczen-numer').value = '';
+        document.getElementById('nowy-uczen-imie').value = '';
+        document.getElementById('nowy-uczen-nazwisko').value = '';
+        // Odświeżamy tabelę
+        pobierzUczniow(klasaId);
+    }).catch(err => alert("Błąd zapisu: " + err));
+};
+
+// 4. Usuwanie ucznia
+window.usunUcznia = function(klasaId, uczenId) {
+    if (confirm("Czy na pewno chcesz usunąć tego ucznia z dziennika?")) {
+        db.collection("klasy").doc(klasaId).collection("uczniowie").doc(uczenId).delete()
+        .then(() => pobierzUczniow(klasaId))
+        .catch(err => alert("Błąd usuwania: " + err));
+    }
+};
+
+// 5. Powrót
+window.backToStep10 = function() {
+    document.getElementById('step-11-lista-uczniow').style.display = 'none';
+    document.getElementById('step-10-oddzial-menu').style.display = 'block';
+};
 // ==========================================
 // LOGIKA MODUŁU: DZIENNIK ODDZIAŁU
 // ==========================================

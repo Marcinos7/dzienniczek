@@ -219,12 +219,40 @@
     </div>
 
     <div style="display: grid; grid-template-columns: 1fr; gap: 10px; max-width: 300px;">
-        <button class="panel-nav-btn" onclick="alert('Lista uczniów - wkrótce')">👥 Lista oddziału</button>
+        <button class="panel-nav-btn" onclick="otworzListeUczniow()">👥 Lista oddziału</button>
         <button class="panel-nav-btn" onclick="alert('Oceny - wkrótce')">🎓 Oceny semestralne i końcowe</button>
         <button class="panel-nav-btn" onclick="alert('Wydruki - wkrótce')">🖨️ Wydruki</button>
     </div>
 </div>
+<div id="step-11-lista-uczniow" style="display:none; padding: 20px;">
+    <button onclick="backToStep10()" style="margin-bottom: 20px; padding: 10px; cursor: pointer;">⬅ Powrót do menu</button>
+    
+    <div style="background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+        <h2 id="tytul-listy-klasa" style="color: #2c3e50; margin-top: 0;">Lista uczniów</h2>
 
+        <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 5px solid #27ae60;">
+            <h4 style="margin-top:0;">Dodaj nowego ucznia:</h4>
+            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                <input type="number" id="nowy-uczen-numer" placeholder="Nr" style="width: 50px; padding: 8px;">
+                <input type="text" id="nowy-uczen-imie" placeholder="Imię" style="padding: 8px; flex: 1;">
+                <input type="text" id="nowy-uczen-nazwisko" placeholder="Nazwisko" style="padding: 8px; flex: 1;">
+                <button onclick="dodajUczniaDoBazy()" style="background: #27ae60; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; font-weight: bold;">+ Dodaj</button>
+            </div>
+        </div>
+
+        <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
+            <thead>
+                <tr style="background: #34495e; color: white;">
+                    <th style="padding: 12px; border: 1px solid #ddd; width: 50px;">Nr</th>
+                    <th style="padding: 12px; border: 1px solid #ddd; text-align: left;">Imię i Nazwisko</th>
+                    <th style="padding: 12px; border: 1px solid #ddd; width: 80px;">Akcja</th>
+                </tr>
+            </thead>
+            <tbody id="tabela-uczniow-body">
+                </tbody>
+        </table>
+    </div>
+</div>
 
 
 
