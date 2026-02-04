@@ -492,46 +492,51 @@ window.backToMenu = function() {
 
 let unsubOceny = null; // Do zatrzymywania nasłuchiwania przy wyjściu
 
-/**
- * 1. OTWIERANIE PANELU
- */
+
 window.otworzPanelOcen = function() {
-    // 1. DYNAMICZNE POBIERANIE (Zamiast sztywnych tekstów)
+    // 1. USTALAMY DANE
+    // Klasa na sztywno małe '7a' - zgodnie z Twoją bazą
+    wybranaKlasaDlaOcen = "7a"; 
+
+    // Dynamiczne pobieranie przedmiotu z Twojego pola
     const elPrzedmiot = document.getElementById('projekt-przedmiot');
-    const elKlasa = document.getElementById('projekt-klasa'); // Sprawdź czy masz takie ID dla klasy
+    if (elPrzedmiot && elPrzedmiot.value !== "") {
+        // Zczytuje dokładnie to, co jest w polu (np. język polski)
+        aktywnyPrzedmiot = elPrzedmiot.value.toLowerCase().trim();
+    } else {
+        // Jeśli pole puste, sprawdza zmienną systemową
+        aktywnyPrzedmiot = (typeof aktualnyPrzedmiot !== 'undefined' && aktualnyPrzedmiot) 
+                           ? aktualnyPrzedmiot.toLowerCase().trim() 
+                           : "";
+    }
 
-    // Zczytujemy to, co nauczyciel wybrał/wpisał w formularzu
-    aktywnyPrzedmiot = elPrzedmiot ? elPrzedmiot.value.toLowerCase().trim() : "";
-    wybranaKlasaDlaOcen = elKlasa ? elKlasa.value.toUpperCase().trim() : "";
-
-    // Zabezpieczenie: jeśli pola są puste, nie wchodzimy do ocen
-    if (!aktywnyPrzedmiot || !wybranaKlasaDlaOcen) {
-        alert("Najpierw wybierz przedmiot i klasę w formularzu lekcji!");
+    // Blokada, jeśli przedmiot jest nadal pusty
+    if (!aktywnyPrzedmiot) {
+        alert("Błąd: Nie wybrano przedmiotu!");
         return;
     }
 
-    // 2. CZYSZCZENIE STAREJ TABELI
+    // 2. CZYSZCZENIE TABELI I NAGŁÓWKA
     const tbody = document.getElementById('lista-uczniow-podglad-ocen');
     const theadRow = document.querySelector('#tabela-wszystkie-oceny thead tr');
     if (tbody) tbody.innerHTML = '<tr><td colspan="4">Synchronizacja z bazy danych...</td></tr>';
     if (theadRow) theadRow.innerHTML = '<th>Nr</th><th>Imię i Nazwisko</th>';
 
-    // 3. AKTUALIZACJA NAGŁÓWKA
     const naglowek = document.getElementById('naglowek-oceny-info');
     if (naglowek) {
         naglowek.textContent = `Przedmiot: ${aktywnyPrzedmiot} | Klasa: ${wybranaKlasaDlaOcen}`;
     }
 
-    // 4. PRZEŁĄCZANIE WIDOKU
+    // 3. PRZEŁĄCZANIE WIDOKU
     if(document.getElementById('step-5-lekcja')) document.getElementById('step-5-lekcja').style.display = 'none';
     document.getElementById('step-6-oceny').style.display = 'block';
 
-    // 5. USTAWIENIE DATY
+    // 4. USTAWIANIE DATY
     const dataInput = document.getElementById('ocena-data');
     if (dataInput) dataInput.value = new Date().toISOString().split('T')[0];
 
-    // 6. KLUCZ: ŁADOWANIE DANYCH Z FIREBASE
-    console.log(`Ładuję oceny dla: ${aktywnyPrzedmiot} (Klasa: ${wybranaKlasaDlaOcen})`);
+    // 5. ŚCIĄGANIE DANYCH
+    console.log(`Łączę z bazą: Klasa [${wybranaKlasaDlaOcen}], Przedmiot [${aktywnyPrzedmiot}]`);
     zaladujWidokPrzedmiotu();
 };
 
