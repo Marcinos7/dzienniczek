@@ -496,29 +496,42 @@ let unsubOceny = null; // Do zatrzymywania nasłuchiwania przy wyjściu
  * 1. OTWIERANIE PANELU
  */
 window.otworzPanelOcen = function() {
-    // Pobieranie świeżych danych z lekcji
-    wybranaKlasaDlaOcen = (typeof wybranaKlasa !== 'undefined' && wybranaKlasa) ? wybranaKlasa.toUpperCase() : "7a";
-    aktywnyPrzedmiot = (typeof aktualnyPrzedmiot !== 'undefined' && aktualnyPrzedmiot) ? aktualnyPrzedmiot.toLowerCase() : "język angielski";
+    // 1. DYNAMICZNE POBIERANIE (Zamiast sztywnych tekstów)
+    const elPrzedmiot = document.getElementById('projekt-przedmiot');
+    const elKlasa = document.getElementById('projekt-klasa'); // Sprawdź czy masz takie ID dla klasy
 
-    // Czyszczenie starej tabeli przed nowym ładowaniem
+    // Zczytujemy to, co nauczyciel wybrał/wpisał w formularzu
+    aktywnyPrzedmiot = elPrzedmiot ? elPrzedmiot.value.toLowerCase().trim() : "";
+    wybranaKlasaDlaOcen = elKlasa ? elKlasa.value.toUpperCase().trim() : "";
+
+    // Zabezpieczenie: jeśli pola są puste, nie wchodzimy do ocen
+    if (!aktywnyPrzedmiot || !wybranaKlasaDlaOcen) {
+        alert("Najpierw wybierz przedmiot i klasę w formularzu lekcji!");
+        return;
+    }
+
+    // 2. CZYSZCZENIE STAREJ TABELI
     const tbody = document.getElementById('lista-uczniow-podglad-ocen');
     const theadRow = document.querySelector('#tabela-wszystkie-oceny thead tr');
     if (tbody) tbody.innerHTML = '<tr><td colspan="4">Synchronizacja z bazy danych...</td></tr>';
     if (theadRow) theadRow.innerHTML = '<th>Nr</th><th>Imię i Nazwisko</th>';
 
-    // Aktualizacja nagłówka (Fix kreski --)
+    // 3. AKTUALIZACJA NAGŁÓWKA
     const naglowek = document.getElementById('naglowek-oceny-info');
-    if (naglowek) naglowek.textContent = `Przedmiot: ${aktywnyPrzedmiot} | Klasa: ${wybranaKlasaDlaOcen}`;
+    if (naglowek) {
+        naglowek.textContent = `Przedmiot: ${aktywnyPrzedmiot} | Klasa: ${wybranaKlasaDlaOcen}`;
+    }
 
-    // Przełączanie widoku
+    // 4. PRZEŁĄCZANIE WIDOKU
     if(document.getElementById('step-5-lekcja')) document.getElementById('step-5-lekcja').style.display = 'none';
     document.getElementById('step-6-oceny').style.display = 'block';
 
-    // Ustawienie daty
+    // 5. USTAWIENIE DATY
     const dataInput = document.getElementById('ocena-data');
     if (dataInput) dataInput.value = new Date().toISOString().split('T')[0];
 
-    // KLUCZ: Ładowanie danych
+    // 6. KLUCZ: ŁADOWANIE DANYCH Z FIREBASE
+    console.log(`Ładuję oceny dla: ${aktywnyPrzedmiot} (Klasa: ${wybranaKlasaDlaOcen})`);
     zaladujWidokPrzedmiotu();
 };
 
