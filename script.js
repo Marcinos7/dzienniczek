@@ -498,27 +498,30 @@ window.otworzPanelOcen = function() {
     // Klasa na sztywno małe '7a' - zgodnie z Twoją bazą
     wybranaKlasaDlaOcen = "7a"; 
 
-    // Dynamiczne pobieranie przedmiotu z Twojego pola
-    const elPrzedmiot = document.getElementById('projekt-przedmiot');
-    if (elPrzedmiot && elPrzedmiot.value !== "") {
-        // Zczytuje dokładnie to, co jest w polu (np. język polski)
-        aktywnyPrzedmiot = elPrzedmiot.value.toLowerCase().trim();
+    // Pobieramy przedmiot ustawiony podczas wyboru lekcji z planu (Step 4)
+    // Nie patrzymy już na pole 'projekt-przedmiot', bo tam zazwyczaj jest pusto
+    if (typeof aktualnyPrzedmiot !== 'undefined' && aktualnyPrzedmiot !== "") {
+        aktywnyPrzedmiot = aktualnyPrzedmiot.toLowerCase().trim();
     } else {
-        // Jeśli pole puste, sprawdza zmienną systemową
-        aktywnyPrzedmiot = (typeof aktualnyPrzedmiot !== 'undefined' && aktualnyPrzedmiot) 
-                           ? aktualnyPrzedmiot.toLowerCase().trim() 
-                           : "";
+        // Próba ratunkowa: jeśli zmienna jest pusta, sprawdźmy nagłówek na ekranie lekcji
+        const naglowekLekcji = document.getElementById('lesson-subject-name');
+        if (naglowekLekcji && naglowekLekcji.textContent) {
+            aktywnyPrzedmiot = naglowekLekcji.textContent.toLowerCase().trim();
+        } else {
+            aktywnyPrzedmiot = "";
+        }
     }
 
-    // Blokada, jeśli przedmiot jest nadal pusty
-    if (!aktywnyPrzedmiot) {
-        alert("Błąd: Nie wybrano przedmiotu!");
+    // Blokada, jeśli system nadal nie wie, jaki to przedmiot
+    if (!aktywnyPrzedmiot || aktywnyPrzedmiot === "") {
+        alert("Błąd: Nie rozpoznano przedmiotu! Wybierz lekcję z planu ponownie.");
         return;
     }
 
     // 2. CZYSZCZENIE TABELI I NAGŁÓWKA
     const tbody = document.getElementById('lista-uczniow-podglad-ocen');
     const theadRow = document.querySelector('#tabela-wszystkie-oceny thead tr');
+    
     if (tbody) tbody.innerHTML = '<tr><td colspan="4">Synchronizacja z bazy danych...</td></tr>';
     if (theadRow) theadRow.innerHTML = '<th>Nr</th><th>Imię i Nazwisko</th>';
 
@@ -528,15 +531,19 @@ window.otworzPanelOcen = function() {
     }
 
     // 3. PRZEŁĄCZANIE WIDOKU
-    if(document.getElementById('step-5-lekcja')) document.getElementById('step-5-lekcja').style.display = 'none';
+    if(document.getElementById('step-5-lekcja')) {
+        document.getElementById('step-5-lekcja').style.display = 'none';
+    }
     document.getElementById('step-6-oceny').style.display = 'block';
 
-    // 4. USTAWIANIE DATY
+    // 4. USTAWIANIE DATY (dzisiejsza)
     const dataInput = document.getElementById('ocena-data');
-    if (dataInput) dataInput.value = new Date().toISOString().split('T')[0];
+    if (dataInput) {
+        dataInput.value = new Date().toISOString().split('T')[0];
+    }
 
-    // 5. ŚCIĄGANIE DANYCH
-    console.log(`Łączę z bazą: Klasa [${wybranaKlasaDlaOcen}], Przedmiot [${aktywnyPrzedmiot}]`);
+    // 5. ŚCIĄGANIE DANYCH Z FIREBASE
+    console.log(`POBIERANIE OCEN: Klasa [${wybranaKlasaDlaOcen}], Przedmiot [${aktywnyPrzedmiot}]`);
     zaladujWidokPrzedmiotu();
 };
 
