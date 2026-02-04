@@ -231,8 +231,7 @@ document.getElementById('btn-generuj-tabele').addEventListener('click', () => {
 
     console.log("Próba pobrania uczniów dla klasy:", wybranaKlasaDlaOcen);
     
-    // ŚCIEŻKA: klasy -> {wybranaKlasaDlaOcen} -> uczniowie
-    // Upewnij się, że w Firebase kolekcja nazywa się "uczniowie" (małymi literami)
+
     db.collection("klasy").doc(wybranaKlasaDlaOcen).collection("uczniowie").get()
         .then(snapshot => {
             console.log("Czy kolekcja istnieje?", !snapshot.empty);
