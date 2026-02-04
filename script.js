@@ -27,97 +27,7 @@ const PRZEDMIOTY = [
 ];
 
 
-// GODZINY LEKCJI
-const godzinyLekcji = [
-  "7:10-7:55", "8:00-8:45", "8:55-9:40", "9:50-10:35",
-  "10:45-11:30", "11:45-12:30", "12:50-13:35", "13:40-14:25", "14:30-15:15"
-];
 
-let wybranaLekcjaIndex = null;
-let wybranyDzien = null;
-let wybranyPrzedmiot = null;
-
-// Wczytanie planu lekcji
-document.getElementById("loadPlanBtn").addEventListener("click", () => {
-  const dzien = document.getElementById("daySelect").value;
-  loadPlanLekcji(dzien);
-});
-
-function loadPlanLekcji(dzien) {
-  const tbody = document.getElementById("planTableBody");
-  tbody.innerHTML = "<tr><td colspan='3'>Ładowanie...</td></tr>";
-
-  db.collection("planLekcji").doc(dzien).get()
-    .then(docSnap => {
-      if (!docSnap.exists) {
-        tbody.innerHTML = "<tr><td colspan='3'>Brak planu</td></tr>";
-        return;
-      }
-
-      const data = docSnap.data();
-      let html = "";
-
-      for (let i = 0; i < godzinyLekcji.length; i++) {
-        const przedmiot = data[i.toString()] || "-";
-        html += `<tr onclick="selectLesson(this, '${przedmiot}')">
-          <td>${i}</td>
-          <td>${godzinyLekcji[i]}</td>
-          <td>${przedmiot}</td>
-        </tr>`;
-      }
-
-      tbody.innerHTML = html;
-    })
-    .catch(err => {
-      console.error("Błąd Firestore:", err);
-      tbody.innerHTML = "<tr><td colspan='3'>Błąd ładowania</td></tr>";
-    });
-}
-
-// Kliknięcie w lekcję
-function selectLesson(row, przedmiot) {
-  document.querySelectorAll(".plan-table tbody tr").forEach(r => r.classList.remove("active"));
-  row.classList.add("active");
-
-  wybranaLekcjaIndex = row.cells[0].textContent;
-  wybranyDzien = document.getElementById("daySelect").value;
-  wybranyPrzedmiot = przedmiot;
-
-  // Wypełnij modal
-  document.getElementById("modalNauczyciel").value = userName.textContent;
-  document.getElementById("modalPrzedmiot").value = przedmiot;
-  document.getElementById("modalTemat").value = "";
-
-  document.getElementById("lessonModal").style.display = "flex";
-}
-
-// Anuluj modal
-document.getElementById("cancelLessonBtn").addEventListener("click", () => {
-  document.getElementById("lessonModal").style.display = "none";
-});
-
-// Zapis realizacji lekcji
-document.getElementById("saveLessonBtn").addEventListener("click", () => {
-  const temat = document.getElementById("modalTemat").value;
-  const nauczyciel = document.getElementById("modalNauczyciel").value;
-
-  if(!temat) return alert("Wpisz temat lekcji!");
-
-  db.collection("planLekcji").doc(wybranyDzien)
-    .collection("realizacja").doc(`lekcja${wybranaLekcjaIndex}`)
-    .set({
-      temat: temat,
-      nauczyciel: nauczyciel,
-      godzina: wybranaLekcjaIndex,
-      przedmiot: wybranyPrzedmiot
-    })
-    .then(() => {
-      alert("Zapisano realizację!");
-      document.getElementById("lessonModal").style.display = "none";
-      loadPlanLekcji(wybranyDzien); // odśwież tabelę
-    })
-    .catch(err => alert("Błąd zapisu: " + err));
-});
 
 
 // KONFIGURACJA FIREBASE
@@ -178,34 +88,7 @@ document.getElementById('email').addEventListener('keydown', (e) => {
     }
 });
 
-// =======================
-// LOADER „PROSZĘ CZEKAĆ…”
-// =======================
 
-let loadingStartTime = 0;
-
-function showLoading(text = "Proszę czekać…") {
-  loadingStartTime = Date.now();
-
-  let overlay = document.getElementById("loadingOverlay");
-  if (!overlay) {
-    overlay = document.createElement("div");
-    overlay.id = "loadingOverlay";
-    overlay.innerHTML = `
-      <div class="loaderBox">
-        <div class="spinner"></div>
-        <p id="loadingText">${text}</p>
-      </div>
-    `;
-    document.body.appendChild(overlay);
-  } else {
-    // tylko gdy overlay już istnieje
-    const loadingTextElem = overlay.querySelector("#loadingText");
-    if (loadingTextElem) loadingTextElem.textContent = text;
-  }
-
-  overlay.style.display = "flex";
-}
 
 //KUPA OGÓLNA
 
