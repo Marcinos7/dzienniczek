@@ -496,8 +496,8 @@ window.wybierzLekcjeDoOcen = function(przedmiot, nr) {
 
     // 3. PRZECHODZIMY DO PANELU LEKCJI
     document.getElementById('step-4').style.display = 'none';
-    if(document.getElementById('step-5-lekcja')) {
-        document.getElementById('step-5-lekcja').style.display = 'block';
+    if(document.getElementById('step-5')) {
+        document.getElementById('step-5').style.display = 'block';
     }
 };
 
