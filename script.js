@@ -539,27 +539,40 @@ window.zaladujWidokPrzedmiotu = function() {
  * 1. OTWIERANIE PANELU (Wywoływane z Twojej zakładki Lekcja)
  */
 window.otworzPanelOcen = function() {
-    // POBIERANIE DANYCH Z LEKCJI
-    // Jeśli Twoje zmienne sesji nazywają się inaczej, np. 'biezacaKlasa', to je tu wpisz.
-    // Dodałem .toUpperCase() i .toLowerCase(), żeby pasowało do Twojej bazy (7A i język angielski)
-    wybranaKlasaDlaOcen = (typeof wybranaKlasa !== 'undefined') ? wybranaKlasa.toUpperCase() : "7A";
-    aktywnyPrzedmiot = (typeof aktualnyPrzedmiot !== 'undefined') ? aktualnyPrzedmiot.toLowerCase() : "język angielski";
+    // 1. POBIERANIE DANYCH Z LEKCJI (Zawsze aktualizujemy te zmienne!)
+    // Upewniamy się, że bierzemy to, co jest aktualnie wybrane
+    wybranaKlasaDlaOcen = (typeof wybranaKlasa !== 'undefined' && wybranaKlasa) ? wybranaKlasa.toUpperCase() : "7A";
+    aktywnyPrzedmiot = (typeof aktualnyPrzedmiot !== 'undefined' && aktualnyPrzedmiot) ? aktualnyPrzedmiot.toLowerCase() : "język angielski";
 
-    // WYPELNIANIE NAGLOWKA (To naprawia Twoje "--" ze zdjęcia)
+    // 2. CZYSZCZENIE STAREGO WIDOKU
+    // To jest kluczowe, żeby dane z poprzedniego przedmiotu nie straszyły w tabeli
+    const tbody = document.getElementById('lista-uczniow-podglad-ocen');
+    const theadRow = document.querySelector('#tabela-wszystkie-oceny thead tr');
+    
+    if (tbody) tbody.innerHTML = '<tr><td colspan="4">Ładowanie świeżych danych...</td></tr>';
+    if (theadRow) theadRow.innerHTML = '<th>Nr</th><th>Imię i Nazwisko</th>';
+
+    // 3. WYPEŁNIANIE NAGŁÓWKA
     const naglowek = document.getElementById('naglowek-oceny-info');
     if (naglowek) {
         naglowek.textContent = `Przedmiot: ${aktywnyPrzedmiot} | Klasa: ${wybranaKlasaDlaOcen}`;
     }
 
-    // PRZEŁĄCZANIE WIDOKU (Z zakładki lekcji do ocen)
-    // Upewnij się, że Twoja lekcja ma ID 'step-5-lekcja'
+    // 4. PRZEŁĄCZANIE WIDOKU
     if(document.getElementById('step-5-lekcja')) document.getElementById('step-5-lekcja').style.display = 'none';
     document.getElementById('step-6-oceny').style.display = 'block';
 
-    // Reset daty
-    document.getElementById('ocena-data').value = new Date().toLocaleDateString();
+    // 5. USTAWIANIE DATY
+    const dataInput = document.getElementById('ocena-data');
+    if (dataInput) {
+        // Format YYYY-MM-DD jest bezpieczniejszy dla input type="date"
+        const dzis = new Date().toISOString().split('T')[0];
+        dataInput.value = dzis;
+    }
 
-    // LADUJEMY TABELE ZBIORCZĄ
+    // 6. KLUCZ: WYMUSZENIE ZAŁADOWANIA DANYCH
+    // Wywołujemy funkcję, która ma w sobie zapytanie do Firebase
+    console.log(`Przełączono na: ${aktywnyPrzedmiot} (${wybranaKlasaDlaOcen})`);
     zaladujWidokPrzedmiotu();
 };
 
