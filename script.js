@@ -489,8 +489,7 @@ window.backToMenu = function() {
 // ==========================================
 
 // Zmienne globalne modułu
-let wybranaKlasaDlaOcen = "";
-let aktywnyPrzedmiot = "";
+
 
 /**
  * 1. Otwieranie panelu ocen z Menu Oddziału (Krok 10)
