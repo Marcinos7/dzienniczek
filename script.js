@@ -489,7 +489,51 @@ window.backToMenu = function() {
 // ==========================================
 
 // Te zmienne muszą być dostępne globalnie, żeby każda funkcja wiedziała co edytujesz
+window.zaladujWidokPrzedmiotu = function() {
+    const naglowek = document.getElementById('naglowek-oceny-info');
+    if (naglowek) naglowek.textContent = `Przedmiot: ${aktywnyPrzedmiot} | Klasa: ${wybranaKlasaDlaOcen}`;
+    
+    const tbody = document.getElementById('lista-uczniow-podglad-ocen');
+    tbody.innerHTML = '<tr><td colspan="4">Pobieranie danych z Firebase...</td></tr>';
 
+    // 1. Pobieramy uczniów
+    db.collection("klasy").doc(wybranaKlasaDlaOcen).collection("uczniowie").orderBy("numer").get()
+    .then(snapshotUczniowie => {
+        let listaUczniow = [];
+        snapshotUczniowie.forEach(doc => {
+            // Ważne: ID dokumentu (np. u1) musi pasować do klucza w mapie 'oceny'
+            listaUczniow.push({ id: doc.id, ...doc.data() });
+        });
+
+        // 2. Pobieramy kolumny ocen (Weryfikacja filtra 'where')
+        // Używamy trim(), żeby wyeliminować ukryte spacje
+        const szukanyPrzedmiot = aktywnyPrzedmiot.trim();
+
+        db.collection("klasy").doc(wybranaKlasaDlaOcen).collection("oceny")
+        .where("przedmiot", "==", szukanyPrzedmiot)
+        .get()
+        .then(snapshotKolumny => {
+            console.log(`Znalazłem ${snapshotKolumny.size} kolumn dla przedmiotu: "${szukanyPrzedmiot}"`);
+            
+            if (snapshotKolumny.empty) {
+                tbody.innerHTML = `<tr><td colspan="4" style="color:orange;">Brak zapisanych ocen dla przedmiotu: ${szukanyPrzedmiot}</td></tr>`;
+                // Nawet jeśli nie ma ocen, rysujemy listę uczniów ze średnią 0
+                budujTabeleZbiorcza(listaUczniow, snapshotKolumny);
+                return;
+            }
+
+            budujTabeleZbiorcza(listaUczniow, snapshotKolumny);
+        })
+        .catch(err => {
+            console.error("Błąd zapytania WHERE:", err);
+            tbody.innerHTML = `<tr><td colspan="4" style="color:red;">Błąd filtracji: ${err.message}</td></tr>`;
+        });
+    })
+    .catch(err => {
+        console.error("Błąd pobierania uczniów:", err);
+        tbody.innerHTML = `<tr><td colspan="4" style="color:red;">Błąd bazy: ${err.message}</td></tr>`;
+    });
+};
 
 /**
  * 1. OTWIERANIE PANELU (Wywoływane z Twojej zakładki Lekcja)
