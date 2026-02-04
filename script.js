@@ -479,7 +479,27 @@ window.backToMenu = function() {
 
 
 
+window.wybierzLekcjeDoOcen = function(przedmiot, nr) {
+    // 1. ZAPISUJEMY PRZEDMIOT W PAMIĘCI
+    // To jest kluczowe - bez tego otworzPanelOcen nie wie co robić
+    window.aktualnyPrzedmiot = przedmiot; 
+    window.wybranaKlasa = "7a"; // Ustawiamy na sztywno, skoro na tej klasie pracujesz
 
+    console.log("System zapisał lekcję:", przedmiot, "nr:", nr);
+
+    // 2. AKTUALIZUJEMY TEKST NA EKRANIE LEKCJI (Step 5)
+    // Żeby nauczyciel widział, co wybrał
+    const infoLekcja = document.getElementById('lesson-subject-name');
+    if(infoLekcja) {
+        infoLekcja.textContent = przedmiot;
+    }
+
+    // 3. PRZECHODZIMY DO PANELU LEKCJI
+    document.getElementById('step-4').style.display = 'none';
+    if(document.getElementById('step-5-lekcja')) {
+        document.getElementById('step-5-lekcja').style.display = 'block';
+    }
+};
 
 
 
