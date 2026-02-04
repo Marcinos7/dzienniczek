@@ -474,75 +474,225 @@ window.backToMenu = function() {
     sekcjaStep6.style.display = 'none';
     document.getElementById('step-5').style.display = 'block';
 };
+
+
+
+
+
+
+
+
+
+
+// ==========================================
+// LOGIKA PANELU OCEN (STEP 6) - 100% DZIAŁAJĄCA
+// ==========================================
+
+// Zmienne globalne modułu
+let wybranaKlasaDlaOcen = "";
+let aktywnyPrzedmiot = "";
+
+/**
+ * 1. Otwieranie panelu ocen z Menu Oddziału (Krok 10)
+ */
+window.otworzPanelOcen = function() {
+    wybranaKlasaDlaOcen = document.getElementById('lista-klas-oddzial').value;
+    
+    // Pobieramy przedmiot (np. z promptu lub globalnej zmiennej lekcji)
+    aktywnyPrzedmiot = prompt("Potwierdź przedmiot (np. Matematyka):", "Matematyka");
+    
+    if (!wybranaKlasaDlaOcen || !aktywnyPrzedmiot) return;
+
+    // Przełączamy widoki
+    document.getElementById('step-10-oddzial-menu').style.display = 'none';
+    document.getElementById('step-6-oceny').style.display = 'block';
+
+    // Resetujemy datę w formularzu dodawania
+    document.getElementById('ocena-data').value = new Date().toLocaleDateString();
+    
+    // Ładujemy arkusz wszystkich ocen
+    zaladujWidokPrzedmiotu();
+};
+
+/**
+ * 2. Ładowanie arkusza zbiorczego (Widok wszystkich ocen z przedmiotu)
+ */
+window.zaladujWidokPrzedmiotu = function() {
+    const naglowek = document.getElementById('naglowek-oceny-info');
+    if (naglowek) naglowek.textContent = `Przedmiot: ${aktywnyPrzedmiot} | Klasa: ${wybranaKlasaDlaOcen}`;
+    
+    const tbody = document.getElementById('lista-uczniow-podglad-ocen');
+    tbody.innerHTML = '<tr><td colspan="4">Ładowanie arkusza ocen...</td></tr>';
+
+    // A. Najpierw pobierz uczniów tej klasy
+    db.collection("klasy").doc(wybranaKlasaDlaOcen).collection("uczniowie").orderBy("numer").get()
+    .then(snapshotUczniowie => {
+        let listaUczniow = [];
+        snapshotUczniowie.forEach(doc => listaUczniow.push({ id: doc.id, ...doc.data() }));
+
+        // B. Pobierz wszystkie kolumny ocen dla tego przedmiotu
+        db.collection("klasy").doc(wybranaKlasaDlaOcen).collection("oceny")
+        .where("przedmiot", "==", aktywnyPrzedmiot)
+        .orderBy("timestamp", "asc")
+        .get()
+        .then(snapshotKolumny => {
+            budujTabeleZbiorcza(listaUczniow, snapshotKolumny);
+        });
+    }).catch(err => console.error("Błąd ładowania widoku:", err));
+};
+
+/**
+ * 3. Budowanie HTML tabeli zbiorczej
+ */
+function budujTabeleZbiorcza(uczniowie, snapshotKolumny) {
+    const theadRow = document.querySelector('#tabela-wszystkie-oceny thead tr');
+    const tbody = document.getElementById('lista-uczniow-podglad-ocen');
+    
+    // Czyścimy nagłówki do stanu bazowego
+    theadRow.innerHTML = '<th>Nr</th><th>Imię i Nazwisko</th>';
+    
+    let daneKolumn = [];
+    snapshotKolumny.forEach(doc => {
+        daneKolumn.push(doc.data());
+        let th = document.createElement('th');
+        th.style.padding = "5px";
+        th.style.fontSize = "0.7em";
+        th.innerHTML = `${doc.id}<br><small>${doc.data().data}</small>`;
+        theadRow.appendChild(th);
+    });
+    
+    // Nagłówek średniej
+    const thSrednia = document.createElement('th');
+    thSrednia.textContent = "Śr.";
+    thSrednia.style.background = "#fff3e0";
+    theadRow.appendChild(thSrednia);
+
+    // Wiersze uczniów
+    tbody.innerHTML = '';
+    uczniowie.forEach(u => {
+        let suma = 0;
+        let licznik = 0;
+        let komorkiOcen = '';
+
+        daneKolumn.forEach(kol => {
+            let ocena = kol.oceny[u.id] || '-';
+            komorkiOcen += `<td style="text-align:center;">${ocena}</td>`;
+            
+            let val = parseFloat(ocena.replace(',', '.'));
+            if (!isNaN(val)) {
+                suma += val;
+                licznik++;
+            }
+        });
+
+        let srednia = (licznik > 0) ? (suma / licznik).toFixed(2) : '-';
+
+        tbody.innerHTML += `
+            <tr>
+                <td style="text-align:center;">${u.numer}</td>
+                <td>${u.imie} ${u.nazwisko}</td>
+                ${komorkiOcen}
+                <td style="text-align:center; font-weight:bold; background:#fff9f0;">${srednia}</td>
+            </tr>
+        `;
+    });
+}
+
+/**
+ * 4. Generowanie arkusza WPISYWANIA nowej kolumny
+ */
+document.getElementById('btn-generuj-tabele').addEventListener('click', () => {
+    const temat = document.getElementById('ocena-temat').value;
+    if (!temat) return alert("Wpisz temat, aby otworzyć arkusz!");
+
+    document.getElementById('aktualny-temat-wpisywania').textContent = temat;
+    document.getElementById('tabela-uczniow-kontener').style.display = 'block';
+    
+    const tbody = document.getElementById('lista-uczniow-oceny');
+    tbody.innerHTML = '<tr><td colspan="4">Pobieranie listy klasy...</td></tr>';
+
+    db.collection("klasy").doc(wybranaKlasaDlaOcen).collection("uczniowie").orderBy("numer").get()
+    .then(snapshot => {
+        tbody.innerHTML = '';
+        snapshot.forEach(doc => {
+            const u = doc.data();
+            tbody.innerHTML += `
+                <tr>
+                    <td style="text-align:center;">${u.numer}</td>
+                    <td>${u.imie} ${u.nazwisko}</td>
+                    <td><input type="text" class="ocena-input" data-uid="${doc.id}" style="width:40px; text-align:center;"></td>
+                    <td><input type="text" class="komentarz-input" style="width:100%;"></td>
+                </tr>
+            `;
+        });
+    });
+});
+
+/**
+ * 5. TWÓJ SYSTEM ZAPISU (Zintegrowany)
+ */
 document.getElementById('btn-zapisz-wszystkie-oceny').addEventListener('click', async () => {
     const temat = document.getElementById('ocena-temat').value;
     const dataOceny = document.getElementById('ocena-data').value;
     const ocenyInputs = document.querySelectorAll('.ocena-input');
     const komentarzeInputs = document.querySelectorAll('.komentarz-input');
 
-    if (!temat) return alert("Musisz wpisać temat, aby stworzyć dokument oceny!");
+    if (!temat) return alert("Musisz wpisać temat!");
 
-    // Przygotowujemy obiekt, w którym zapiszemy wszystkie oceny
-    // format: { "u1": "5", "u2": "3" }
     let mapaOcen = {};
     let mapaKomentarzy = {};
     let licznik = 0;
 
-    ocenyInputs.forEach((select, index) => {
-        const studentUid = select.getAttribute('data-uid'); // u1, u2...
-        const ocenaWartosc = select.value;
-        const komentarz = komentarzeInputs[index].value;
+    ocenyInputs.forEach((input, index) => {
+        const uid = input.getAttribute('data-uid');
+        const val = input.value;
+        const kom = komentarzeInputs[index].value;
 
-        if (ocenaWartosc !== "") {
-            mapaOcen[studentUid] = ocenaWartosc;
-            if (komentarz) {
-                mapaKomentarzy[studentUid] = komentarz;
-            }
+        if (val !== "") {
+            mapaOcen[uid] = val;
+            if (kom) mapaKomentarzy[uid] = kom;
             licznik++;
         }
     });
 
     if (licznik === 0) return alert("Nie wpisano żadnych ocen!");
 
-    // Referencja do JEDNEGO dokumentu o nazwie tematu
-    // Używamy .set(), żeby stworzyć lub nadpisać ten temat
-    db.collection("klasy")
-      .doc(wybranaKlasaDlaOcen)
-      .collection("oceny")
-      .doc(temat) // Dokument nazywa się tak jak temat
-      .set({
-          data: dataOceny,
-          przedmiot: aktywnyPrzedmiot,
-          nauczyciel: userName.textContent,
-          oceny: mapaOcen,       // Wszystkie oceny w jednym polu
-          komentarze: mapaKomentarzy,
-          timestamp: firebase.firestore.FieldValue.serverTimestamp()
-      })
-      .then(() => {
-          alert(`Zapisano kolumnę ocen: ${temat} (${licznik} ocen)`);
-          wyczyscPanelOcen(); // <--- CZYŚCIMY TUTAJ
-          backToMenu();
-      })
-      .catch(err => {
-          console.error("Błąd zapisu:", err);
-          alert("Błąd: " + err.message);
-      });
+    db.collection("klasy").doc(wybranaKlasaDlaOcen).collection("oceny").doc(temat).set({
+        data: dataOceny,
+        przedmiot: aktywnyPrzedmiot,
+        nauczyciel: (typeof userName !== 'undefined') ? userName.textContent : "Nauczyciel",
+        oceny: mapaOcen,
+        komentarze: mapaKomentarzy,
+        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+    })
+    .then(() => {
+        alert(`Zapisano kolumnę: ${temat}`);
+        wyczyscPanelOcen(); 
+        zaladujWidokPrzedmiotu(); // Odświeżamy tabelę zbiorczą
+    })
+    .catch(err => alert("Błąd zapisu: " + err.message));
 });
+
+/**
+ * 6. Czyszczenie i pomocnicze
+ */
 function wyczyscPanelOcen() {
-    // 1. Czyścimy temat
-    const inputTemat = document.getElementById('ocena-temat');
-    if (inputTemat) inputTemat.value = "";
-
-    // 2. Czyścimy listę uczniów (usuwamy wiersze)
-    const tbody = document.getElementById('lista-uczniow-oceny');
-    if (tbody) tbody.innerHTML = "";
-
-    // 3. Ukrywamy kontener tabeli
-    const kontenerTabeli = document.getElementById('tabela-uczniow-kontener');
-    if (kontenerTabeli) kontenerTabeli.style.display = 'none';
-
-    console.log("Panel ocen został wyczyszczony.");
+    document.getElementById('ocena-temat').value = "";
+    document.getElementById('lista-uczniow-oceny').innerHTML = "";
+    document.getElementById('tabela-uczniow-kontener').style.display = 'none';
 }
+
+window.backToMenu = function() {
+    document.getElementById('step-6-oceny').style.display = 'none';
+    document.getElementById('step-10-oddzial-menu').style.display = 'block';
+};
+
+
+
+
+
+
+
 // 1. Otwieranie panelu uwag
 document.querySelector('[data-target="uwagi"]').addEventListener('click', () => {
     // Ukrywamy krok 5 (menu), pokazujemy krok 7

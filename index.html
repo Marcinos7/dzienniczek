@@ -111,32 +111,55 @@
 <div id="step-6-oceny" style="display:none; padding: 20px;">
     <button onclick="backToMenu()" style="margin-bottom: 15px;">⬅ Powrót do menu lekcji</button>
     
-    <div id="setup-oceny" style="background: #eee; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
-        <h3>Konfiguracja kolumny ocen</h3>
-        <label>Temat (za co ocena):</label>
-        <input type="text" id="ocena-temat" placeholder="np. Sprawdzian: Gęstość zaludnienia">
-        
-        <label>Data:</label>
-        <input type="text" id="ocena-data" readonly> <button id="btn-generuj-tabele" style="background: #4CAF50; color: white;">Zatwierdź i wpisz oceny</button>
+    <div style="background: #2196F3; color: white; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+        <h2 id="naglowek-oceny-info" style="margin:0;">Przedmiot: -- | Klasa: --</h2>
     </div>
 
-    <div id="tabela-uczniow-kontener" style="display:none;">
-        <table border="1" style="width:100%; border-collapse: collapse; text-align: left;">
+    <details style="background: #eee; padding: 10px; border-radius: 8px; margin-bottom: 20px;">
+        <summary style="cursor: pointer; font-weight: bold;">➕ Dodaj nową ocenę (sprawdzian/odpowiedź)</summary>
+        <div id="setup-oceny" style="padding-top: 15px;">
+            <label>Temat:</label>
+            <input type="text" id="ocena-temat" placeholder="np. Sprawdzian: Gęstość">
+            <label>Data:</label>
+            <input type="text" id="ocena-data" readonly> 
+            <button id="btn-generuj-tabele" style="background: #4CAF50; color: white; border: none; padding: 5px 10px; cursor: pointer;">Otwórz arkusz wpisywania</button>
+        </div>
+    </details>
+
+    <div id="widok-ocen-kontener" style="background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); overflow-x: auto;">
+        <h3>Arkusz ocen z przedmiotu</h3>
+        <table id="tabela-wszystkie-oceny" border="1" style="width:100%; border-collapse: collapse; text-align: left;">
+            <thead>
+                <tr style="background: #f2f2f2;">
+                    <th style="width: 40px; padding: 10px;">Nr</th>
+                    <th style="width: 200px; padding: 10px;">Imię i Nazwisko</th>
+                    <th id="dynamiczne-naglowki" style="padding: 10px; background: #e3f2fd;">Oceny cząstkowe</th>
+                    <th style="width: 80px; padding: 10px; background: #fff3e0;">Średnia</th>
+                </tr>
+            </thead>
+            <tbody id="lista-uczniow-podglad-ocen">
+                </tbody>
+        </table>
+    </div>
+
+    <div id="tabela-uczniow-kontener" style="display:none; margin-top: 20px; border-top: 2px solid #2196F3; padding-top: 20px;">
+        <h3 style="color: #2196F3;">Wpisujesz teraz: <span id="aktualny-temat-wpisywania">--</span></h3>
+        <table border="1" style="width:100%; border-collapse: collapse;">
             <thead>
                 <tr style="background: #ddd;">
                     <th>Nr</th>
                     <th>Imię i Nazwisko</th>
-                    <th>Ocena</th>
-                    <th>Komentarz (opcjonalnie)</th>
+                    <th style="width: 100px;">Ocena</th>
+                    <th>Komentarz</th>
                 </tr>
             </thead>
-            <tbody id="lista-uczniow-oceny">
-                </tbody>
+            <tbody id="lista-uczniow-oceny"></tbody>
         </table>
         <br>
-        <button id="btn-zapisz-wszystkie-oceny" style="padding: 10px 20px; background: #2196F3; color: white; font-weight: bold;">
-            Zapisz wszystkie oceny do bazy
+        <button id="btn-zapisz-wszystkie-oceny" style="padding: 10px 20px; background: #2196F3; color: white; font-weight: bold; border: none; cursor: pointer;">
+            ZAPISZ TĘ KOLUMNĘ DO BAZY
         </button>
+        <button onclick="document.getElementById('tabela-uczniow-kontener').style.display='none'" style="padding: 10px; background: #ccc; border: none; cursor: pointer;">Anuluj</button>
     </div>
 </div>
 
