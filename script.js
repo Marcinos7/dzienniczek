@@ -485,170 +485,113 @@ window.backToMenu = function() {
 
 
 // ==========================================
-// LOGIKA PANELU OCEN (STEP 6) - 100% PELNY JS
+// LOGIKA PANELU OCEN (STEP 6) - WERSJA FIX
 // ==========================================
 
-// Te zmienne muszą być dostępne globalnie, żeby każda funkcja wiedziała co edytujesz
-window.zaladujWidokPrzedmiotu = function() {
-    const naglowek = document.getElementById('naglowek-oceny-info');
-    if (naglowek) naglowek.textContent = `Przedmiot: ${aktywnyPrzedmiot} | Klasa: ${wybranaKlasaDlaOcen}`;
-    
-    const tbody = document.getElementById('lista-uczniow-podglad-ocen');
-    tbody.innerHTML = '<tr><td colspan="4">Pobieranie danych z Firebase...</td></tr>';
+// Zmienne pomocnicze
 
-    // 1. Pobieramy uczniów
-    db.collection("klasy").doc(wybranaKlasaDlaOcen).collection("uczniowie").orderBy("numer").get()
-    .then(snapshotUczniowie => {
-        let listaUczniow = [];
-        snapshotUczniowie.forEach(doc => {
-            // Ważne: ID dokumentu (np. u1) musi pasować do klucza w mapie 'oceny'
-            listaUczniow.push({ id: doc.id, ...doc.data() });
-        });
-
-        // 2. Pobieramy kolumny ocen (Weryfikacja filtra 'where')
-        // Używamy trim(), żeby wyeliminować ukryte spacje
-        const szukanyPrzedmiot = aktywnyPrzedmiot.trim();
-
-        db.collection("klasy").doc(wybranaKlasaDlaOcen).collection("oceny")
-        .where("przedmiot", "==", szukanyPrzedmiot)
-        .get()
-        .then(snapshotKolumny => {
-            console.log(`Znalazłem ${snapshotKolumny.size} kolumn dla przedmiotu: "${szukanyPrzedmiot}"`);
-            
-            if (snapshotKolumny.empty) {
-                tbody.innerHTML = `<tr><td colspan="4" style="color:orange;">Brak zapisanych ocen dla przedmiotu: ${szukanyPrzedmiot}</td></tr>`;
-                // Nawet jeśli nie ma ocen, rysujemy listę uczniów ze średnią 0
-                budujTabeleZbiorcza(listaUczniow, snapshotKolumny);
-                return;
-            }
-
-            budujTabeleZbiorcza(listaUczniow, snapshotKolumny);
-        })
-        .catch(err => {
-            console.error("Błąd zapytania WHERE:", err);
-            tbody.innerHTML = `<tr><td colspan="4" style="color:red;">Błąd filtracji: ${err.message}</td></tr>`;
-        });
-    })
-    .catch(err => {
-        console.error("Błąd pobierania uczniów:", err);
-        tbody.innerHTML = `<tr><td colspan="4" style="color:red;">Błąd bazy: ${err.message}</td></tr>`;
-    });
-};
+let unsubOceny = null; // Do zatrzymywania nasłuchiwania przy wyjściu
 
 /**
- * 1. OTWIERANIE PANELU (Wywoływane z Twojej zakładki Lekcja)
+ * 1. OTWIERANIE PANELU
  */
 window.otworzPanelOcen = function() {
-    // 1. POBIERANIE DANYCH Z LEKCJI (Zawsze aktualizujemy te zmienne!)
-    // Upewniamy się, że bierzemy to, co jest aktualnie wybrane
+    // Pobieranie świeżych danych z lekcji
     wybranaKlasaDlaOcen = (typeof wybranaKlasa !== 'undefined' && wybranaKlasa) ? wybranaKlasa.toUpperCase() : "7A";
     aktywnyPrzedmiot = (typeof aktualnyPrzedmiot !== 'undefined' && aktualnyPrzedmiot) ? aktualnyPrzedmiot.toLowerCase() : "język angielski";
 
-    // 2. CZYSZCZENIE STAREGO WIDOKU
-    // To jest kluczowe, żeby dane z poprzedniego przedmiotu nie straszyły w tabeli
+    // Czyszczenie starej tabeli przed nowym ładowaniem
     const tbody = document.getElementById('lista-uczniow-podglad-ocen');
     const theadRow = document.querySelector('#tabela-wszystkie-oceny thead tr');
-    
-    if (tbody) tbody.innerHTML = '<tr><td colspan="4">Ładowanie świeżych danych...</td></tr>';
+    if (tbody) tbody.innerHTML = '<tr><td colspan="4">Synchronizacja z bazy danych...</td></tr>';
     if (theadRow) theadRow.innerHTML = '<th>Nr</th><th>Imię i Nazwisko</th>';
 
-    // 3. WYPEŁNIANIE NAGŁÓWKA
+    // Aktualizacja nagłówka (Fix kreski --)
     const naglowek = document.getElementById('naglowek-oceny-info');
-    if (naglowek) {
-        naglowek.textContent = `Przedmiot: ${aktywnyPrzedmiot} | Klasa: ${wybranaKlasaDlaOcen}`;
-    }
+    if (naglowek) naglowek.textContent = `Przedmiot: ${aktywnyPrzedmiot} | Klasa: ${wybranaKlasaDlaOcen}`;
 
-    // 4. PRZEŁĄCZANIE WIDOKU
+    // Przełączanie widoku
     if(document.getElementById('step-5-lekcja')) document.getElementById('step-5-lekcja').style.display = 'none';
     document.getElementById('step-6-oceny').style.display = 'block';
 
-    // 5. USTAWIANIE DATY
+    // Ustawienie daty
     const dataInput = document.getElementById('ocena-data');
-    if (dataInput) {
-        // Format YYYY-MM-DD jest bezpieczniejszy dla input type="date"
-        const dzis = new Date().toISOString().split('T')[0];
-        dataInput.value = dzis;
-    }
+    if (dataInput) dataInput.value = new Date().toISOString().split('T')[0];
 
-    // 6. KLUCZ: WYMUSZENIE ZAŁADOWANIA DANYCH
-    // Wywołujemy funkcję, która ma w sobie zapytanie do Firebase
-    console.log(`Przełączono na: ${aktywnyPrzedmiot} (${wybranaKlasaDlaOcen})`);
+    // KLUCZ: Ładowanie danych
     zaladujWidokPrzedmiotu();
 };
 
 /**
- * 2. ŁADOWANIE ARKUSZA ZBIORCZEGO (Widok wszystkich ocen)
+ * 2. ŁADOWANIE ARKUSZA ZBIORCZEGO (Real-time Fix)
  */
 window.zaladujWidokPrzedmiotu = function() {
-    const tbody = document.getElementById('lista-uczniow-podglad-ocen');
-    tbody.innerHTML = '<tr><td colspan="4">Ładowanie arkusza ocen z bazy...</td></tr>';
+    // Jeśli istniało poprzednie nasłuchiwanie, zatrzymaj je (ważne przy zmianie przedmiotu)
+    if (unsubOceny) unsubOceny();
 
-    // A. Pobieramy uczniów (u1, u2 itd.)
+    // A. Pobieramy uczniów (raz)
     db.collection("klasy").doc(wybranaKlasaDlaOcen).collection("uczniowie").orderBy("numer").get()
     .then(snapshotUczniowie => {
         let listaUczniow = [];
         snapshotUczniowie.forEach(doc => listaUczniow.push({ id: doc.id, ...doc.data() }));
 
-        // B. Pobieramy kolumny ocen (te z image_78ab5f.png)
-        db.collection("klasy").doc(wybranaKlasaDlaOcen).collection("oceny")
-        .where("przedmiot", "==", aktywnyPrzedmiot)
+        // B. Nasłuchiwanie ocen na żywo (OnSnapshot)
+        // To sprawi, że dane pojawią się same od razu po wejściu
+        unsubOceny = db.collection("klasy").doc(wybranaKlasaDlaOcen).collection("oceny")
+        .where("przedmiot", "==", aktywnyPrzedmiot.trim())
         .orderBy("timestamp", "asc")
-        .get()
-        .then(snapshotKolumny => {
+        .onSnapshot(snapshotKolumny => {
+            console.log(`Załadowano/Zmieniono kolumny: ${snapshotKolumny.size}`);
             budujTabeleZbiorcza(listaUczniow, snapshotKolumny);
+        }, err => {
+            console.error("Błąd bazy (Indeks?):", err);
         });
-    }).catch(err => console.error("Błąd ładowania:", err));
+    });
 };
 
 /**
- * 3. BUDOWANIE TABELI (Wyświetlanie mapy ocen u1, u2...)
+ * 3. BUDOWANIE HTML
  */
 function budujTabeleZbiorcza(uczniowie, snapshotKolumny) {
     const theadRow = document.querySelector('#tabela-wszystkie-oceny thead tr');
     const tbody = document.getElementById('lista-uczniow-podglad-ocen');
     
     theadRow.innerHTML = '<th>Nr</th><th>Imię i Nazwisko</th>';
-    
     let daneKolumn = [];
+
     snapshotKolumny.forEach(doc => {
         daneKolumn.push(doc.data());
         let th = document.createElement('th');
-        th.style.padding = "5px";
-        th.style.fontSize = "0.7em";
+        th.style.padding = "5px"; th.style.fontSize = "0.7em";
         th.innerHTML = `${doc.id}<br><small>${doc.data().data}</small>`;
         theadRow.appendChild(th);
     });
     
     theadRow.innerHTML += '<th style="background:#fff3e0;">Śr.</th>';
-
     tbody.innerHTML = '';
+
     uczniowie.forEach(u => {
         let suma = 0, licznik = 0, komorkiOcen = '';
-
         daneKolumn.forEach(kol => {
-            // Pobieramy ocenę z mapy w dokumencie (u1, u2...)
             let ocena = (kol.oceny && kol.oceny[u.id]) ? kol.oceny[u.id] : '-';
             komorkiOcen += `<td style="text-align:center;">${ocena}</td>`;
-            
-            let val = parseFloat(ocena.replace(',', '.'));
+            let val = parseFloat(ocena.toString().replace(',', '.'));
             if (!isNaN(val)) { suma += val; licznik++; }
         });
 
         let srednia = (licznik > 0) ? (suma / licznik).toFixed(2) : '-';
-
         tbody.innerHTML += `
             <tr>
                 <td style="text-align:center;">${u.numer}</td>
                 <td>${u.imie} ${u.nazwisko}</td>
                 ${komorkiOcen}
                 <td style="text-align:center; font-weight:bold; background:#fff9f0;">${srednia}</td>
-            </tr>
-        `;
+            </tr>`;
     });
 }
 
 /**
- * 4. DODAWANIE NOWEJ KOLUMNY (Arkusz wpisywania)
+ * 4. OBSŁUGA PRZYCISKÓW (Generowanie i Zapis)
  */
 document.getElementById('btn-generuj-tabele').addEventListener('click', () => {
     const temat = document.getElementById('ocena-temat').value;
@@ -662,22 +605,17 @@ document.getElementById('btn-generuj-tabele').addEventListener('click', () => {
         const tbody = document.getElementById('lista-uczniow-oceny');
         tbody.innerHTML = '';
         snapshot.forEach(doc => {
-            const u = doc.data();
             tbody.innerHTML += `
                 <tr>
-                    <td style="text-align:center;">${u.numer}</td>
-                    <td>${u.imie} ${u.nazwisko}</td>
+                    <td style="text-align:center;">${doc.data().numer}</td>
+                    <td>${doc.data().imie} ${doc.data().nazwisko}</td>
                     <td><input type="text" class="ocena-input" data-uid="${doc.id}" style="width:40px; text-align:center;"></td>
                     <td><input type="text" class="komentarz-input" style="width:100%;"></td>
-                </tr>
-            `;
+                </tr>`;
         });
     });
 });
 
-/**
- * 5. ZAPIS DO BAZY
- */
 document.getElementById('btn-zapisz-wszystkie-oceny').addEventListener('click', async () => {
     const temat = document.getElementById('ocena-temat').value;
     const dataOceny = document.getElementById('ocena-data').value;
@@ -685,10 +623,9 @@ document.getElementById('btn-zapisz-wszystkie-oceny').addEventListener('click', 
     const komentarzeInputs = document.querySelectorAll('.komentarz-input');
 
     let mapaOcen = {}, mapaKomentarzy = {}, licznik = 0;
-
     ocenyInputs.forEach((input, index) => {
-        const uid = input.getAttribute('data-uid');
         if (input.value !== "") {
+            const uid = input.getAttribute('data-uid');
             mapaOcen[uid] = input.value;
             if (komentarzeInputs[index].value) mapaKomentarzy[uid] = komentarzeInputs[index].value;
             licznik++;
@@ -700,26 +637,20 @@ document.getElementById('btn-zapisz-wszystkie-oceny').addEventListener('click', 
     db.collection("klasy").doc(wybranaKlasaDlaOcen).collection("oceny").doc(temat).set({
         data: dataOceny,
         przedmiot: aktywnyPrzedmiot,
-        nauczyciel: (typeof userName !== 'undefined') ? userName.textContent : "Nauczyciel",
         oceny: mapaOcen,
         komentarze: mapaKomentarzy,
         timestamp: firebase.firestore.FieldValue.serverTimestamp()
-    })
-    .then(() => {
+    }).then(() => {
         alert("Zapisano!");
-        wyczyscPanelOcen(); 
-        zaladujWidokPrzedmiotu(); 
+        document.getElementById('ocena-temat').value = "";
+        document.getElementById('tabela-uczniow-kontener').style.display = 'none';
     });
 });
 
-function wyczyscPanelOcen() {
-    document.getElementById('ocena-temat').value = "";
-    document.getElementById('tabela-uczniow-kontener').style.display = 'none';
-}
-
 window.backToMenu = function() {
-    document.getElementById('step-6-oceny').style.display = 'none';
-    document.getElementById('step-5-lekcja').style.display = 'block';
+    if (unsubOceny) unsubOceny(); // Rozłączamy nasłuchiwanie
+    if(document.getElementById('step-6-oceny')) document.getElementById('step-6-oceny').style.display = 'none';
+    if(document.getElementById('step-5-lekcja')) document.getElementById('step-5-lekcja').style.display = 'block';
 };
 
 
