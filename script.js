@@ -497,7 +497,7 @@ let unsubOceny = null; // Do zatrzymywania nasłuchiwania przy wyjściu
  */
 window.otworzPanelOcen = function() {
     // Pobieranie świeżych danych z lekcji
-    wybranaKlasaDlaOcen = (typeof wybranaKlasa !== 'undefined' && wybranaKlasa) ? wybranaKlasa.toUpperCase() : "7A";
+    wybranaKlasaDlaOcen = (typeof wybranaKlasa !== 'undefined' && wybranaKlasa) ? wybranaKlasa.toUpperCase() : "7a";
     aktywnyPrzedmiot = (typeof aktualnyPrzedmiot !== 'undefined' && aktualnyPrzedmiot) ? aktualnyPrzedmiot.toLowerCase() : "język angielski";
 
     // Czyszczenie starej tabeli przed nowym ładowaniem
