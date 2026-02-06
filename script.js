@@ -741,12 +741,12 @@ window.backToMenu = function() {
 window.edytujOceneWprost = function(element, uczenId, kolumnaId, staraOcena) {
     if (element.querySelector('input')) return;
 
+    // 1. Tworzymy pole edycji
     const input = document.createElement('input');
     input.type = "text";
     input.value = staraOcena === '-' ? '' : staraOcena;
-    input.style.width = "45px";
+    input.style.width = "40px";
     input.style.textAlign = "center";
-    input.style.fontSize = "1em";
     
     element.innerHTML = "";
     element.appendChild(input);
@@ -755,7 +755,7 @@ window.edytujOceneWprost = function(element, uczenId, kolumnaId, staraOcena) {
     const zapiszZmiane = () => {
         const nowaOcena = input.value.trim();
         
-        // Jeśli nic się nie zmieniło, wracamy do tekstu
+        // Jeśli nie ma zmiany, wracamy do widoku tekstowego
         if (nowaOcena === staraOcena || (nowaOcena === "" && staraOcena === "-")) {
             element.innerHTML = staraOcena;
             return;
@@ -763,25 +763,26 @@ window.edytujOceneWprost = function(element, uczenId, kolumnaId, staraOcena) {
 
         element.innerHTML = "<i>...</i>";
 
-        // STRUKTURA: klasy -> 7a -> [temat oceny]
-        // POLE: u1, u2... (uczenId)
-        const daneDoZapisu = {};
-        daneDoZapisu[uczenId] = nowaOcena; 
+        // 2. KLUCZ: Ścieżka do Twojej bazy
+        // Skoro w Firebase masz to pod 'oceny', używamy notacji z kropką: oceny.u1
+        const sciezkaAktualizacji = {};
+        sciezkaAktualizacji[`oceny.${uczenId}`] = nowaOcena; 
 
         db.collection("klasy").doc("7a")
-          .collection("oceny").doc(kolumnaId) // kolumnaId to Twój [temat oceny]
-          .update(daneDoZapisu)
+          .collection("oceny").doc(kolumnaId)
+          .update(sciezkaAktualizacji)
           .then(() => {
-              console.log(`✅ Zapisano ocenę ${nowaOcena} dla ${uczenId} w temacie ${kolumnaId}`);
+              console.log(`✅ Zapisano: ${nowaOcena} dla ${uczenId} w kolumnie ${kolumnaId}`);
               element.innerHTML = nowaOcena === "" ? "-" : nowaOcena;
           })
           .catch(err => {
-              console.error("❌ Błąd zapisu Firebase:", err);
+              console.error("❌ Błąd zapisu:", err);
               element.innerHTML = staraOcena;
-              alert("Nie udało się zapisać. Sprawdź konsolę.");
+              alert("Błąd zapisu! Sprawdź czy dokument " + kolumnaId + " istnieje.");
           });
     };
 
+    // Obsługa wyjścia z pola i klawisza Enter
     input.addEventListener('blur', zapiszZmiane);
     input.addEventListener('keypress', (e) => {
         if (e.key === 'Enter') zapiszZmiane();
