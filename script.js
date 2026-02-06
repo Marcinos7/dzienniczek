@@ -739,51 +739,49 @@ window.backToMenu = function() {
 ///logika popraw ocen z tabeli
 
 window.edytujOceneWprost = function(element, uczenId, kolumnaId, staraOcena) {
-    // Zapobiegamy wielokrotnemu kliknięciu w to samo pole
     if (element.querySelector('input')) return;
 
-    // 1. Tworzymy input
     const input = document.createElement('input');
     input.type = "text";
-    input.value = staraOcena;
-    input.style.width = "40px";
+    input.value = staraOcena === '-' ? '' : staraOcena;
+    input.style.width = "45px";
     input.style.textAlign = "center";
-
-    // Czyszczymy komórkę i wkładamy input
+    input.style.fontSize = "1em";
+    
     element.innerHTML = "";
     element.appendChild(input);
     input.focus();
 
-    // 2. Co się dzieje, gdy użytkownik wyjdzie z pola lub naciśnie Enter
     const zapiszZmiane = () => {
         const nowaOcena = input.value.trim();
         
-        if (nowaOcena !== staraOcena) {
-            element.innerHTML = "<i>...</i>"; // Wizualny feedback zapisu
-            
-            // AKTUALIZACJA W FIREBASE
-            // Ścieżka: klasy -> 7a -> oceny -> [ID Kolumny]
-            // Musimy zaktualizować pole w mapie 'ocenyUczniow'
-            const updatePath = {};
-            updatePath[`ocenyUczniow.${uczenId}`] = nowaOcena;
-
-            db.collection("klasy").doc("7a").collection("oceny").doc(kolumnaId)
-                .update(updatePath)
-                .then(() => {
-                    element.innerHTML = nowaOcena;
-                    console.log("Ocena zaktualizowana!");
-                })
-                .catch(err => {
-                    console.error("Błąd zapisu:", err);
-                    element.innerHTML = staraOcena; // Powrót w razie błędu
-                    alert("Nie udało się zapisać oceny.");
-                });
-        } else {
-            element.innerHTML = staraOcena; // Brak zmian - przywracamy tekst
+        // Jeśli nic się nie zmieniło, wracamy do tekstu
+        if (nowaOcena === staraOcena || (nowaOcena === "" && staraOcena === "-")) {
+            element.innerHTML = staraOcena;
+            return;
         }
+
+        element.innerHTML = "<i>...</i>";
+
+        // STRUKTURA: klasy -> 7a -> [temat oceny]
+        // POLE: u1, u2... (uczenId)
+        const daneDoZapisu = {};
+        daneDoZapisu[uczenId] = nowaOcena; 
+
+        db.collection("klasy").doc("7a")
+          .collection("oceny").doc(kolumnaId) // kolumnaId to Twój [temat oceny]
+          .update(daneDoZapisu)
+          .then(() => {
+              console.log(`✅ Zapisano ocenę ${nowaOcena} dla ${uczenId} w temacie ${kolumnaId}`);
+              element.innerHTML = nowaOcena === "" ? "-" : nowaOcena;
+          })
+          .catch(err => {
+              console.error("❌ Błąd zapisu Firebase:", err);
+              element.innerHTML = staraOcena;
+              alert("Nie udało się zapisać. Sprawdź konsolę.");
+          });
     };
 
-    // Obsługa zdarzeń
     input.addEventListener('blur', zapiszZmiane);
     input.addEventListener('keypress', (e) => {
         if (e.key === 'Enter') zapiszZmiane();
