@@ -602,12 +602,14 @@ function budujTabeleZbiorcza(uczniowie, snapshotKolumny) {
     const tbody = document.getElementById('lista-uczniow-podglad-ocen');
     
     theadRow.innerHTML = '<th>Nr</th><th>Imię i Nazwisko</th>';
-    let daneKolumn = [];
+    let daneKolumn = []; // Tutaj będziemy trzymać dane i ID dokumentów
 
+    // 1. BUDOWANIE NAGŁÓWKA
     snapshotKolumny.forEach(doc => {
-        daneKolumn.push(doc.data());
+        daneKolumn.push({ id: doc.id, ...doc.data() });
         let th = document.createElement('th');
-        th.style.padding = "5px"; th.style.fontSize = "0.7em";
+        th.style.padding = "5px"; 
+        th.style.fontSize = "0.7em";
         th.innerHTML = `${doc.id}<br><small>${doc.data().data}</small>`;
         theadRow.appendChild(th);
     });
@@ -615,23 +617,54 @@ function budujTabeleZbiorcza(uczniowie, snapshotKolumny) {
     theadRow.innerHTML += '<th style="background:#fff3e0;">Śr.</th>';
     tbody.innerHTML = '';
 
+    // 2. BUDOWANIE WIERSZY UCZNIÓW
     uczniowie.forEach(u => {
-        let suma = 0, licznik = 0, komorkiOcen = '';
+        let tr = document.createElement('tr');
+        
+        // Komórki stałe: Numer i Nazwisko
+        tr.innerHTML = `
+            <td style="text-align:center;">${u.numer}</td>
+            <td>${u.imie} ${u.nazwisko}</td>
+        `;
+
+        let suma = 0, licznik = 0;
+
+        // Komórki z ocenami (EDYTOWALNE)
         daneKolumn.forEach(kol => {
-            let ocena = (kol.oceny && kol.oceny[u.id]) ? kol.oceny[u.id] : '-';
-            komorkiOcen += `<td style="text-align:center;">${ocena}</td>`;
-            let val = parseFloat(ocena.toString().replace(',', '.'));
+            let td = document.createElement('td');
+            let ocenaValue = (kol.oceny && kol.oceny[u.id]) ? kol.oceny[u.id] : '-';
+            
+            td.textContent = ocenaValue;
+            td.style.textAlignment = "center";
+            td.style.cursor = "pointer"; // Zmienia kursor na rączkę
+            td.title = "Kliknij, aby edytować";
+
+            // Efekt najechania myszką
+            td.onmouseover = function() { this.style.backgroundColor = "#ffffd0"; };
+            td.onmouseout = function() { this.style.backgroundColor = ""; };
+
+            // KLUCZ: Funkcja edycji po kliknięciu
+            td.onclick = function() {
+                edytujOceneWprost(this, u.id, kol.id, ocenaValue);
+            };
+
+            tr.appendChild(td);
+
+            // Obliczanie średniej
+            let val = parseFloat(ocenaValue.toString().replace(',', '.'));
             if (!isNaN(val)) { suma += val; licznik++; }
         });
 
+        // Komórka średniej
         let srednia = (licznik > 0) ? (suma / licznik).toFixed(2) : '-';
-        tbody.innerHTML += `
-            <tr>
-                <td style="text-align:center;">${u.numer}</td>
-                <td>${u.imie} ${u.nazwisko}</td>
-                ${komorkiOcen}
-                <td style="text-align:center; font-weight:bold; background:#fff9f0;">${srednia}</td>
-            </tr>`;
+        let tdSrednia = document.createElement('td');
+        tdSrednia.style.textAlign = "center";
+        tdSrednia.style.fontWeight = "bold";
+        tdSrednia.style.background = "#fff9f0";
+        tdSrednia.textContent = srednia;
+        tr.appendChild(tdSrednia);
+
+        tbody.appendChild(tr);
     });
 }
 
@@ -697,6 +730,66 @@ window.backToMenu = function() {
     if(document.getElementById('step-6-oceny')) document.getElementById('step-6-oceny').style.display = 'none';
     if(document.getElementById('step-5-lekcja')) document.getElementById('step-5-lekcja').style.display = 'block';
 };
+
+
+
+
+
+
+///logika popraw ocen z tabeli
+
+window.edytujOceneWprost = function(element, uczenId, kolumnaId, staraOcena) {
+    // Zapobiegamy wielokrotnemu kliknięciu w to samo pole
+    if (element.querySelector('input')) return;
+
+    // 1. Tworzymy input
+    const input = document.createElement('input');
+    input.type = "text";
+    input.value = staraOcena;
+    input.style.width = "40px";
+    input.style.textAlign = "center";
+
+    // Czyszczymy komórkę i wkładamy input
+    element.innerHTML = "";
+    element.appendChild(input);
+    input.focus();
+
+    // 2. Co się dzieje, gdy użytkownik wyjdzie z pola lub naciśnie Enter
+    const zapiszZmiane = () => {
+        const nowaOcena = input.value.trim();
+        
+        if (nowaOcena !== staraOcena) {
+            element.innerHTML = "<i>...</i>"; // Wizualny feedback zapisu
+            
+            // AKTUALIZACJA W FIREBASE
+            // Ścieżka: klasy -> 7a -> oceny -> [ID Kolumny]
+            // Musimy zaktualizować pole w mapie 'ocenyUczniow'
+            const updatePath = {};
+            updatePath[`ocenyUczniow.${uczenId}`] = nowaOcena;
+
+            db.collection("klasy").doc("7a").collection("oceny").doc(kolumnaId)
+                .update(updatePath)
+                .then(() => {
+                    element.innerHTML = nowaOcena;
+                    console.log("Ocena zaktualizowana!");
+                })
+                .catch(err => {
+                    console.error("Błąd zapisu:", err);
+                    element.innerHTML = staraOcena; // Powrót w razie błędu
+                    alert("Nie udało się zapisać oceny.");
+                });
+        } else {
+            element.innerHTML = staraOcena; // Brak zmian - przywracamy tekst
+        }
+    };
+
+    // Obsługa zdarzeń
+    input.addEventListener('blur', zapiszZmiane);
+    input.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') zapiszZmiane();
+    });
+};
+
 
 
 
