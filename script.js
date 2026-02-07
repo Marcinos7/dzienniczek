@@ -456,7 +456,10 @@ window.backToMenuFromProjekty = function() {
     document.getElementById('step-8-projekty').style.display = 'none';
     document.getElementById('step-5').style.display = 'block';
 };
-
+window.backToMenuFromOceny = function() {
+    document.getElementById('step-6-oceny').style.display = 'none';
+    document.getElementById('step-5').style.display = 'block';
+};
 
 
 
