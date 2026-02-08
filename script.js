@@ -21,6 +21,7 @@ const PRZEDMIOTY = [
   "język hiszpański",
   "język polski",
   "matematyka",
+  "plastyka",
   "religia",
   "wiedza o społeczeństwie",
   "wychowanie fizyczne"
