@@ -291,18 +291,27 @@
     
     <div style="background: #673AB7; color: white; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
         <h2 style="margin:0;">Dziennik Oddziału - Klasyfikacja</h2>
-        <p id="dziennik-info-podnaglowek" style="margin: 5px 0 0 0; opacity: 0.9;">Przedmiot: -- | Klasa: 7a</p>
+        <p id="dziennik-info-podnaglowek" style="margin: 5px 0 0 0; opacity: 0.9;">Wybierz przedmiot, aby wyświetlić arkusz</p>
     </div>
 
-    <div id="widok-arkusza-kontener" style="background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); overflow-x: auto;">
+    <div id="sekcja-wyboru-przedmiotu" style="background: #f9f9f9; padding: 20px; border-radius: 8px; margin-bottom: 20px; border: 1px dashed #673AB7;">
+        <h3 style="margin-top:0;">Wybierz przedmiot:</h3>
+        <div id="lista-przedmiotow-klasyfikacja" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 10px;">
+            </div>
+    </div>
+
+    <div id="widok-arkusza-kontener" style="display:none; background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); overflow-x: auto;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <h3 id="tytul-arkusza">Arkusz ocen: --</h3>
+            <button onclick="document.getElementById('widok-arkusza-kontener').style.display='none'; document.getElementById('sekcja-wyboru-przedmiotu').style.display='block';" style="font-size: 0.8em; cursor:pointer;">🔄 Zmień przedmiot</button>
+        </div>
+        
         <table id="tabela-arkusz-pelny" border="1" style="width:100%; border-collapse: collapse; min-width: 1000px; text-align: left;">
             <thead>
                 <tr style="background: #f2f2f2;">
                     <th style="width: 40px; padding: 10px;">Nr</th>
                     <th style="width: 200px; padding: 10px;">Imię i Nazwisko</th>
-                    
                     <th id="placeholder-lekcje" style="display:none;"></th>
-                    
                     <th style="width: 60px; padding: 10px; background: #fff3e0; text-align: center;">Śr.</th>
                     <th style="width: 70px; padding: 10px; background: #e8f5e9; text-align: center;">Przew.</th>
                     <th style="width: 70px; padding: 10px; background: #e1f5fe; text-align: center;">Sem.</th>
@@ -310,7 +319,7 @@
                 </tr>
             </thead>
             <tbody id="lista-uczniow-arkusz-pelny">
-                <tr><td colspan="10" style="padding:20px; text-align:center;">Ładowanie danych...</td></tr>
+                <tr><td colspan="10" style="padding:20px; text-align:center;">Wybierz przedmiot powyżej...</td></tr>
             </tbody>
         </table>
     </div>

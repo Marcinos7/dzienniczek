@@ -516,8 +516,6 @@ window.wybierzLekcjeDoOcen = function(przedmiot, nr) {
 
 
 
-
-
 // ==========================================
 // ODDZIAL SEMESTR I KONIEC - LOGIKA ARKUSZA
 // ==========================================
@@ -531,58 +529,81 @@ window.pokazStep = function(stepId) {
     if (target) target.style.display = 'block';
 };
 
-// 2. Główna funkcja uruchamiana przyciskiem "🎓 Oceny semestralne i końcowe"
+// 2. Funkcja uruchamiana głównym przyciskiem 🎓
 window.otworzArkuszDziennika = function() {
-    // Sprawdzenie czy wybrano przedmiot (aktywnyPrzedmiot musi być ustawiony przy wejściu w klasę)
-    if (!window.aktywnyPrzedmiot) {
-        alert("Najpierw wybierz przedmiot!");
-        return;
-    }
-
-    const klasa = "7a"; // Możesz zamienić na zmienną dynamiczną jeśli masz więcej klas
     pokazStep('step-7-dziennik');
+    
+    // UI: Pokazujemy listę przedmiotów, chowamy tabelę na start
+    document.getElementById('widok-arkusza-kontener').style.display = 'none';
+    document.getElementById('sekcja-wyboru-przedmiotu').style.display = 'block';
+    document.getElementById('dziennik-info-podnaglowek').textContent = "Wybierz przedmiot, aby wyświetlić arkusz";
 
-    // Aktualizacja wizualna nagłówka
-    const infoNaglowek = document.getElementById('dziennik-info-podnaglowek');
-    if (infoNaglowek) {
-        infoNaglowek.textContent = `Przedmiot: ${window.aktywnyPrzedmiot} | Klasa: ${klasa}`;
+    const kontener = document.getElementById('lista-przedmiotow-klasyfikacja');
+    kontener.innerHTML = ''; 
+
+    // Używamy Twojej stałej PRZEDMIOTY do wygenerowania przycisków
+    if (typeof PRZEDMIOTY !== 'undefined') {
+        PRZEDMIOTY.forEach(przedmiot => {
+            const btn = document.createElement('button');
+            btn.className = "panel-nav-btn"; // Twoja klasa CSS dla ładnego wyglądu
+            btn.style.margin = "5px";
+            btn.textContent = przedmiot;
+
+            btn.onclick = function() {
+                window.aktywnyPrzedmiot = przedmiot; 
+                zaladujDaneDoArkusza(przedmiot); 
+            };
+            kontener.appendChild(btn);
+        });
+    } else {
+        kontener.innerHTML = "<p style='color:red;'>Błąd: Nie znaleziono listy przedmiotów!</p>";
     }
+};
+
+// 3. Pobieranie danych dla konkretnego przedmiotu
+window.zaladujDaneDoArkusza = function(przedmiot) {
+    // UI: Chowamy wybór, pokazujemy tabelę
+    document.getElementById('sekcja-wyboru-przedmiotu').style.display = 'none';
+    document.getElementById('widok-arkusza-kontener').style.display = 'block';
+    document.getElementById('dziennik-info-podnaglowek').textContent = `Przedmiot: ${przedmiot} | Klasa: 7a`;
+    document.getElementById('tytul-arkusza').textContent = "Arkusz ocen: " + przedmiot;
+
+    const tbody = document.getElementById('lista-uczniow-arkusz-pelny');
+    tbody.innerHTML = '<tr><td colspan="10" style="text-align:center; padding:20px;">Ładowanie danych z bazy...</td></tr>';
+
+    const klasa = "7a"; 
 
     // POBIERANIE DANYCH Z FIREBASE
-    // Pobieramy: 1. Wszystkie dokumenty z kolekcji ocen, 2. Listę uczniów
     Promise.all([
         db.collection("klasy").doc(klasa).collection("oceny").get(),
         db.collection("klasy").doc(klasa).collection("uczniowie").orderBy("numer").get()
     ]).then(([snapshotOceny, snapshotUczniowie]) => {
         
         const uczniowie = snapshotUczniowie.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        
         const lekcje = [];
         let danePrzew = {}, daneSem = {}, daneKonc = {};
 
-        // Rozdzielamy dane: lekcje idą do tablicy, dokumenty specjalne do obiektów
         snapshotOceny.forEach(doc => {
             if (doc.id === "ocenyprzewidywane") danePrzew = doc.data().oceny || {};
             else if (doc.id === "ocenysemestralne") daneSem = doc.data().oceny || {};
             else if (doc.id === "ocenykoncowe") daneKonc = doc.data().oceny || {};
             else {
-                // To jest zwykła lekcja/kolumna ocen cząstkowych
                 lekcje.push({ id: doc.id, ...doc.data() });
             }
         });
 
-        // Sortujemy lekcje po dacie (jeśli masz pole 'data'), żeby były chronologicznie
+        // Sortowanie lekcji chronologicznie
         lekcje.sort((a, b) => (a.data > b.data) ? 1 : -1);
 
         renderujWielkaTabele(uczniowie, lekcje, danePrzew, daneSem, daneKonc);
 
     }).catch(err => {
         console.error("Błąd ładowania arkusza:", err);
-        alert("Nie udało się pobrać danych z bazy.");
+        alert("Nie udało się pobrać danych.");
     });
 };
 
-// 3. Budowanie tabeli (Renderowanie HTML)
+// 4. Budowanie tabeli (Renderowanie HTML)
 function renderujWielkaTabele(uczniowie, lekcje, przew, sem, konc) {
     const tbody = document.getElementById('lista-uczniow-arkusz-pelny');
     const theadRow = document.querySelector('#tabela-arkusz-pelny thead tr');
@@ -591,13 +612,13 @@ function renderujWielkaTabele(uczniowie, lekcje, przew, sem, konc) {
     theadRow.querySelectorAll('.dynamic-th').forEach(th => th.remove());
     const placeholder = document.getElementById('placeholder-lekcje');
 
-    // Dodawanie nagłówków dla każdej lekcji
     lekcje.forEach(l => {
         let th = document.createElement('th');
         th.className = 'dynamic-th';
         th.style.fontSize = "0.75em";
-        th.style.minWidth = "50px";
-        th.innerHTML = `${l.id}<br><small style="color: #666;">${l.temat || ''}</small>`;
+        th.style.padding = "10px";
+        th.style.minWidth = "60px";
+        th.innerHTML = `${l.id}<br><small style="color: #666; font-weight:normal;">${l.temat || ''}</small>`;
         placeholder.before(th);
     });
 
@@ -606,14 +627,12 @@ function renderujWielkaTabele(uczniowie, lekcje, przew, sem, konc) {
     uczniowie.forEach(u => {
         let tr = document.createElement('tr');
         
-        // Komórki stałe: Nr i Nazwisko
-        let htmlBase = `<td style="text-align:center; padding:8px;">${u.numer}</td>
-                        <td style="padding:8px; font-weight:500;">${u.imie} ${u.nazwisko}</td>`;
+        let htmlBase = `<td style="text-align:center; padding:10px;">${u.numer}</td>
+                        <td style="padding:10px; font-weight:500;">${u.imie} ${u.nazwisko}</td>`;
         tr.innerHTML = htmlBase;
 
         let suma = 0, licznik = 0;
 
-        // Komórki dynamiczne: Oceny cząstkowe
         lekcje.forEach(l => {
             let td = document.createElement('td');
             let ocena = (l.oceny && l.oceny[u.id]) ? l.oceny[u.id] : '-';
@@ -621,17 +640,13 @@ function renderujWielkaTabele(uczniowie, lekcje, przew, sem, konc) {
             td.style.textAlign = "center";
             td.style.cursor = "pointer";
             
-            // Edycja oceny cząstkowej (używa Twojej istniejącej funkcji)
             td.onclick = () => window.edytujOceneWprost(td, u.id, l.id, ocena);
-            
             tr.appendChild(td);
 
-            // Obliczanie do średniej
             let val = parseFloat(ocena.toString().replace(',', '.'));
             if (!isNaN(val)) { suma += val; licznik++; }
         });
 
-        // Komórka: Średnia
         let srednia = (licznik > 0) ? (suma / licznik).toFixed(2) : '-';
         let tdSrednia = document.createElement('td');
         tdSrednia.style.textAlign = "center";
@@ -640,7 +655,6 @@ function renderujWielkaTabele(uczniowie, lekcje, przew, sem, konc) {
         tdSrednia.textContent = srednia;
         tr.appendChild(tdSrednia);
 
-        // Komórki specjalne: Przewidywana, Semestralna, Końcowa
         tr.appendChild(stworzPoleSpecjalne(u.id, 'ocenyprzewidywane', przew[u.id] || '-', "#e8f5e9"));
         tr.appendChild(stworzPoleSpecjalne(u.id, 'ocenysemestralne', sem[u.id] || '-', "#e1f5fe"));
         tr.appendChild(stworzPoleSpecjalne(u.id, 'ocenykoncowe', konc[u.id] || '-', "#fffde7"));
@@ -649,7 +663,7 @@ function renderujWielkaTabele(uczniowie, lekcje, przew, sem, konc) {
     });
 }
 
-// 4. Pomocnik do tworzenia edytowalnych pól klasyfikacji
+// 5. Pomocnik do tworzenia edytowalnych pól klasyfikacji
 function stworzPoleSpecjalne(uczenId, docId, wartosc, kolor) {
     let td = document.createElement('td');
     td.textContent = wartosc;
@@ -657,13 +671,14 @@ function stworzPoleSpecjalne(uczenId, docId, wartosc, kolor) {
     td.style.fontWeight = "bold";
     td.style.background = kolor;
     td.style.cursor = "pointer";
+    td.style.padding = "10px";
     td.onclick = function() {
         window.edytujSpecjalna(this, uczenId, docId, wartosc);
     };
     return td;
 }
 
-// 5. Funkcja edycji i zapisu dla ocen specjalnych (Przew, Sem, Konc)
+// 6. Funkcja edycji i zapisu dla ocen specjalnych
 window.edytujSpecjalna = function(element, uczenId, docId, staraOcena) {
     if (element.querySelector('input')) return;
 
@@ -686,53 +701,23 @@ window.edytujSpecjalna = function(element, uczenId, docId, staraOcena) {
         }
 
         element.innerHTML = "<small>...</small>";
-
         const updateData = {};
         updateData[`oceny.${uczenId}`] = nowa;
 
-        // Zapis do dokumentu specjalnego w kolekcji 'oceny'
         db.collection("klasy").doc("7a").collection("oceny").doc(docId)
           .set(updateData, { merge: true })
           .then(() => {
               element.innerHTML = nowa === "" ? "-" : nowa;
-              console.log(`Zaktualizowano ${docId} dla ucznia ${uczenId}`);
           })
           .catch(err => {
-              console.error("Błąd zapisu specjalnego:", err);
+              console.error("Błąd zapisu:", err);
               element.innerHTML = staraOcena;
               alert("Błąd zapisu!");
           });
     };
 
-    input.onkeypress = function(e) {
-        if (e.key === 'Enter') input.blur();
-    };
+    input.onkeypress = function(e) { if (e.key === 'Enter') input.blur(); };
 };
-window.wybierzPrzedmiotIDziennik = function() {
-    // Jeśli przedmiot jest już wybrany (np. nauczyciel wszedł z widoku lekcji)
-    if (window.aktywnyPrzedmiot) {
-        otworzArkuszDziennika();
-        return;
-    }
-
-    // Jeśli nie ma wybranego przedmiotu, prosimy o wybór (możesz dopisać tu swoje przedmioty)
-    const przedmioty = ["Matematyka", "Język polski", "Historia", "Geografia", "Biologia"]; // Twoja lista
-    
-    let tresc = "Wybierz przedmiot, dla którego chcesz otworzyć arkusz:\n\n";
-    przedmioty.forEach((p, index) => tresc += `${index + 1}. ${p}\n`);
-    
-    const wybor = prompt(tresc);
-    
-    if (wybor && przedmioty[wybor - 1]) {
-        window.aktywnyPrzedmiot = przedmioty[wybor - 1];
-        otworzArkuszDziennika();
-    } else {
-        alert("Musisz wybrać przedmiot, aby zobaczyć oceny!");
-    }
-};
-
-
-
 
 
 
