@@ -512,6 +512,218 @@ window.wybierzLekcjeDoOcen = function(przedmiot, nr) {
 
 
 
+
+
+
+
+
+
+// ==========================================
+// ODDZIAL SEMESTR I KONIEC - LOGIKA ARKUSZA
+// ==========================================
+
+// 1. Uniwersalna funkcja przełączania widoków
+window.pokazStep = function(stepId) {
+    document.querySelectorAll('[id^="step-"]').forEach(div => {
+        div.style.display = 'none';
+    });
+    const target = document.getElementById(stepId);
+    if (target) target.style.display = 'block';
+};
+
+// 2. Główna funkcja uruchamiana przyciskiem "🎓 Oceny semestralne i końcowe"
+window.otworzArkuszDziennika = function() {
+    // Sprawdzenie czy wybrano przedmiot (aktywnyPrzedmiot musi być ustawiony przy wejściu w klasę)
+    if (!window.aktywnyPrzedmiot) {
+        alert("Najpierw wybierz przedmiot!");
+        return;
+    }
+
+    const klasa = "7a"; // Możesz zamienić na zmienną dynamiczną jeśli masz więcej klas
+    pokazStep('step-7-dziennik');
+
+    // Aktualizacja wizualna nagłówka
+    const infoNaglowek = document.getElementById('dziennik-info-podnaglowek');
+    if (infoNaglowek) {
+        infoNaglowek.textContent = `Przedmiot: ${window.aktywnyPrzedmiot} | Klasa: ${klasa}`;
+    }
+
+    // POBIERANIE DANYCH Z FIREBASE
+    // Pobieramy: 1. Wszystkie dokumenty z kolekcji ocen, 2. Listę uczniów
+    Promise.all([
+        db.collection("klasy").doc(klasa).collection("oceny").get(),
+        db.collection("klasy").doc(klasa).collection("uczniowie").orderBy("numer").get()
+    ]).then(([snapshotOceny, snapshotUczniowie]) => {
+        
+        const uczniowie = snapshotUczniowie.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        
+        const lekcje = [];
+        let danePrzew = {}, daneSem = {}, daneKonc = {};
+
+        // Rozdzielamy dane: lekcje idą do tablicy, dokumenty specjalne do obiektów
+        snapshotOceny.forEach(doc => {
+            if (doc.id === "ocenyprzewidywane") danePrzew = doc.data().oceny || {};
+            else if (doc.id === "ocenysemestralne") daneSem = doc.data().oceny || {};
+            else if (doc.id === "ocenykoncowe") daneKonc = doc.data().oceny || {};
+            else {
+                // To jest zwykła lekcja/kolumna ocen cząstkowych
+                lekcje.push({ id: doc.id, ...doc.data() });
+            }
+        });
+
+        // Sortujemy lekcje po dacie (jeśli masz pole 'data'), żeby były chronologicznie
+        lekcje.sort((a, b) => (a.data > b.data) ? 1 : -1);
+
+        renderujWielkaTabele(uczniowie, lekcje, danePrzew, daneSem, daneKonc);
+
+    }).catch(err => {
+        console.error("Błąd ładowania arkusza:", err);
+        alert("Nie udało się pobrać danych z bazy.");
+    });
+};
+
+// 3. Budowanie tabeli (Renderowanie HTML)
+function renderujWielkaTabele(uczniowie, lekcje, przew, sem, konc) {
+    const tbody = document.getElementById('lista-uczniow-arkusz-pelny');
+    const theadRow = document.querySelector('#tabela-arkusz-pelny thead tr');
+    
+    // Czyszczenie starych dynamicznych nagłówków lekcji
+    theadRow.querySelectorAll('.dynamic-th').forEach(th => th.remove());
+    const placeholder = document.getElementById('placeholder-lekcje');
+
+    // Dodawanie nagłówków dla każdej lekcji
+    lekcje.forEach(l => {
+        let th = document.createElement('th');
+        th.className = 'dynamic-th';
+        th.style.fontSize = "0.75em";
+        th.style.minWidth = "50px";
+        th.innerHTML = `${l.id}<br><small style="color: #666;">${l.temat || ''}</small>`;
+        placeholder.before(th);
+    });
+
+    tbody.innerHTML = '';
+
+    uczniowie.forEach(u => {
+        let tr = document.createElement('tr');
+        
+        // Komórki stałe: Nr i Nazwisko
+        let htmlBase = `<td style="text-align:center; padding:8px;">${u.numer}</td>
+                        <td style="padding:8px; font-weight:500;">${u.imie} ${u.nazwisko}</td>`;
+        tr.innerHTML = htmlBase;
+
+        let suma = 0, licznik = 0;
+
+        // Komórki dynamiczne: Oceny cząstkowe
+        lekcje.forEach(l => {
+            let td = document.createElement('td');
+            let ocena = (l.oceny && l.oceny[u.id]) ? l.oceny[u.id] : '-';
+            td.textContent = ocena;
+            td.style.textAlign = "center";
+            td.style.cursor = "pointer";
+            
+            // Edycja oceny cząstkowej (używa Twojej istniejącej funkcji)
+            td.onclick = () => window.edytujOceneWprost(td, u.id, l.id, ocena);
+            
+            tr.appendChild(td);
+
+            // Obliczanie do średniej
+            let val = parseFloat(ocena.toString().replace(',', '.'));
+            if (!isNaN(val)) { suma += val; licznik++; }
+        });
+
+        // Komórka: Średnia
+        let srednia = (licznik > 0) ? (suma / licznik).toFixed(2) : '-';
+        let tdSrednia = document.createElement('td');
+        tdSrednia.style.textAlign = "center";
+        tdSrednia.style.fontWeight = "bold";
+        tdSrednia.style.background = "#fff3e0";
+        tdSrednia.textContent = srednia;
+        tr.appendChild(tdSrednia);
+
+        // Komórki specjalne: Przewidywana, Semestralna, Końcowa
+        tr.appendChild(stworzPoleSpecjalne(u.id, 'ocenyprzewidywane', przew[u.id] || '-', "#e8f5e9"));
+        tr.appendChild(stworzPoleSpecjalne(u.id, 'ocenysemestralne', sem[u.id] || '-', "#e1f5fe"));
+        tr.appendChild(stworzPoleSpecjalne(u.id, 'ocenykoncowe', konc[u.id] || '-', "#fffde7"));
+
+        tbody.appendChild(tr);
+    });
+}
+
+// 4. Pomocnik do tworzenia edytowalnych pól klasyfikacji
+function stworzPoleSpecjalne(uczenId, docId, wartosc, kolor) {
+    let td = document.createElement('td');
+    td.textContent = wartosc;
+    td.style.textAlign = "center";
+    td.style.fontWeight = "bold";
+    td.style.background = kolor;
+    td.style.cursor = "pointer";
+    td.onclick = function() {
+        window.edytujSpecjalna(this, uczenId, docId, wartosc);
+    };
+    return td;
+}
+
+// 5. Funkcja edycji i zapisu dla ocen specjalnych (Przew, Sem, Konc)
+window.edytujSpecjalna = function(element, uczenId, docId, staraOcena) {
+    if (element.querySelector('input')) return;
+
+    const input = document.createElement('input');
+    input.type = "text";
+    input.value = staraOcena === '-' ? '' : staraOcena;
+    input.style.width = "40px";
+    input.style.textAlign = "center";
+    input.style.fontWeight = "bold";
+    
+    element.innerHTML = "";
+    element.appendChild(input);
+    input.focus();
+
+    input.onblur = function() {
+        const nowa = input.value.trim();
+        if (nowa === staraOcena || (nowa === "" && staraOcena === "-")) {
+            element.innerHTML = staraOcena;
+            return;
+        }
+
+        element.innerHTML = "<small>...</small>";
+
+        const updateData = {};
+        updateData[`oceny.${uczenId}`] = nowa;
+
+        // Zapis do dokumentu specjalnego w kolekcji 'oceny'
+        db.collection("klasy").doc("7a").collection("oceny").doc(docId)
+          .set(updateData, { merge: true })
+          .then(() => {
+              element.innerHTML = nowa === "" ? "-" : nowa;
+              console.log(`Zaktualizowano ${docId} dla ucznia ${uczenId}`);
+          })
+          .catch(err => {
+              console.error("Błąd zapisu specjalnego:", err);
+              element.innerHTML = staraOcena;
+              alert("Błąd zapisu!");
+          });
+    };
+
+    input.onkeypress = function(e) {
+        if (e.key === 'Enter') input.blur();
+    };
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 // ==========================================
 // LOGIKA PANELU OCEN (STEP 6) - WERSJA FIX
 // ==========================================
