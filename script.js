@@ -708,7 +708,28 @@ window.edytujSpecjalna = function(element, uczenId, docId, staraOcena) {
         if (e.key === 'Enter') input.blur();
     };
 };
+window.wybierzPrzedmiotIDziennik = function() {
+    // Jeśli przedmiot jest już wybrany (np. nauczyciel wszedł z widoku lekcji)
+    if (window.aktywnyPrzedmiot) {
+        otworzArkuszDziennika();
+        return;
+    }
 
+    // Jeśli nie ma wybranego przedmiotu, prosimy o wybór (możesz dopisać tu swoje przedmioty)
+    const przedmioty = ["Matematyka", "Język polski", "Historia", "Geografia", "Biologia"]; // Twoja lista
+    
+    let tresc = "Wybierz przedmiot, dla którego chcesz otworzyć arkusz:\n\n";
+    przedmioty.forEach((p, index) => tresc += `${index + 1}. ${p}\n`);
+    
+    const wybor = prompt(tresc);
+    
+    if (wybor && przedmioty[wybor - 1]) {
+        window.aktywnyPrzedmiot = przedmioty[wybor - 1];
+        otworzArkuszDziennika();
+    } else {
+        alert("Musisz wybrać przedmiot, aby zobaczyć oceny!");
+    }
+};
 
 
 
