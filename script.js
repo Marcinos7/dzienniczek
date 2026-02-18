@@ -737,6 +737,55 @@ window.edytujSpecjalna = function(element, uczenId, typKlasyfikacji, staraOcena)
 
 
 
+window.generujWydruk = function(typ) {
+    const klasa = "7a"; // Możesz pobrać z zmiennej globalnej
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+
+    // Pobieramy dane uczniów przed generowaniem
+    db.collection("klasy").doc(klasa).collection("uczniowie").orderBy("numer").get()
+    .then(snapshot => {
+        const uczniowie = snapshot.docs.map(d => d.data());
+
+        if (typ === 'wywiadowki') {
+            stworzPdfWywiadowka(doc, uczniowie, klasa);
+        } else if (typ === 'podsumowania') {
+            stworzPdfPodsumowanie(doc, uczniowie, klasa);
+        } else {
+            alert("Funkcja dla " + typ + " będzie dostępna wkrótce!");
+        }
+    });
+};
+
+function stworzPdfWywiadowka(doc, uczniowie, klasa) {
+    doc.setFontSize(18);
+    doc.text(`Zestawienie ocen - Klasa ${klasa}`, 14, 20);
+    doc.setFontSize(10);
+    doc.text(`Data wygenerowania: ${new Date().toLocaleDateString()}`, 14, 28);
+
+    const body = uczniowie.map(u => [u.numer, `${u.imie} ${u.nazwisko}`, "", ""]);
+
+    doc.autoTable({
+        startY: 35,
+        head: [['Nr', 'Imię i Nazwisko', 'Oceny', 'Uwagi']],
+        body: body,
+        theme: 'grid',
+        headStyles: { fillColor: [0, 150, 136] }
+    });
+
+    doc.save(`Wywiadówka_Klasa_${klasa}.pdf`);
+}
+
+
+
+
+
+
+
+
+
+
+
 
 // ==========================================
 // LOGIKA PANELU OCEN (STEP 6) - WERSJA FIX

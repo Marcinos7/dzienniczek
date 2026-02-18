@@ -9,6 +9,9 @@
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
 </head>
 <body>
 <!-- LOADING OVERLAY -->
@@ -245,7 +248,7 @@
     <div style="display: grid; grid-template-columns: 1fr; gap: 10px; max-width: 300px;">
         <button class="panel-nav-btn" onclick="otworzListeUczniow()">👥 Lista oddziału</button>
         <button class="panel-nav-btn" onclick="otworzArkuszDziennika()">🎓 Oceny semestralne i końcowe</button>
-        <button class="panel-nav-btn" onclick="alert('Wydruki - wkrótcffffe')">🖨️ Wydruki</button>
+        <button class="panel-nav-btn" onclick="pokazStep('step-8-wydruki')">🖨️ Wydruki i pliki PDF</button>
     </div>
 </div>
 <div id="step-11-lista-uczniow" style="display:none; padding: 20px;">
@@ -277,6 +280,43 @@
         </table>
     </div>
 </div>
+
+
+
+
+
+
+
+
+<div id="step-8-wydruki" style="display:none; padding: 20px;">
+    <button onclick="backToMenu()" style="margin-bottom: 15px;">⬅ Powrót do menu</button>
+    
+    <div style="background: #009688; color: white; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+        <h2 style="margin:0;">🖨️ Panel Wydruków</h2>
+        <p style="margin:5px 0 0 0; opacity: 0.9;">Wybierz rodzaj dokumentu do wygenerowania</p>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 15px;">
+        <div class="print-card" onclick="generujWydruk('swiadectwa')" style="border: 2px solid #009688; padding: 20px; border-radius: 10px; cursor: pointer; text-align: center; background: white;">
+            <span style="font-size: 40px;">📜</span>
+            <h3>Świadectwa</h3>
+            <p>Arkusze ocen końcowych dla uczniów.</p>
+        </div>
+
+        <div class="print-card" onclick="generujWydruk('wywiadowki')" style="border: 2px solid #009688; padding: 20px; border-radius: 10px; cursor: pointer; text-align: center; background: white;">
+            <span style="font-size: 40px;">👪</span>
+            <h3>Wywiadówki</h3>
+            <p>Zestawienie ocen bieżących i frekwencji dla rodziców.</p>
+        </div>
+
+        <div class="print-card" onclick="generujWydruk('podsumowania')" style="border: 2px solid #009688; padding: 20px; border-radius: 10px; cursor: pointer; text-align: center; background: white;">
+            <span style="font-size: 40px;">📊</span>
+            <h3>Podsumowania</h3>
+            <p>Zestawienie wyników klasy (średnie, klasyfikacja).</p>
+        </div>
+    </div>
+</div>
+
 
 
 
