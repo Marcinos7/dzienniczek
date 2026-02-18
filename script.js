@@ -11,8 +11,6 @@ const KATEGORIE_UWAG = [
 // lista przedmiotów
 const PRZEDMIOTY = [
   "biologia",
-  "chemia",
-  "edukacja dla bezpieczeństwa",
   "fizyka",
   "geografia",
   "historia",
@@ -21,8 +19,9 @@ const PRZEDMIOTY = [
   "język hiszpański",
   "język polski",
   "matematyka",
+  "muzyka",
   "plastyka",
-  "religia",
+  "technika",
   "wiedza o społeczeństwie",
   "wychowanie fizyczne"
 ];
