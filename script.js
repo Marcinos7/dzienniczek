@@ -778,6 +778,32 @@ window.generujWydrukiHTML = async function() {
         const uwagiData = {};
         snapUwagi.forEach(doc => { uwagiData[doc.id] = doc.data().tekst || ""; });
 
+        // ... (po pobraniu snapUwagi)
+const uwagiData = {};
+
+snapUwagi.forEach(doc => {
+    const data = doc.data();
+    
+    // Pobieramy ID ucznia z pola 'studentId' (zgodnie ze screenem)
+    const idUcznia = data.studentId;
+    
+    if (idUcznia) {
+        // Składamy treść: Kategoria + treść (np. "Brak podręcznika (wypełnianie obowiązków)")
+        const kategoria = data.kategoria ? `[${data.kategoria}] ` : "";
+        const trescUwagi = data.tresc || "";
+        const pelnaUwaga = kategoria + trescUwagi;
+        
+        // Łączymy uwagi dla jednego ucznia, jeśli ma ich kilka
+        if (uwagiData[idUcznia]) {
+            uwagiData[idUcznia] += "<br>• " + pelnaUwaga;
+        } else {
+            uwagiData[idUcznia] = "• " + pelnaUwaga;
+        }
+    }
+});
+
+console.log("Zmapowane uwagi dla uczniów:", uwagiData);
+
         // 2. Tworzymy tymczasowy kontener HTML do konwersji
         const elementDoDruku = document.createElement('div');
 
