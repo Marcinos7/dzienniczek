@@ -9,7 +9,7 @@
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
 </head>
@@ -309,7 +309,7 @@
             <p>Zestawienie ocen bieżących i frekwencji dla rodziców.</p>
         </div>
 
-        <div class="print-card" onclick="generujIndywidualneKartyWszystkiePrzedmioty()" style="border: 2px solid #009688; padding: 20px; border-radius: 10px; cursor: pointer; text-align: center; background: white;">
+        <div class="print-card" onclick="generujWydrukiHTML()" style="border: 2px solid #009688; padding: 20px; border-radius: 10px; cursor: pointer; text-align: center; background: white;">
             <span style="font-size: 40px;">📊</span>
             <h3>Podsumowania</h3>
             <p>Zestawienie wyników klasy (średnie, klasyfikacja).</p>

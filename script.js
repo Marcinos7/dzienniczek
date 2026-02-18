@@ -757,116 +757,115 @@ window.generujWydruk = function(typ) {
     });
 };
 
-function stworzPdfWywiadowka(doc, uczniowie, klasa) {
-    doc.setFontSize(18);
-    doc.text(`Zestawienie ocen - Klasa ${klasa}`, 14, 20);
-    doc.setFontSize(10);
-    doc.text(`Data wygenerowania: ${new Date().toLocaleDateString()}`, 14, 28);
-
-    const body = uczniowie.map(u => [u.numer, `${u.imie} ${u.nazwisko}`, "", ""]);
-
-    doc.autoTable({
-        startY: 35,
-        head: [['Nr', 'Imię i Nazwisko', 'Oceny', 'Uwagi']],
-        body: body,
-        theme: 'grid',
-        headStyles: { fillColor: [0, 150, 136] }
-    });
-
-    doc.save(`Wywiadówka_Klasa_${klasa}.pdf`);
-};
-window.generujIndywidualneKartyWszystkiePrzedmioty = async function() {
+window.generujWydrukiHTML = async function() {
     const klasa = "7a";
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF();
-
+    
     try {
-        // 1. Pobieramy absolutnie wszystko dla tej klasy
-        const [snapUczniowie, snapOceny, snapKlasyfikacja] = await Promise.all([
+        // 1. Pobieranie danych z Twoich ścieżek
+        const [snapUczniowie, snapOceny, snapKlasyfikacja, snapUwagi] = await Promise.all([
             db.collection("klasy").doc(klasa).collection("uczniowie").orderBy("numer").get(),
             db.collection("klasy").doc(klasa).collection("oceny").get(),
-            db.collection("klasy").doc(klasa).collection("klasyfikacja").get()
+            db.collection("klasy").doc(klasa).collection("klasyfikacja").get(),
+            db.collection("klasy").doc(klasa).collection("uwagi").get()
         ]);
 
         const uczniowie = snapUczniowie.docs.map(d => ({ id: d.id, ...d.data() }));
         const wszystkieLekcje = snapOceny.docs.map(d => d.data());
         
-        // Klasyfikacja: robimy obiekt { srodroczna: {...}, koncowa: {...} }
         const klasyfikacjaData = {};
-        snapKlasyfikacja.forEach(doc => {
-            klasyfikacjaData[doc.id] = doc.data();
-        });
+        snapKlasyfikacja.forEach(doc => { klasyfikacjaData[doc.id] = doc.data(); });
 
+        const uwagiData = {};
+        snapUwagi.forEach(doc => { uwagiData[doc.id] = doc.data().tekst || ""; });
+
+        // 2. Tworzymy tymczasowy kontener HTML do konwersji
+        const elementDoDruku = document.createElement('div');
+
+        // 3. Pętla budująca karty uczniów
         uczniowie.forEach((u, index) => {
-            if (index > 0) doc.addPage();
+            const karta = document.createElement('div');
+            // 'page-break-after' wymusza nową stronę w PDF po każdym uczniu
+            karta.style.cssText = "padding: 40px; page-break-after: always; font-family: Arial, sans-serif; color: #333;";
 
-            // NAGŁÓWEK
-            doc.setFontSize(18);
-            doc.setTextColor(44, 62, 80);
-            doc.text("ZESTAWIENIE OCEN SEMESTRALNYCH", 105, 20, { align: "center" });
-            
-            doc.setFontSize(14);
-            doc.text(`${u.imie} ${u.nazwisko} - Klasa ${klasa}`, 20, 30);
-            doc.setFontSize(10);
-            doc.text(`Data wygenerowania: ${new Date().toLocaleDateString()}`, 145, 30);
-
-            // 2. PRZYGOTOWANIE DANYCH DO TABELI (Wiersz = Przedmiot)
-            const wierszeTabeli = PRZEDMIOTY.map(przedm => {
-                // Filtrujemy oceny cząstkowe dla tego konkretnego przedmiotu i ucznia
-                let ocenyCzastkowe = [];
+            // Budujemy wiersze tabeli przedmiotów
+            let wierszeHTML = "";
+            PRZEDMIOTY.forEach(przedm => {
+                let ocenyCz = [];
                 let suma = 0, licznik = 0;
 
                 wszystkieLekcje.forEach(l => {
                     if (l.przedmiot === przedm && l.oceny && l.oceny[u.id] && l.oceny[u.id] !== '-') {
-                        ocenyCzastkowe.push(l.oceny[u.id]);
+                        ocenyCz.push(l.oceny[u.id]);
                         let val = parseFloat(String(l.oceny[u.id]).replace(',', '.'));
                         if (!isNaN(val)) { suma += val; licznik++; }
                     }
                 });
 
                 const srednia = licznik > 0 ? (suma / licznik).toFixed(2) : "-";
-                
-                // Pobieramy z klasyfikacja -> srodroczna/koncowa -> [przedmiot] -> [u.id]
                 const sem = (klasyfikacjaData['srodroczna'] && klasyfikacjaData['srodroczna'][przedm]) ? klasyfikacjaData['srodroczna'][przedm][u.id] : "-";
                 const kon = (klasyfikacjaData['koncowa'] && klasyfikacjaData['koncowa'][przedm]) ? klasyfikacjaData['koncowa'][przedm][u.id] : "-";
 
-                return [
-                    przedm, 
-                    ocenyCzastkowe.join(", "), 
-                    srednia, 
-                    sem || "-", 
-                    kon || "-"
-                ];
+                wierszeHTML += `
+                    <tr>
+                        <td style="border: 1px solid #ddd; padding: 8px;">${przedm}</td>
+                        <td style="border: 1px solid #ddd; padding: 8px; font-size: 0.9em;">${ocenyCz.join(", ")}</td>
+                        <td style="border: 1px solid #ddd; padding: 8px; text-align:center;">${srednia}</td>
+                        <td style="border: 1px solid #ddd; padding: 8px; text-align:center; font-weight:bold;">${sem}</td>
+                        <td style="border: 1px solid #ddd; padding: 8px; text-align:center; font-weight:bold;">${kon}</td>
+                    </tr>
+                `;
             });
 
-            // 3. GENEROWANIE TABELI DLA UCZNIA
-            doc.autoTable({
-                startY: 40,
-                head: [['Przedmiot', 'Oceny cząstkowe', 'Śr.', 'Sem.', 'Końc.']],
-                body: wierszeTabeli,
-                theme: 'grid',
-                styles: { fontSize: 8, cellPadding: 2 },
-                headStyles: { fillColor: [44, 62, 80] },
-                columnStyles: {
-                    1: { cellWidth: 80 }, // Szeroka kolumna na oceny
-                    2: { halign: 'center' },
-                    3: { halign: 'center', fontStyle: 'bold' },
-                    4: { halign: 'center', fontStyle: 'bold' }
-                }
-            });
+            // Składamy całą stronę ucznia
+            karta.innerHTML = `
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <h1 style="color: #2c3e50; margin: 0;">KARTA OCEN I UWAG</h1>
+                    <p style="color: #7f8c8d;">Semestr I / Rok szkolny 2025/2026</p>
+                </div>
+                
+                <div style="margin-bottom: 20px; font-size: 1.2em;">
+                    <strong>Uczeń:</strong> ${u.imie} ${u.nazwisko} <br>
+                    <strong>Klasa:</strong> ${klasa}
+                </div>
 
-            // PODPIS
-            const finalY = doc.lastAutoTable.finalY + 20;
-            doc.setFontSize(10);
-            doc.text("..........................................", 140, finalY);
-            doc.text("Podpis wychowawcy", 150, finalY + 5);
+                <table style="width: 100%; border-collapse: collapse; margin-bottom: 30px;">
+                    <thead>
+                        <tr style="background-color: #2c3e50; color: white;">
+                            <th style="padding: 10px; border: 1px solid #2c3e50;">Przedmiot</th>
+                            <th style="padding: 10px; border: 1px solid #2c3e50;">Oceny cząstkowe</th>
+                            <th style="padding: 10px; border: 1px solid #2c3e50;">Śr.</th>
+                            <th style="padding: 10px; border: 1px solid #2c3e50;">Sem.</th>
+                            <th style="padding: 10px; border: 1px solid #2c3e50;">Końc.</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${wierszeHTML}
+                    </tbody>
+                </table>
+
+                <div style="margin-top: 20px; padding: 15px; border: 1px solid #eee; background: #f9f9f9; border-radius: 5px;">
+                    <h3 style="margin-top: 0; color: #2c3e50;">Uwagi i informacje dodatkowe:</h3>
+                    <p style="line-height: 1.6;">${uwagiData[u.id] || "Brak uwag."}</p>
+                </div>
+            `;
+            elementDoDruku.appendChild(karta);
         });
 
-        doc.save(`Karty_Ocen_Klasa_${klasa}.pdf`);
+        // 4. Konfiguracja i generowanie PDF
+        const options = {
+            margin: 0,
+            filename: `Karty_Ocen_Klasa_${klasa}.pdf`,
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 2, useCORS: true, letterRendering: true },
+            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        };
+
+        // Uruchomienie zapisu
+        html2pdf().set(options).from(elementDoDruku).save();
 
     } catch (error) {
-        console.error("Błąd generowania PDF:", error);
-        alert("Wystąpił błąd podczas pobierania danych.");
+        console.error("Błąd generowania:", error);
+        alert("Wystąpił błąd podczas przygotowywania PDF.");
     }
 };
 
