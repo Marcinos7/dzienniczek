@@ -562,18 +562,17 @@ window.otworzArkuszDziennika = function() {
 
 // 3. Pobieranie danych dla konkretnego przedmiotu
 window.zaladujDaneDoArkusza = function(przedmiot) {
-    // UI: Chowamy wybór, pokazujemy tabelę
+    // UI: Przełączamy widoki
     document.getElementById('sekcja-wyboru-przedmiotu').style.display = 'none';
     document.getElementById('widok-arkusza-kontener').style.display = 'block';
     document.getElementById('dziennik-info-podnaglowek').textContent = `Przedmiot: ${przedmiot} | Klasa: 7a`;
     document.getElementById('tytul-arkusza').textContent = "Arkusz ocen: " + przedmiot;
 
     const tbody = document.getElementById('lista-uczniow-arkusz-pelny');
-    tbody.innerHTML = '<tr><td colspan="10" style="text-align:center; padding:20px;">Ładowanie danych z bazy...</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="10" style="text-align:center; padding:20px;">Filtrowanie ocen dla przedmiotu: ' + przedmiot + '...</td></tr>';
 
     const klasa = "7a"; 
 
-    // POBIERANIE DANYCH Z FIREBASE
     Promise.all([
         db.collection("klasy").doc(klasa).collection("oceny").get(),
         db.collection("klasy").doc(klasa).collection("uczniowie").orderBy("numer").get()
@@ -584,22 +583,32 @@ window.zaladujDaneDoArkusza = function(przedmiot) {
         let danePrzew = {}, daneSem = {}, daneKonc = {};
 
         snapshotOceny.forEach(doc => {
-            if (doc.id === "ocenyprzewidywane") danePrzew = doc.data().oceny || {};
-            else if (doc.id === "ocenysemestralne") daneSem = doc.data().oceny || {};
-            else if (doc.id === "ocenykoncowe") daneKonc = doc.data().oceny || {};
-            else {
-                lekcje.push({ id: doc.id, ...doc.data() });
+            const data = doc.data();
+            
+            // 1. Sprawdzamy dokumenty specjalne (one są wspólne dla wszystkich przedmiotów)
+            if (doc.id === "ocenyprzewidywane") {
+                danePrzew = data.oceny || {};
+            } else if (doc.id === "ocenysemestralne") {
+                daneSem = data.oceny || {};
+            } else if (doc.id === "ocenykoncowe") {
+                daneKonc = data.oceny || {};
+            } 
+            // 2. FILTROWANIE PO PRZEDMIOCIE
+            // Sprawdzamy, czy pole 'przedmiot' w bazie zgadza się z tym wybranym przez Ciebie
+            else if (data.przedmiot && data.przedmiot.toLowerCase() === przedmiot.toLowerCase()) {
+                lekcje.push({ id: doc.id, ...data });
             }
         });
 
-        // Sortowanie lekcji chronologicznie
-        lekcje.sort((a, b) => (a.data > b.data) ? 1 : -1);
+        // Sortowanie lekcji po ID (zazwyczaj dacie)
+        lekcje.sort((a, b) => a.id.localeCompare(b.id));
 
+        // Wywołujemy renderowanie tabeli z przefiltrowaną listą lekcji
         renderujWielkaTabele(uczniowie, lekcje, danePrzew, daneSem, daneKonc);
 
     }).catch(err => {
-        console.error("Błąd ładowania arkusza:", err);
-        alert("Nie udało się pobrać danych.");
+        console.error("Błąd filtrowania:", err);
+        alert("Wystąpił błąd podczas ładowania danych.");
     });
 };
 
