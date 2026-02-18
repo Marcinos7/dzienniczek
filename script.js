@@ -775,43 +775,31 @@ window.generujWydrukiHTML = async function() {
         const klasyfikacjaData = {};
         snapKlasyfikacja.forEach(doc => { klasyfikacjaData[doc.id] = doc.data(); });
 
+        // --- POPRAWIONE MAPOWANIE UWAG ---
         const uwagiData = {};
-        snapUwagi.forEach(doc => { uwagiData[doc.id] = doc.data().tekst || ""; });
+        snapUwagi.forEach(doc => {
+            const data = doc.data();
+            const sId = data.studentId; // Klucz z Twojego screena
+            
+            if (sId) {
+                const tresc = data.tresc || "";
+                const kat = data.kategoria ? `[${data.kategoria}] ` : "";
+                const pelnaUwaga = `• ${kat}${tresc}`;
 
-        // ... (po pobraniu snapUwagi)
-const uwagiData = {};
+                if (!uwagiData[sId]) {
+                    uwagiData[sId] = [];
+                }
+                uwagiData[sId].push(pelnaUwaga);
+            }
+        });
 
-snapUwagi.forEach(doc => {
-    const data = doc.data();
-    
-    // Pobieramy ID ucznia z pola 'studentId' (zgodnie ze screenem)
-    const idUcznia = data.studentId;
-    
-    if (idUcznia) {
-        // Składamy treść: Kategoria + treść (np. "Brak podręcznika (wypełnianie obowiązków)")
-        const kategoria = data.kategoria ? `[${data.kategoria}] ` : "";
-        const trescUwagi = data.tresc || "";
-        const pelnaUwaga = kategoria + trescUwagi;
-        
-        // Łączymy uwagi dla jednego ucznia, jeśli ma ich kilka
-        if (uwagiData[idUcznia]) {
-            uwagiData[idUcznia] += "<br>• " + pelnaUwaga;
-        } else {
-            uwagiData[idUcznia] = "• " + pelnaUwaga;
-        }
-    }
-});
-
-console.log("Zmapowane uwagi dla uczniów:", uwagiData);
-
-        // 2. Tworzymy tymczasowy kontener HTML do konwersji
+        // 2. Tworzymy tymczasowy kontener HTML
         const elementDoDruku = document.createElement('div');
 
         // 3. Pętla budująca karty uczniów
         uczniowie.forEach((u, index) => {
             const karta = document.createElement('div');
-            // 'page-break-after' wymusza nową stronę w PDF po każdym uczniu
-            karta.style.cssText = "padding: 40px; page-break-after: always; font-family: Arial, sans-serif; color: #333;";
+            karta.style.cssText = "padding: 40px; page-break-after: always; font-family: Arial, sans-serif; color: #333; background: white;";
 
             // Budujemy wiersze tabeli przedmiotów
             let wierszeHTML = "";
@@ -820,6 +808,7 @@ console.log("Zmapowane uwagi dla uczniów:", uwagiData);
                 let suma = 0, licznik = 0;
 
                 wszystkieLekcje.forEach(l => {
+                    // Porównujemy przedmiot i sprawdzamy czy uczeń ma ocenę
                     if (l.przedmiot === przedm && l.oceny && l.oceny[u.id] && l.oceny[u.id] !== '-') {
                         ocenyCz.push(l.oceny[u.id]);
                         let val = parseFloat(String(l.oceny[u.id]).replace(',', '.'));
@@ -834,34 +823,39 @@ console.log("Zmapowane uwagi dla uczniów:", uwagiData);
                 wierszeHTML += `
                     <tr>
                         <td style="border: 1px solid #ddd; padding: 8px;">${przedm}</td>
-                        <td style="border: 1px solid #ddd; padding: 8px; font-size: 0.9em;">${ocenyCz.join(", ")}</td>
+                        <td style="border: 1px solid #ddd; padding: 8px; font-size: 0.9em; letter-spacing: 1px;">${ocenyCz.join(", ")}</td>
                         <td style="border: 1px solid #ddd; padding: 8px; text-align:center;">${srednia}</td>
-                        <td style="border: 1px solid #ddd; padding: 8px; text-align:center; font-weight:bold;">${sem}</td>
-                        <td style="border: 1px solid #ddd; padding: 8px; text-align:center; font-weight:bold;">${kon}</td>
+                        <td style="border: 1px solid #ddd; padding: 8px; text-align:center; font-weight:bold; background: #f0f7ff;">${sem || "-"}</td>
+                        <td style="border: 1px solid #ddd; padding: 8px; text-align:center; font-weight:bold; background: #fffdf0;">${kon || "-"}</td>
                     </tr>
                 `;
             });
 
+            // Przygotowanie sekcji uwag (zamiana tablicy na HTML z liniami)
+            const listaUwagHTML = uwagiData[u.id] 
+                ? uwagiData[u.id].join("<br>") 
+                : "Brak odnotowanych uwag.";
+
             // Składamy całą stronę ucznia
             karta.innerHTML = `
-                <div style="text-align: center; margin-bottom: 20px;">
-                    <h1 style="color: #2c3e50; margin: 0;">KARTA OCEN I UWAG</h1>
-                    <p style="color: #7f8c8d;">Semestr I / Rok szkolny 2025/2026</p>
+                <div style="text-align: center; margin-bottom: 30px; border-bottom: 2px solid #2c3e50; padding-bottom: 10px;">
+                    <h1 style="color: #2c3e50; margin: 0; text-transform: uppercase;">Karta Osiągnięć Ucznia</h1>
+                    <p style="color: #7f8c8d; margin: 5px 0;">Rok szkolny 2025/2026</p>
                 </div>
                 
-                <div style="margin-bottom: 20px; font-size: 1.2em;">
-                    <strong>Uczeń:</strong> ${u.imie} ${u.nazwisko} <br>
-                    <strong>Klasa:</strong> ${klasa}
+                <div style="margin-bottom: 25px; font-size: 1.1em; display: flex; justify-content: space-between;">
+                    <span><strong>Uczeń:</strong> ${u.imie} ${u.nazwisko}</span>
+                    <span><strong>Klasa:</strong> ${klasa}</span>
                 </div>
 
                 <table style="width: 100%; border-collapse: collapse; margin-bottom: 30px;">
                     <thead>
                         <tr style="background-color: #2c3e50; color: white;">
-                            <th style="padding: 10px; border: 1px solid #2c3e50;">Przedmiot</th>
-                            <th style="padding: 10px; border: 1px solid #2c3e50;">Oceny cząstkowe</th>
-                            <th style="padding: 10px; border: 1px solid #2c3e50;">Śr.</th>
-                            <th style="padding: 10px; border: 1px solid #2c3e50;">Sem.</th>
-                            <th style="padding: 10px; border: 1px solid #2c3e50;">Końc.</th>
+                            <th style="padding: 12px; border: 1px solid #2c3e50; text-align: left;">Przedmiot</th>
+                            <th style="padding: 12px; border: 1px solid #2c3e50; text-align: left;">Oceny cząstkowe</th>
+                            <th style="padding: 12px; border: 1px solid #2c3e50;">Śr.</th>
+                            <th style="padding: 12px; border: 1px solid #2c3e50;">Sem.</th>
+                            <th style="padding: 12px; border: 1px solid #2c3e50;">Końc.</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -869,9 +863,11 @@ console.log("Zmapowane uwagi dla uczniów:", uwagiData);
                     </tbody>
                 </table>
 
-                <div style="margin-top: 20px; padding: 15px; border: 1px solid #eee; background: #f9f9f9; border-radius: 5px;">
-                    <h3 style="margin-top: 0; color: #2c3e50;">Uwagi i informacje dodatkowe:</h3>
-                    <p style="line-height: 1.6;">${uwagiData[u.id] || "Brak uwag."}</p>
+                <div style="margin-top: 30px; padding: 20px; border: 1px solid #ccc; background: #fafafa; border-radius: 8px;">
+                    <h3 style="margin-top: 0; color: #2c3e50; border-bottom: 1px solid #eee; padding-bottom: 5px;">Uwagi i informacje dodatkowe:</h3>
+                    <div style="line-height: 1.6; font-style: italic; color: #444;">
+                        ${listaUwagHTML}
+                    </div>
                 </div>
             `;
             elementDoDruku.appendChild(karta);
@@ -879,19 +875,18 @@ console.log("Zmapowane uwagi dla uczniów:", uwagiData);
 
         // 4. Konfiguracja i generowanie PDF
         const options = {
-            margin: 0,
+            margin: [10, 10, 10, 10],
             filename: `Karty_Ocen_Klasa_${klasa}.pdf`,
             image: { type: 'jpeg', quality: 0.98 },
             html2canvas: { scale: 2, useCORS: true, letterRendering: true },
             jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
         };
 
-        // Uruchomienie zapisu
         html2pdf().set(options).from(elementDoDruku).save();
 
     } catch (error) {
         console.error("Błąd generowania:", error);
-        alert("Wystąpił błąd podczas przygotowywania PDF.");
+        alert("Wystąpił błąd podczas przygotowywania PDF. Sprawdź konsolę.");
     }
 };
 
