@@ -774,7 +774,63 @@ function stworzPdfWywiadowka(doc, uczniowie, klasa) {
     });
 
     doc.save(`Wywiadówka_Klasa_${klasa}.pdf`);
-}
+};
+window.generujWydrukPodsumowania = async function() {
+    const klasa = "7a";
+    const przedmiot = window.aktywnyPrzedmiot;
+    
+    if (!przedmiot) {
+        alert("Najpierw wybierz przedmiot w arkuszu ocen!");
+        return;
+    }
+
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+
+    // 1. Pobieramy dane z 3 źródeł
+    const [snapUczniowie, snapOceny, snapKlasyfikacja] = await Promise.all([
+        db.collection("klasy").doc(klasa).collection("uczniowie").orderBy("numer").get(),
+        db.collection("klasy").doc(klasa).collection("oceny").where("przedmiot", "==", przedmiot).get(),
+        db.collection("klasy").doc(klasa).collection("klasyfikacja").doc("srodroczna").get()
+    ]);
+
+    const uczniowie = snapUczniowie.docs.map(d => ({ id: d.id, ...d.data() }));
+    const lekcje = snapOceny.docs.map(d => d.data());
+    const ocenySemestralne = snapKlasyfikacja.exists ? (snapKlasyfikacja.data()[przedmiot] || {}) : {};
+
+    // 2. Przygotowanie danych do tabeli PDF
+    const rows = uczniowie.map(u => {
+        // Liczymy średnią cząstkową
+        let suma = 0, licznik = 0;
+        lekcje.forEach(l => {
+            let ocena = l.oceny ? l.oceny[u.id] : null;
+            let val = parseFloat(String(ocena).replace(',', '.'));
+            if (!isNaN(val)) { suma += val; licznik++; }
+        });
+        
+        const srednia = licznik > 0 ? (suma / licznik).toFixed(2) : "-";
+        const ocenaKoncowa = ocenySemestralne[u.id] || "-";
+
+        return [u.numer, `${u.imie} ${u.nazwisko}`, srednia, ocenaKoncowa];
+    });
+
+    // 3. Generowanie wyglądu PDF
+    doc.setFontSize(16);
+    doc.text(`PODSUMOWANIE SEMESTRALNE - ${przedmiot.toUpperCase()}`, 14, 20);
+    doc.setFontSize(12);
+    doc.text(`Klasa: ${klasa} | Data: ${new Date().toLocaleDateString()}`, 14, 28);
+
+    doc.autoTable({
+        startY: 35,
+        head: [['Nr', 'Imię i Nazwisko', 'Średnia cząstk.', 'Ocena semestralna']],
+        body: rows,
+        headStyles: { fillColor: [103, 58, 183] }, // Kolor fioletowy jak w Twoim UI
+        styles: { halign: 'center' },
+        columnStyles: { 1: { halign: 'left' } } // Nazwisko do lewej
+    });
+
+    doc.save(`Podsumowanie_${przedmiot}_${klasa}.pdf`);
+};
 
 
 
