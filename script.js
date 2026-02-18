@@ -559,7 +559,6 @@ window.otworzArkuszDziennika = function() {
         kontener.innerHTML = "<p style='color:red;'>Błąd: Nie znaleziono listy przedmiotów!</p>";
     }
 };
-
 // 3. Pobieranie danych dla konkretnego przedmiotu
 window.zaladujDaneDoArkusza = function(przedmiot) {
     // UI: Przełączamy widoki
@@ -569,45 +568,41 @@ window.zaladujDaneDoArkusza = function(przedmiot) {
     document.getElementById('tytul-arkusza').textContent = "Arkusz ocen: " + przedmiot;
 
     const tbody = document.getElementById('lista-uczniow-arkusz-pelny');
-    tbody.innerHTML = '<tr><td colspan="10" style="text-align:center; padding:20px;">Filtrowanie ocen dla przedmiotu: ' + przedmiot + '...</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="10" style="text-align:center; padding:20px;">Ładowanie arkusza dla: ' + przedmiot + '...</td></tr>';
 
     const klasa = "7a"; 
 
+    // POBIERAMY TRZY RZECZY: Oceny cząstkowe, Klasyfikację oraz Listę uczniów
     Promise.all([
-        db.collection("klasy").doc(klasa).collection("oceny").get(),
+        db.collection("klasy").doc(klasa).collection("oceny").where("przedmiot", "==", przedmiot).get(),
+        db.collection("klasy").doc(klasa).collection("klasyfikacja").get(),
         db.collection("klasy").doc(klasa).collection("uczniowie").orderBy("numer").get()
-    ]).then(([snapshotOceny, snapshotUczniowie]) => {
+    ]).then(([snapshotOceny, snapshotKlasyfikacja, snapshotUczniowie]) => {
         
         const uczniowie = snapshotUczniowie.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        const lekcje = [];
+        const lekcje = snapshotOceny.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        
         let danePrzew = {}, daneSem = {}, daneKonc = {};
 
-        snapshotOceny.forEach(doc => {
+        // Wyciągamy dane z kolekcji "klasyfikacja" dla konkretnego przedmiotu
+        snapshotKlasyfikacja.forEach(doc => {
             const data = doc.data();
-            
-            // 1. Sprawdzamy dokumenty specjalne (one są wspólne dla wszystkich przedmiotów)
-            if (doc.id === "ocenyprzewidywane") {
-                danePrzew = data.oceny || {};
-            } else if (doc.id === "ocenysemestralne") {
-                daneSem = data.oceny || {};
-            } else if (doc.id === "ocenykoncowe") {
-                daneKonc = data.oceny || {};
-            } 
-            // 2. FILTROWANIE PO PRZEDMIOCIE
-            // Sprawdzamy, czy pole 'przedmiot' w bazie zgadza się z tym wybranym przez Ciebie
-            else if (data.przedmiot && data.przedmiot.toLowerCase() === przedmiot.toLowerCase()) {
-                lekcje.push({ id: doc.id, ...data });
-            }
+            // Sprawdzamy, czy w dokumencie (np. srodroczna) istnieje pole o nazwie naszego przedmiotu
+            const ocenyPrzedmiotowe = data[przedmiot] || {};
+
+            if (doc.id === "przewidywana") danePrzew = ocenyPrzedmiotowe;
+            if (doc.id === "srodroczna") daneSem = ocenyPrzedmiotowe;
+            if (doc.id === "koncowa") daneKonc = ocenyPrzedmiotowe;
         });
 
-        // Sortowanie lekcji po ID (zazwyczaj dacie)
+        // Sortowanie lekcji cząstkowych chronologicznie
         lekcje.sort((a, b) => a.id.localeCompare(b.id));
 
-        // Wywołujemy renderowanie tabeli z przefiltrowaną listą lekcji
+        // Wywołujemy renderowanie tabeli
         renderujWielkaTabele(uczniowie, lekcje, danePrzew, daneSem, daneKonc);
 
     }).catch(err => {
-        console.error("Błąd filtrowania:", err);
+        console.error("Błąd ładowania danych:", err);
         alert("Wystąpił błąd podczas ładowania danych.");
     });
 };
@@ -664,9 +659,10 @@ function renderujWielkaTabele(uczniowie, lekcje, przew, sem, konc) {
         tdSrednia.textContent = srednia;
         tr.appendChild(tdSrednia);
 
-        tr.appendChild(stworzPoleSpecjalne(u.id, 'ocenyprzewidywane', przew[u.id] || '-', "#e8f5e9"));
-        tr.appendChild(stworzPoleSpecjalne(u.id, 'ocenysemestralne', sem[u.id] || '-', "#e1f5fe"));
-        tr.appendChild(stworzPoleSpecjalne(u.id, 'ocenykoncowe', konc[u.id] || '-', "#fffde7"));
+// Przykład poprawnego wywołania w pętli renderującej:
+tr.appendChild(stworzPoleSpecjalne(u.id, 'przewidywana', przew[u.id] || '-', "#e8f5e9"));
+tr.appendChild(stworzPoleSpecjalne(u.id, 'srodroczna', sem[u.id] || '-', "#e1f5fe"));
+tr.appendChild(stworzPoleSpecjalne(u.id, 'koncowa', konc[u.id] || '-', "#fffde7"));
 
         tbody.appendChild(tr);
     });
@@ -688,7 +684,7 @@ function stworzPoleSpecjalne(uczenId, docId, wartosc, kolor) {
 }
 
 // 6. Funkcja edycji i zapisu dla ocen specjalnych
-window.edytujSpecjalna = function(element, uczenId, docId, staraOcena) {
+window.edytujSpecjalna = function(element, uczenId, typKlasyfikacji, staraOcena) {
     if (element.querySelector('input')) return;
 
     const input = document.createElement('input');
@@ -696,7 +692,6 @@ window.edytujSpecjalna = function(element, uczenId, docId, staraOcena) {
     input.value = staraOcena === '-' ? '' : staraOcena;
     input.style.width = "40px";
     input.style.textAlign = "center";
-    input.style.fontWeight = "bold";
     
     element.innerHTML = "";
     element.appendChild(input);
@@ -710,22 +705,27 @@ window.edytujSpecjalna = function(element, uczenId, docId, staraOcena) {
         }
 
         element.innerHTML = "<small>...</small>";
-        const updateData = {};
-        updateData[`oceny.${uczenId}`] = nowa;
+        const przedmiot = window.aktywnyPrzedmiot; // Pobieramy aktualny przedmiot
+        const klasa = "7a";
 
-        db.collection("klasy").doc("7a").collection("oceny").doc(docId)
-          .set(updateData, { merge: true })
+        // NOWA ŚCIEŻKA: klasy -> 7a -> klasyfikacja -> [typ] -> [przedmiot]
+        // typKlasyfikacji to będzie np. 'srodroczna', 'przewidywana', 'koncowa'
+        db.collection("klasy").doc(klasa)
+          .collection("klasyfikacja").doc(typKlasyfikacji)
+          .set({
+              [przedmiot]: {
+                  [uczenId]: nowa
+              }
+          }, { merge: true })
           .then(() => {
               element.innerHTML = nowa === "" ? "-" : nowa;
+              console.log(`Zapisano: ${typKlasyfikacji} -> ${przedmiot} -> ${uczenId}: ${nowa}`);
           })
           .catch(err => {
-              console.error("Błąd zapisu:", err);
+              console.error("Błąd zapisu klasyfikacji:", err);
               element.innerHTML = staraOcena;
-              alert("Błąd zapisu!");
           });
     };
-
-    input.onkeypress = function(e) { if (e.key === 'Enter') input.blur(); };
 };
 
 
