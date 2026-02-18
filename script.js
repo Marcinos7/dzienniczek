@@ -775,61 +775,99 @@ function stworzPdfWywiadowka(doc, uczniowie, klasa) {
 
     doc.save(`Wywiadówka_Klasa_${klasa}.pdf`);
 };
-window.generujWydrukPodsumowania = async function() {
+window.generujIndywidualneKartyWszystkiePrzedmioty = async function() {
     const klasa = "7a";
-    const przedmiot = window.aktywnyPrzedmiot;
-    
-    if (!przedmiot) {
-        alert("Najpierw wybierz przedmiot w arkuszu ocen!");
-        return;
-    }
-
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF();
 
-    // 1. Pobieramy dane z 3 źródeł
-    const [snapUczniowie, snapOceny, snapKlasyfikacja] = await Promise.all([
-        db.collection("klasy").doc(klasa).collection("uczniowie").orderBy("numer").get(),
-        db.collection("klasy").doc(klasa).collection("oceny").where("przedmiot", "==", przedmiot).get(),
-        db.collection("klasy").doc(klasa).collection("klasyfikacja").doc("srodroczna").get()
-    ]);
+    try {
+        // 1. Pobieramy absolutnie wszystko dla tej klasy
+        const [snapUczniowie, snapOceny, snapKlasyfikacja] = await Promise.all([
+            db.collection("klasy").doc(klasa).collection("uczniowie").orderBy("numer").get(),
+            db.collection("klasy").doc(klasa).collection("oceny").get(),
+            db.collection("klasy").doc(klasa).collection("klasyfikacja").get()
+        ]);
 
-    const uczniowie = snapUczniowie.docs.map(d => ({ id: d.id, ...d.data() }));
-    const lekcje = snapOceny.docs.map(d => d.data());
-    const ocenySemestralne = snapKlasyfikacja.exists ? (snapKlasyfikacja.data()[przedmiot] || {}) : {};
-
-    // 2. Przygotowanie danych do tabeli PDF
-    const rows = uczniowie.map(u => {
-        // Liczymy średnią cząstkową
-        let suma = 0, licznik = 0;
-        lekcje.forEach(l => {
-            let ocena = l.oceny ? l.oceny[u.id] : null;
-            let val = parseFloat(String(ocena).replace(',', '.'));
-            if (!isNaN(val)) { suma += val; licznik++; }
-        });
+        const uczniowie = snapUczniowie.docs.map(d => ({ id: d.id, ...d.data() }));
+        const wszystkieLekcje = snapOceny.docs.map(d => d.data());
         
-        const srednia = licznik > 0 ? (suma / licznik).toFixed(2) : "-";
-        const ocenaKoncowa = ocenySemestralne[u.id] || "-";
+        // Klasyfikacja: robimy obiekt { srodroczna: {...}, koncowa: {...} }
+        const klasyfikacjaData = {};
+        snapKlasyfikacja.forEach(doc => {
+            klasyfikacjaData[doc.id] = doc.data();
+        });
 
-        return [u.numer, `${u.imie} ${u.nazwisko}`, srednia, ocenaKoncowa];
-    });
+        uczniowie.forEach((u, index) => {
+            if (index > 0) doc.addPage();
 
-    // 3. Generowanie wyglądu PDF
-    doc.setFontSize(16);
-    doc.text(`PODSUMOWANIE SEMESTRALNE - ${przedmiot.toUpperCase()}`, 14, 20);
-    doc.setFontSize(12);
-    doc.text(`Klasa: ${klasa} | Data: ${new Date().toLocaleDateString()}`, 14, 28);
+            // NAGŁÓWEK
+            doc.setFontSize(18);
+            doc.setTextColor(44, 62, 80);
+            doc.text("ZESTAWIENIE OCEN SEMESTRALNYCH", 105, 20, { align: "center" });
+            
+            doc.setFontSize(14);
+            doc.text(`${u.imie} ${u.nazwisko} - Klasa ${klasa}`, 20, 30);
+            doc.setFontSize(10);
+            doc.text(`Data wygenerowania: ${new Date().toLocaleDateString()}`, 145, 30);
 
-    doc.autoTable({
-        startY: 35,
-        head: [['Nr', 'Imię i Nazwisko', 'Średnia cząstk.', 'Ocena semestralna']],
-        body: rows,
-        headStyles: { fillColor: [103, 58, 183] }, // Kolor fioletowy jak w Twoim UI
-        styles: { halign: 'center' },
-        columnStyles: { 1: { halign: 'left' } } // Nazwisko do lewej
-    });
+            // 2. PRZYGOTOWANIE DANYCH DO TABELI (Wiersz = Przedmiot)
+            const wierszeTabeli = PRZEDMIOTY.map(przedm => {
+                // Filtrujemy oceny cząstkowe dla tego konkretnego przedmiotu i ucznia
+                let ocenyCzastkowe = [];
+                let suma = 0, licznik = 0;
 
-    doc.save(`Podsumowanie_${przedmiot}_${klasa}.pdf`);
+                wszystkieLekcje.forEach(l => {
+                    if (l.przedmiot === przedm && l.oceny && l.oceny[u.id] && l.oceny[u.id] !== '-') {
+                        ocenyCzastkowe.push(l.oceny[u.id]);
+                        let val = parseFloat(String(l.oceny[u.id]).replace(',', '.'));
+                        if (!isNaN(val)) { suma += val; licznik++; }
+                    }
+                });
+
+                const srednia = licznik > 0 ? (suma / licznik).toFixed(2) : "-";
+                
+                // Pobieramy z klasyfikacja -> srodroczna/koncowa -> [przedmiot] -> [u.id]
+                const sem = (klasyfikacjaData['srodroczna'] && klasyfikacjaData['srodroczna'][przedm]) ? klasyfikacjaData['srodroczna'][przedm][u.id] : "-";
+                const kon = (klasyfikacjaData['koncowa'] && klasyfikacjaData['koncowa'][przedm]) ? klasyfikacjaData['koncowa'][przedm][u.id] : "-";
+
+                return [
+                    przedm, 
+                    ocenyCzastkowe.join(", "), 
+                    srednia, 
+                    sem || "-", 
+                    kon || "-"
+                ];
+            });
+
+            // 3. GENEROWANIE TABELI DLA UCZNIA
+            doc.autoTable({
+                startY: 40,
+                head: [['Przedmiot', 'Oceny cząstkowe', 'Śr.', 'Sem.', 'Końc.']],
+                body: wierszeTabeli,
+                theme: 'grid',
+                styles: { fontSize: 8, cellPadding: 2 },
+                headStyles: { fillColor: [44, 62, 80] },
+                columnStyles: {
+                    1: { cellWidth: 80 }, // Szeroka kolumna na oceny
+                    2: { halign: 'center' },
+                    3: { halign: 'center', fontStyle: 'bold' },
+                    4: { halign: 'center', fontStyle: 'bold' }
+                }
+            });
+
+            // PODPIS
+            const finalY = doc.lastAutoTable.finalY + 20;
+            doc.setFontSize(10);
+            doc.text("..........................................", 140, finalY);
+            doc.text("Podpis wychowawcy", 150, finalY + 5);
+        });
+
+        doc.save(`Karty_Ocen_Klasa_${klasa}.pdf`);
+
+    } catch (error) {
+        console.error("Błąd generowania PDF:", error);
+        alert("Wystąpił błąd podczas pobierania danych.");
+    }
 };
 
 
