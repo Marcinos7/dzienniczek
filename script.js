@@ -1632,6 +1632,9 @@ window.backToStep9 = function() {
     document.getElementById('step-10-oddzial-menu').style.display = 'none';
     document.getElementById('step-9-oddzial-setup').style.display = 'block';
 };
-
+window.backToStepoddzialdowydruki = function() {
+    document.getElementById('step-8-wydruki').style.display = 'none';
+    document.getElementById('step-9-oddzial-setup').style.display = 'block';
+};
 
 
