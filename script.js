@@ -11,6 +11,7 @@ const KATEGORIE_UWAG = [
 // lista przedmiotów
 const PRZEDMIOTY = [
   "biologia",
+  "edukacja dla bezpieczeństwa",
   "fizyka",
   "geografia",
   "historia",
