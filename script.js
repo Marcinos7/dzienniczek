@@ -1580,26 +1580,48 @@ window.generujPDFListyUczniow = function() {
         return alert('Tabela uczniów jest pusta.');
     }
 
-    const jsPDFClass = window.jspdf?.jsPDF || window.jsPDF;
-    if (!jsPDFClass) {
-        return alert('Nie znaleziono biblioteki jsPDF. Sprawdź, czy skrypt jspdf został poprawnie dołączony.');
-    }
+    const elementDoDruku = document.createElement('div');
+    elementDoDruku.style.cssText = 'position:absolute; left:-9999px; top:-9999px; width:210mm; padding:20px; font-family: Arial, sans-serif; background: white; color: #000;';
+    elementDoDruku.innerHTML = `
+        <div style="text-align:center; margin-bottom:20px;">
+            <h2 style="margin:0; font-size:20px;">Lista uczniów</h2>
+            <div style="font-size:14px; color:#555; margin-top:4px;">Klasa ${klasaId}</div>
+        </div>
+        <table style="width:100%; border-collapse:collapse;">
+            <thead>
+                <tr>
+                    <th style="border:1px solid #444; padding:8px; text-align:center; background:#f0f0f0;">Nr</th>
+                    <th style="border:1px solid #444; padding:8px; text-align:left; background:#f0f0f0;">Imię i nazwisko</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${dane.map(item => `
+                    <tr>
+                        <td style="border:1px solid #444; padding:8px; text-align:center;">${item.numer}</td>
+                        <td style="border:1px solid #444; padding:8px;">${item.imieINazwisko}</td>
+                    </tr>
+                `).join('')}
+            </tbody>
+        </table>
+    `;
 
-    const doc = new jsPDFClass('p', 'pt', 'a4');
-    const tytul = `Lista uczniów - klasa ${klasaId}`;
-    doc.setFontSize(16);
-    doc.text(tytul, 40, 40);
+    document.body.appendChild(elementDoDruku);
 
-    doc.autoTable({
-        startY: 60,
-        head: [[ 'Nr', 'Imię i nazwisko' ]],
-        body: dane.map(item => [ item.numer, item.imieINazwisko ]),
-        theme: 'striped',
-        headStyles: { fillColor: [52, 73, 94], textColor: 255 },
-        styles: { fontSize: 11, cellPadding: 4 }
+    const options = {
+        margin: [10, 10, 10, 10],
+        filename: `Lista_uczniow_${klasaId}.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true, letterRendering: true },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    };
+
+    html2pdf().set(options).from(elementDoDruku).save().then(() => {
+        document.body.removeChild(elementDoDruku);
+    }).catch(err => {
+        document.body.removeChild(elementDoDruku);
+        console.error('Błąd generowania PDF:', err);
+        alert('Wystąpił błąd podczas generowania PDF.');
     });
-
-    doc.save(`Lista_uczniow_${klasaId}.pdf`);
 };
 
 // 5. Powrót
