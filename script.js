@@ -1580,7 +1580,12 @@ window.generujPDFListyUczniow = function() {
         return alert('Tabela uczniów jest pusta.');
     }
 
-    const doc = new jsPDF('p', 'pt', 'a4');
+    const jsPDFClass = window.jspdf?.jsPDF || window.jsPDF;
+    if (!jsPDFClass) {
+        return alert('Nie znaleziono biblioteki jsPDF. Sprawdź, czy skrypt jspdf został poprawnie dołączony.');
+    }
+
+    const doc = new jsPDFClass('p', 'pt', 'a4');
     const tytul = `Lista uczniów - klasa ${klasaId}`;
     doc.setFontSize(16);
     doc.text(tytul, 40, 40);
