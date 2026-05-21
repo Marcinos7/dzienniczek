@@ -1558,6 +1558,45 @@ window.usunUcznia = function(klasaId, uczenId) {
     }
 };
 
+window.generujPDFListyUczniow = function() {
+    const klasaId = document.getElementById('lista-klas-oddzial').value;
+    if (!klasaId) return alert('Wybierz klasę, aby wygenerować listę uczniów.');
+
+    const tbody = document.getElementById('tabela-uczniow-body');
+    if (!tbody || tbody.children.length === 0) {
+        return alert('Brak uczniów do wygenerowania PDF. Najpierw załaduj listę uczniów.');
+    }
+
+    const wiersze = Array.from(tbody.querySelectorAll('tr'));
+    const dane = wiersze.map(row => {
+        const komorki = row.querySelectorAll('td');
+        return {
+            numer: komorki[0]?.textContent.trim() || '',
+            imieINazwisko: komorki[1]?.textContent.trim() || ''
+        };
+    });
+
+    if (dane.length === 0) {
+        return alert('Tabela uczniów jest pusta.');
+    }
+
+    const doc = new jsPDF('p', 'pt', 'a4');
+    const tytul = `Lista uczniów - klasa ${klasaId}`;
+    doc.setFontSize(16);
+    doc.text(tytul, 40, 40);
+
+    doc.autoTable({
+        startY: 60,
+        head: [[ 'Nr', 'Imię i nazwisko' ]],
+        body: dane.map(item => [ item.numer, item.imieINazwisko ]),
+        theme: 'striped',
+        headStyles: { fillColor: [52, 73, 94], textColor: 255 },
+        styles: { fontSize: 11, cellPadding: 4 }
+    });
+
+    doc.save(`Lista_uczniow_${klasaId}.pdf`);
+};
+
 // 5. Powrót
 window.backToStep10 = function() {
     document.getElementById('step-11-lista-uczniow').style.display = 'none';
