@@ -1710,7 +1710,7 @@ window.backToStepoddzialdowydruki = function() {
 
 
 
-const db = getFirestore();
+
 
 // Funkcja pobierająca i wyświetlająca sprawdziany na najbliższe 7 dni
 async function ladujTerminarz(klasa = "7a") {
