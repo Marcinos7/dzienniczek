@@ -1814,9 +1814,7 @@ if(closeAdminBtn && adminDiv) {
     adminDiv.style.display = "none";
   });
 }
-
-
-// --- ZAPISYWANIE DO FIREBASE REALTIME DATABASE ---
+// --- OBSŁUGA ZAPISYWANIA DO FIREBASE REALTIME DATABASE ---
 
 // 1. Zapisywanie Informacji od Dyrekcji
 document.getElementById("saveDyrekcjaBtn").addEventListener("click", function() {
@@ -1824,18 +1822,18 @@ document.getElementById("saveDyrekcjaBtn").addEventListener("click", function() 
   
   if(!tresc) { alert("Wpisz treść ogłoszenia!"); return; }
 
-  // Zapis do struktury: dyrekcja / [unikalny_klucz]
-  rtdb.ref("dyrekcja").push({
+  // Używamy Twojej zmiennej 'db'
+  db.ref("dyrekcja").push({
     tresc: tresc,
-    timestamp: firebase.database.ServerValue.TIMESTAMP // Pobiera dokładny czas serwera
+    timestamp: firebase.database.ServerValue.TIMESTAMP
   })
   .then(() => {
-    alert("Sukces: Dodano informację od dyrekcji do Realtime Database!");
+    alert("Sukces: Dodano informację od dyrekcji!");
     document.getElementById("dyrekcjaTresc").value = "";
   })
   .catch((error) => {
     console.error("Błąd zapisu dyrekcji:", error);
-    alert("Wystąpił błąd podczas zapisu.");
+    alert("Wystąpił błąd: " + error.message);
   });
 });
 
@@ -1846,19 +1844,18 @@ document.getElementById("saveDzienWolnyBtn").addEventListener("click", function(
 
   if(!dataWolne || !nazwa) { alert("Wypełnij wszystkie pola dla dnia wolnego!"); return; }
 
-  // Zapis do struktury: dniWolne / [unikalny_klucz]
-  rtdb.ref("dniWolne").push({
+  db.ref("dniWolne").push({
     data: dataWolne,
     nazwa: nazwa
   })
   .then(() => {
-    alert("Sukces: Dodano dzień wolny do Realtime Database!");
+    alert("Sukces: Dodano dzień wolny!");
     document.getElementById("dzienWolnyData").value = "";
     document.getElementById("dzienWolnyNazwa").value = "";
   })
   .catch((error) => {
     console.error("Błąd zapisu dnia wolnego:", error);
-    alert("Wystąpił błąd.");
+    alert("Wystąpił błąd: " + error.message);
   });
 });
 
@@ -1870,8 +1867,7 @@ document.getElementById("saveZastepstwoBtn").addEventListener("click", function(
 
   if(!dataZast || !lekcjaInfo || !klasa) { alert("Wypełnij wszystkie pola dla zastępstwa!"); return; }
 
-  // Zapis do struktury zgodnej z Twoim systemem klas: klasy / 7a / zastepstwa / [unikalny_klucz]
-  rtdb.ref("klasy/" + klasa + "/zastepstwa").push({
+  db.ref("klasy/" + klasa + "/zastepstwa").push({
     data: dataZast,
     info: lekcjaInfo
   })
@@ -1882,6 +1878,6 @@ document.getElementById("saveZastepstwoBtn").addEventListener("click", function(
   })
   .catch((error) => {
     console.error("Błąd zapisu zastępstwa:", error);
-    alert("Wystąpił błąd.");
+    alert("Wystąpił błąd: " + error.message);
   });
 });
