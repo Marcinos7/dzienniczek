@@ -44,7 +44,9 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
-const rtdb = firebase.database();
+// 2. 🚀 DOPISZ TEN IMPORT DLA REALTIME DATABASE:
+import { getDatabase, ref, push, onValue, serverTimestamp } from "firebase/database";
+const rtdb = getDatabase(app);
 db.settings({
   experimentalAutoDetectLongPolling: true
 });
