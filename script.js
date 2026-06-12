@@ -1791,3 +1791,100 @@ function wyswietlWpisy(snapshot, container) {
     container.innerHTML += itemHtml;
   });
 }
+
+
+
+
+
+
+
+
+// --- OBSŁUGA PRZEŁĄCZANIA WIDOKU PANELU ADMINA ---
+const adminBtn = document.getElementById("adminBtn");
+const closeAdminBtn = document.getElementById("closeAdminBtn");
+const adminDiv = document.getElementById("adminDiv");
+
+if(adminBtn && adminDiv) {
+  adminBtn.addEventListener("click", () => {
+    // Pokazuje panel admina (lub ukrywa jeśli klikniesz ponownie)
+    adminDiv.style.display = adminDiv.style.display === "none" ? "block" : "none";
+    // Opcjonalnie przewija widok do panelu admina
+    adminDiv.scrollIntoView({ behavior: 'smooth' });
+  });
+}
+
+if(closeAdminBtn && adminDiv) {
+  closeAdminBtn.addEventListener("click", () => {
+    adminDiv.style.display = "none";
+  });
+}
+
+
+// --- OBSŁUGA ZAPISYWANIA DO FIREBASE ---
+
+// 1. Zapisywanie Informacji od Dyrekcji
+document.getElementById("saveDyrekcjaBtn").addEventListener("click", async () => {
+  const tresc = document.getElementById("dyrekcjaTresc").value.trim();
+  
+  if(!tresc) { alert("Wpisz treść ogłoszenia!"); return; }
+
+  try {
+    // Zapisujemy ogłoszenie z automatycznym ID do globalnej kolekcji ogłoszeń dyrekcji
+    await db.collection("dyrekcja").add({
+      tresc: tresc,
+      timestamp: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    
+    alert("Sukces: Dodano informację od dyrekcji!");
+    document.getElementById("dyrekcjaTresc").value = ""; // Czyszczenie pola
+  } catch (error) {
+    console.error("Błąd zapisu dyrekcji:", error);
+    alert("Wystąpił błąd podczas zapisu.");
+  }
+});
+
+// 2. Zapisywanie Dni Wolnych
+document.getElementById("saveDzienWolnyBtn").addEventListener("click", async () => {
+  const dataWolne = document.getElementById("dzienWolnyData").value;
+  const nazwa = document.getElementById("dzienWolnyNazwa").value.trim();
+
+  if(!dataWolne || !nazwa) { alert("Wypełnij wszystkie pola dla dnia wolnego!"); return; }
+
+  try {
+    await db.collection("dniWolne").add({
+      data: dataWolne,
+      nazwa: nazwa
+    });
+
+    alert("Sukces: Dodano dzień wolny!");
+    document.getElementById("dzienWolnyData").value = "";
+    document.getElementById("dzienWolnyNazwa").value = "";
+  } catch (error) {
+    console.error("Błąd zapisu dnia wolnego:", error);
+    alert("Wystąpił błąd podczas zapisu.");
+  }
+});
+
+// 3. Zapisywanie Zastępstw
+document.getElementById("saveZastepstwoBtn").addEventListener("click", async () => {
+  const dataZast = document.getElementById("zastepstwoData").value;
+  const lekcjaInfo = document.getElementById("zastepstwoLekcja").value.trim();
+  const klasa = document.getElementById("zastepstwoKlasa").value.trim();
+
+  if(!dataZast || !lekcjaInfo || !klasa) { alert("Wypełnij wszystkie pola dla zastępstwa!"); return; }
+
+  try {
+    // Zastępstwa przypisujemy do konkretnej klasy (podobnie jak masz terminarz testów)
+    await db.collection("klasy").doc(klasa).collection("zastepstwa").add({
+      data: dataZast,
+      info: lekcjaInfo
+    });
+
+    alert(`Sukces: Dodano zastępstwo dla klasy ${klasa}!`);
+    document.getElementById("zastepstwoData").value = "";
+    document.getElementById("zastepstwoLekcja").value = "";
+  } catch (error) {
+    console.error("Błąd zapisu zastępstwa:", error);
+    alert("Wystąpił błąd podczas zapisu.");
+  }
+});

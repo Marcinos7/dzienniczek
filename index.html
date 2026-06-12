@@ -537,10 +537,68 @@
 
 
 
+
+<div id="adminDiv" class="vulcan-admin-panel" style="display: none;">
+  <div class="admin-header">
+    <h2>Panel Administracyjny Dziennika</h2>
+    <button id="closeAdminBtn" class="admin-close-btn">❌ Zamknij panel</button>
+  </div>
+
+  <div class="admin-grid">
+    <div class="admin-card">
+      <h3>📢 Dodaj informację od dyrekcji</h3>
+      <div class="admin-form-group">
+        <label for="dyrekcjaTresc">Treść ogłoszenia:</label>
+        <textarea id="dyrekcjaTresc" placeholder="Wpisz treść komunikatu od dyrekcji..."></textarea>
+      </div>
+      <button id="saveDyrekcjaBtn" class="admin-save-btn">Zapisz ogłoszenie</button>
+    </div>
+
+    <div class="admin-card">
+      <h3>📅 Dodaj dzień wolny</h3>
+      <div class="admin-form-group">
+        <label for="dzienWolnyData">Data:</label>
+        <input type="date" id="dzienWolnyData">
+      </div>
+      <div class="admin-form-group">
+        <label for="dzienWolnyNazwa">Okazja / Nazwa:</label>
+        <input type="text" id="dzienWolnyNazwa" placeholder="np. Przerwa świąteczna, Boże Narodzenie">
+      </div>
+      <button id="saveDzienWolnyBtn" class="admin-save-btn">Zapisz dzień wolny</button>
+    </div>
+
+    <div class="admin-card">
+      <h3>🔀 Dodaj zastępstwo</h3>
+      <div class="admin-form-group">
+        <label for="zastepstwoData">Data:</label>
+        <input type="date" id="zastepstwoData">
+      </div>
+      <div class="admin-form-group">
+        <label for="zastepstwoLekcja">Numer lekcji / Przedmiot:</label>
+        <input type="text" id="zastepstwoLekcja" placeholder="np. Lekcja 3 - j. polski zamiast matematyki">
+      </div>
+      <div class="admin-form-group">
+        <label for="zastepstwoKlasa">Klasa:</label>
+        <input type="text" id="zastepstwoKlasa" placeholder="np. 7a" value="7a">
+      </div>
+      <button id="saveZastepstwoBtn" class="admin-save-btn">Zapisz zastępstwo</button>
+    </div>
+  </div>
+</div>
+
+
+
+
+
+
+
+
+
 <div id="app">
     <div id="step-1">
         <button id="btn-start">Lekcja</button>
         <button id="btn-dzod">Dziennik oddziału</button>
+        <button id="adminBtn" class="admin-open-btn">Administracja</button>
     </div>
 
     <div id="step-2" style="display:none;">
