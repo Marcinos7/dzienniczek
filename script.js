@@ -1712,7 +1712,7 @@ window.backToStepoddzialdowydruki = function() {
 
 
 
-import { collection, getDocs, query, where } from "firebase/firestore";
+import {collection, getDocs, query, where} from "firebase/firestore";
 
 // Funkcja pobierająca i wyświetlająca sprawdziany na najbliższe 7 dni
 async function ladujTerminarz(klasa = "7a") {
