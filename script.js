@@ -1712,69 +1712,82 @@ window.backToStepoddzialdowydruki = function() {
 
 
 
-
-
-import {collection, getDocs, query, where} from "firebase/firestore";
-
-// Funkcja pobierająca i wyświetlająca sprawdziany na najbliższe 7 dni
+// Funkcja pobierająca i wyświetlająca sprawdziany z Firebase
 async function ladujTerminarz(klasa = "7a") {
   const testyContainer = document.getElementById("testyList");
   if (!testyContainer) return;
 
-  // 1. Obliczanie zakresu dat (od dziś do 7 dni w przód)
+  // Pobieramy dzisiejszą datę w formacie YYYY-MM-DD
   const dzis = new Date();
-  const za7Dni = new Date();
-  za7Dni.setDate(dzis.getDate() + 7);
-
-  const formatujDate = (d) => d.toISOString().split('T')[0];
-  const dzisStr = formatujDate(dzis);
-  const za7DniStr = formatujDate(za7Dni);
+  const formatujDateLokalnie = (d) => {
+    const r = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const dzien = String(d.getDate()).padStart(2, '0');
+    return `${r}-${m}-${dzien}`;
+  };
+  const dzisStr = formatujDateLokalnie(dzis);
 
   try {
-    // Korzysta z 'db' zadeklarowanego wcześniej w Twoim pliku
-    const terminarzRef = collection(db, "klasy", klasa, "terminarz");
+    // Referencja do Twojej ścieżki: klasy > 7a > terminarz
+    // Używamy db, które masz już zainicjalizowane w swoim kodzie
+    const terminarzRef = db.collection("klasy").doc(klasa).collection("terminarz");
     
-    const q = query(
-      terminarzRef, 
-      where("data", ">=", dzisStr), 
-      where("data", "<=", za7DniStr)
-    );
-
-    const querySnapshot = await getDocs(q);
+    // Pobieramy wpisy (możesz usunąć .where(), jeśli chcesz zobaczyć absolutnie wszystko, nawet stare testy)
+    const snapshot = await terminarzRef.where("data", ">=", dzisStr).get();
+    
+    // Czyszczenie napisu "Ładowanie..."
     testyContainer.innerHTML = "";
 
-    if (querySnapshot.empty) {
-      testyContainer.innerHTML = "<div class='vulcan-loading'>Brak zaplanowanych sprawdzianów w najbliższych 7 dniach.</div>";
+    if (snapshot.empty) {
+      // JEŚLI BAZA JEST PUSTA LUB SĄ TYLKO STARE DATY:
+      // Dla testu wyświetlamy komunikat i listę wszystkich wpisów bez filtrowania daty
+      testyContainer.innerHTML = "<div class='vulcan-loading'>Brak nadchodzących testów. Pobieram historię...</div>";
+      
+      const calaBazaSnapshot = await terminarzRef.get();
+      if (calaBazaSnapshot.empty) {
+        testyContainer.innerHTML = "<div class='vulcan-loading'>Brak jakichkolwiek wpisów w bazie danych.</div>";
+        return;
+      }
+      
+      testyContainer.innerHTML = "";
+      wyswietlWpisy(calaBazaSnapshot, testyContainer);
       return;
     }
 
-    let wpisy = [];
-    querySnapshot.forEach((doc) => {
-      wpisy.push(doc.data());
-    });
-
-    wpisy.sort((a, b) => new Date(a.data) - new Date(b.data));
-
-    wpisy.forEach((wpis) => {
-      const dataWpisu = wpis.data;
-      const przedmiot = wpis.przedmiot;
-      const typ = wpis.typ;
-      const tresc = wpis.tresc;
-      const nauczyciel = wpis.nauczyciel || "";
-
-      const itemHtml = `
-        <div class="test-item">
-          <strong>${dataWpisu} — ${przedmiot} (${typ})</strong>
-          <span>Zakres: ${tresc}</span>
-          ${nauczyciel ? `<br><small style="opacity:0.7;">Zadał: ${nauczyciel}</small>` : ''}
-        </div>
-      `;
-      
-      testyContainer.innerHTML += itemHtml;
-    });
+    // Jeśli znalazło nadchodzące testy, wyświetlamy je normalnie
+    wyswietlWpisy(snapshot, testyContainer);
 
   } catch (error) {
     console.error("Błąd podczas pobierania terminarza: ", error);
     testyContainer.innerHTML = "<div class='vulcan-loading' style='color:#ff9999;'>Nie udało się załadować danych.</div>";
   }
+}
+
+// Funkcja pomocnicza do renderowania wpisów na ekranie
+function wyswietlWpisy(snapshot, container) {
+  let wpisy = [];
+  snapshot.forEach((doc) => {
+    wpisy.push(doc.data());
+  });
+
+  // Sortowanie chronologiczne po dacie (od najbliższych)
+  wpisy.sort((a, b) => new Date(a.data) - new Date(b.data));
+
+  wpisy.forEach((wpis) => {
+    const dataWpisu = wpis.data;
+    const przedmiot = wpis.przedmiot;
+    const typ = wpis.typ;
+    const tresc = wpis.tresc;
+    const nauczyciel = wpis.nauczyciel || "Brak informacji";
+
+    const itemHtml = `
+      <div class="test-item" style="background: rgba(255, 255, 255, 0.15); padding: 8px 12px; border-radius: 4px; margin-bottom: 8px; font-size: 13px; line-height: 1.4; text-align: left; color: white;">
+        <strong>${dataWpisu} — ${przedmiot} (${typ})</strong>
+        <span style="display:block; opacity: 0.9;">Zakres: ${tresc}</span>
+        <small style="opacity:0.7; font-size: 11px;">Nauczyciel: ${nauczyciel}</small>
+      </div>
+    `;
+    
+    container.innerHTML += itemHtml;
+  });
 }
