@@ -1712,6 +1712,8 @@ window.backToStepoddzialdowydruki = function() {
 
 
 
+import { collection, getDocs, query, where } from "firebase/firestore";
+
 // Funkcja pobierająca i wyświetlająca sprawdziany na najbliższe 7 dni
 async function ladujTerminarz(klasa = "7a") {
   const testyContainer = document.getElementById("testyList");
@@ -1722,16 +1724,14 @@ async function ladujTerminarz(klasa = "7a") {
   const za7Dni = new Date();
   za7Dni.setDate(dzis.getDate() + 7);
 
-  // Formatowanie do YYYY-MM-DD (tak jak masz zapisane w bazie, np. "2026-01-31")
   const formatujDate = (d) => d.toISOString().split('T')[0];
   const dzisStr = formatujDate(dzis);
   const za7DniStr = formatujDate(za7Dni);
 
   try {
-    // 2. Referencja do Twojej ścieżki w Firebase: klasy > 7a > terminarz
+    // Korzysta z 'db' zadeklarowanego wcześniej w Twoim pliku
     const terminarzRef = collection(db, "klasy", klasa, "terminarz");
     
-    // Zapytanie filtrujące wpisy z najbliższego tygodnia
     const q = query(
       terminarzRef, 
       where("data", ">=", dzisStr), 
@@ -1739,8 +1739,6 @@ async function ladujTerminarz(klasa = "7a") {
     );
 
     const querySnapshot = await getDocs(q);
-    
-    // Czyszczenie komunikatu "Ładowanie..."
     testyContainer.innerHTML = "";
 
     if (querySnapshot.empty) {
@@ -1748,25 +1746,20 @@ async function ladujTerminarz(klasa = "7a") {
       return;
     }
 
-    // 3. Tablica na pobrane dane, aby móc je posortować chronologicznie
     let wpisy = [];
     querySnapshot.forEach((doc) => {
       wpisy.push(doc.data());
     });
 
-    // Sortowanie od najbliższego zapisu
     wpisy.sort((a, b) => new Date(a.data) - new Date(b.data));
 
-    // 4. Generowanie kodu HTML dla każdego wpisu
     wpisy.forEach((wpis) => {
-      // Wyciągamy dane dokładnie tak, jak masz na zdjęciu z Firebase
       const dataWpisu = wpis.data;
       const przedmiot = wpis.przedmiot;
-      const typ = wpis.typ; // kartkówka, sprawdzian itp.
+      const typ = wpis.typ;
       const tresc = wpis.tresc;
       const nauczyciel = wpis.nauczyciel || "";
 
-      // Tworzymy ładny boks informacyjny dla ucznia
       const itemHtml = `
         <div class="test-item">
           <strong>${dataWpisu} — ${przedmiot} (${typ})</strong>
@@ -1783,8 +1776,3 @@ async function ladujTerminarz(klasa = "7a") {
     testyContainer.innerHTML = "<div class='vulcan-loading' style='color:#ff9999;'>Nie udało się załadować danych.</div>";
   }
 }
-
-// WYWOŁANIE: Wywołaj tę funkcję w momencie, gdy użytkownik pomyślnie się zaloguje 
-// i uruchamiasz dashboard (czyli tam gdzie dajesz dashboardDiv.style.display = "block")
-// Przykład:
-// ladujTerminarz("7a");
