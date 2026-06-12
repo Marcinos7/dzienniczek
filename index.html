@@ -54,13 +54,262 @@
 </div>
 
 <!-- LOGOWANIE -->
-<div id="loginDiv" class="full-screen">
-  <h1>Dziennik elektroniczny</h1>
-  <input type="email" id="email" placeholder="Email">
-  <input type="password" id="password" placeholder="Hasło">
-  <button id="loginBtn">Zaloguj</button>
-  <p id="loginError" style="color:red;"></p>
+<div id="loginDiv" class="full-screen-login">
+  <style>
+    /* Reset i style bazy dla sekcji logowania */
+    .full-screen-login {
+      display: flex;
+      width: 100%;
+      min-height: 100vh;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: #ffffff;
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    .full-screen-login * {
+      box-sizing: border-box;
+    }
+
+    /* Lewa kolumna - Formularz */
+    .login-left-side {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 40px 10%;
+      max-width: 600px;
+    }
+
+    .login-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 20px;
+      font-weight: bold;
+      color: #0b509b;
+      margin-bottom: 30px;
+    }
+
+    .login-back-link {
+      display: block;
+      color: #0b509b;
+      text-decoration: none;
+      font-size: 14px;
+      margin-bottom: 20px;
+    }
+
+    .login-left-side h1 {
+      font-size: 28px;
+      color: #333;
+      margin: 0 0 25px 0;
+      font-weight: 700;
+    }
+
+    .input-group {
+      margin-bottom: 20px;
+    }
+
+    .input-group label {
+      display: block;
+      font-size: 14px;
+      color: #333;
+      margin-bottom: 6px;
+    }
+
+    .input-group input {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 16px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .input-group input:focus {
+      border-color: #0b509b;
+    }
+
+    .login-helper-link {
+      display: block;
+      font-size: 13px;
+      color: #0b509b;
+      text-decoration: none;
+      font-weight: 600;
+      margin-top: 5px;
+    }
+
+    #loginBtn {
+      width: 100%;
+      padding: 14px;
+      background-color: #0b509b;
+      color: #ffffff;
+      border: none;
+      border-radius: 4px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      margin-top: 10px;
+      transition: background-color 0.2s;
+    }
+
+    #loginBtn:hover {
+      background-color: #083c75;
+    }
+
+    .login-divider {
+      text-align: center;
+      margin: 20px 0;
+      position: relative;
+      color: #777;
+      font-size: 14px;
+    }
+
+    .login-divider::before, .login-divider::after {
+      content: "";
+      position: absolute;
+      top: 50%;
+      width: 40%;
+      height: 1px;
+      background-color: #e0e0e0;
+    }
+
+    .login-divider::before { left: 0; }
+    .login-divider::after { right: 0; }
+
+    .alt-login-btn {
+      width: 100%;
+      padding: 14px;
+      background-color: #f0f4f9;
+      color: #0b509b;
+      border: none;
+      border-radius: 4px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    /* Prawa kolumna - Panel informacyjny */
+    .login-right-side {
+      flex: 1.2;
+      background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+      color: #ffffff;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 60px;
+      text-align: center;
+      position: relative;
+    }
+
+    /* Symulacja makiety telefonu z grafiki */
+    .phone-mockup {
+      width: 200px;
+      height: 400px;
+      background-color: #000;
+      border-radius: 30px;
+      border: 4px solid #334155;
+      margin-bottom: 30px;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #64748b;
+      font-size: 12px;
+    }
+
+    .login-right-side h2 {
+      font-size: 26px;
+      margin-bottom: 15px;
+      max-width: 450px;
+      line-height: 1.3;
+    }
+
+    .login-right-side p {
+      color: #cbd5e1;
+      font-size: 15px;
+      max-width: 450px;
+      margin-bottom: 30px;
+      line-height: 1.5;
+    }
+
+    .more-info-btn {
+      padding: 12px 30px;
+      background-color: #ffffff;
+      color: #0f172a;
+      border: none;
+      border-radius: 4px;
+      font-weight: bold;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    /* Responsywność - na telefonach ukrywamy prawy panel */
+    @media (max-width: 900px) {
+      .login-right-side {
+        display: none;
+      }
+      .login-left-side {
+        max-width: 100%;
+        padding: 20px;
+      }
+    }
+  </style>
+
+  <div class="login-left-side">
+    <div class="login-brand">
+      <span>📚 Dziennik Elektroniczny</span>
+    </div>
+    
+    <a href="#" class="login-back-link">← Wróć</a>
+    
+    <h1>Logowanie</h1>
+    
+    <div class="input-group">
+      <label for="email">Nazwa użytkownika lub adres e-mail</label>
+      <input type="email" id="email" placeholder="Wpisz e-mail">
+      <a href="#" class="login-helper-link">Przypomnij nazwę użytkownika</a>
+    </div>
+    
+    <div class="input-group">
+      <label for="password">Hasło</label>
+      <input type="password" id="password" placeholder="Wpisz hasło">
+      <a href="#" class="login-helper-link">Przypomnij hasło</a>
+    </div>
+    
+    <button id="loginBtn">Zaloguj się</button>
+    
+    <div class="login-divider">lub</div>
+    
+    <button class="alt-login-btn" type="button">
+      <span>Zaloguj się inną metodą</span>
+      <span>&gt;</span>
+    </button>
+    
+    <p id="loginError" style="color:red; text-align: center; margin-top: 15px; font-size: 14px;"></p>
+  </div>
+
+  <div class="login-right-side">
+    <div class="phone-mockup">
+      [ Grafika Aplikacji ]
+    </div>
+    <h2>Zmień tradycyjne kody na powiadomienia w aplikacji mobilnej</h2>
+    <p>Potwierdzaj logowanie do dziennika, przeglądaj oceny i podpisuj usprawiedliwienia jednym kliknięciem na telefonie – wygodnie i bezpiecznie.</p>
+    <button class="more-info-btn" type="button">Dowiedz się więcej</button>
+  </div>
 </div>
+
+
+
+
+
+
 
 <!-- DASHBOARD START -->
 <div id="dashboardDiv" class="full-screen" style="display:none;">
