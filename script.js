@@ -44,7 +44,9 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
-
+db.settings({
+  experimentalAutoDetectLongPolling: true
+});
 // ELEMENTY DOM
 const loginDiv = document.getElementById('loginDiv');
 const dashboardDiv = document.getElementById('dashboardDiv');
