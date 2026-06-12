@@ -44,9 +44,6 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
-// 2. 🚀 DOPISZ TEN IMPORT DLA REALTIME DATABASE:
-import { getDatabase, ref, push, onValue, serverTimestamp } from "firebase/database";
-const rtdb = getDatabase(app);
 db.settings({
   experimentalAutoDetectLongPolling: true
 });
@@ -1798,91 +1795,3 @@ function wyswietlWpisy(snapshot, container) {
 
 
 
-
-
-// --- OBSŁUGA PRZEŁĄCZANIA WIDOKU PANELU ADMINA ---
-const adminBtn = document.getElementById("adminBtn");
-const closeAdminBtn = document.getElementById("closeAdminBtn");
-const adminDiv = document.getElementById("adminDiv");
-
-if(adminBtn && adminDiv) {
-  adminBtn.addEventListener("click", () => {
-    adminDiv.style.display = adminDiv.style.display === "none" ? "block" : "none";
-    adminDiv.scrollIntoView({ behavior: 'smooth' });
-  });
-}
-
-if(closeAdminBtn && adminDiv) {
-  closeAdminBtn.addEventListener("click", () => {
-    adminDiv.style.display = "none";
-  });
-}
-// --- OBSŁUGA ZAPISYWANIA DO FIREBASE REALTIME DATABASE ---
-
-// --- OBSŁUGA ZAPISYWANIA DO FIREBASE REALTIME DATABASE ---
-
-// 1. Zapisywanie Informacji od Dyrekcji
-document.getElementById("saveDyrekcjaBtn").addEventListener("click", function() {
-  const tresc = document.getElementById("dyrekcjaTresc").value.trim();
-  
-  if(!tresc) { alert("Wpisz treść ogłoszenia!"); return; }
-
-  // Teraz strzelamy do rtdb!
-  rtdb.ref("dyrekcja").push({
-    tresc: tresc,
-    timestamp: firebase.database.ServerValue.TIMESTAMP
-  })
-  .then(() => {
-    alert("Sukces: Dodano informację od dyrekcji!");
-    document.getElementById("dyrekcjaTresc").value = "";
-  })
-  .catch((error) => {
-    console.error("Błąd zapisu dyrekcji:", error);
-    alert("Wystąpił błąd: " + error.message);
-  });
-});
-
-// 2. Zapisywanie Dni Wolnych
-document.getElementById("saveDzienWolnyBtn").addEventListener("click", function() {
-  const dataWolne = document.getElementById("dzienWolnyData").value;
-  const nazwa = document.getElementById("dzienWolnyNazwa").value.trim();
-
-  if(!dataWolne || !nazwa) { alert("Wypełnij wszystkie pola dla dnia wolnego!"); return; }
-
-  rtdb.ref("dniWolne").push({
-    data: dataWolne,
-    nazwa: nazwa
-  })
-  .then(() => {
-    alert("Sukces: Dodano dzień wolny!");
-    document.getElementById("dzienWolnyData").value = "";
-    document.getElementById("dzienWolnyNazwa").value = "";
-  })
-  .catch((error) => {
-    console.error("Błąd zapisu dnia wolnego:", error);
-    alert("Wystąpił błąd: " + error.message);
-  });
-});
-
-// 3. Zapisywanie Zastępstw
-document.getElementById("saveZastepstwoBtn").addEventListener("click", function() {
-  const dataZast = document.getElementById("zastepstwoData").value;
-  const lekcjaInfo = document.getElementById("zastepstwoLekcja").value.trim();
-  const klasa = document.getElementById("zastepstwoKlasa").value.trim();
-
-  if(!dataZast || !lekcjaInfo || !klasa) { alert("Wypełnij wszystkie pola dla zastępstwa!"); return; }
-
-  rtdb.ref("klasy/" + klasa + "/zastepstwa").push({
-    data: dataZast,
-    info: lekcjaInfo
-  })
-  .then(() => {
-    alert("Sukces: Dodano zastępstwo dla klasy " + klasa + "!");
-    document.getElementById("zastepstwoData").value = "";
-    document.getElementById("zastepstwoLekcja").value = "";
-  })
-  .catch((error) => {
-    console.error("Błąd zapisu zastępstwa:", error);
-    alert("Wystąpił błąd: " + error.message);
-  });
-});
