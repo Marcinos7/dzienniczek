@@ -527,7 +527,29 @@ body, html {
   }
 }
 
-
+.vulcan-dynamic-list {
+  margin-top: 10px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+.test-item {
+  background: rgba(255, 255, 255, 0.15);
+  padding: 8px 12px;
+  border-radius: 4px;
+  margin-bottom: 8px;
+  font-size: 13px;
+  line-height: 1.4;
+}
+.test-item strong {
+  display: block;
+  font-size: 14px;
+  margin-bottom: 2px;
+}
+.vulcan-loading {
+  font-size: 13px;
+  font-style: italic;
+  opacity: 0.8;
+}
 
     
 

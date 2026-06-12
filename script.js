@@ -1706,3 +1706,85 @@ window.backToStepoddzialdowydruki = function() {
 };
 
 
+
+
+import { getFirestore, collection, getDocs, query, where } from "firebase/firestore";
+
+const db = getFirestore();
+
+// Funkcja pobierająca i wyświetlająca sprawdziany na najbliższe 7 dni
+async function ladujTerminarz(klasa = "7a") {
+  const testyContainer = document.getElementById("testyList");
+  if (!testyContainer) return;
+
+  // 1. Obliczanie zakresu dat (od dziś do 7 dni w przód)
+  const dzis = new Date();
+  const za7Dni = new Date();
+  za7Dni.setDate(dzis.getDate() + 7);
+
+  // Formatowanie do YYYY-MM-DD (tak jak masz zapisane w bazie, np. "2026-01-31")
+  const formatujDate = (d) => d.toISOString().split('T')[0];
+  const dzisStr = formatujDate(dzis);
+  const za7DniStr = formatujDate(za7Dni);
+
+  try {
+    // 2. Referencja do Twojej ścieżki w Firebase: klasy > 7a > terminarz
+    const terminarzRef = collection(db, "klasy", klasa, "terminarz");
+    
+    // Zapytanie filtrujące wpisy z najbliższego tygodnia
+    const q = query(
+      terminarzRef, 
+      where("data", ">=", dzisStr), 
+      where("data", "<=", za7DniStr)
+    );
+
+    const querySnapshot = await getDocs(q);
+    
+    // Czyszczenie komunikatu "Ładowanie..."
+    testyContainer.innerHTML = "";
+
+    if (querySnapshot.empty) {
+      testyContainer.innerHTML = "<div class='vulcan-loading'>Brak zaplanowanych sprawdzianów w najbliższych 7 dniach.</div>";
+      return;
+    }
+
+    // 3. Tablica na pobrane dane, aby móc je posortować chronologicznie
+    let wpisy = [];
+    querySnapshot.forEach((doc) => {
+      wpisy.push(doc.data());
+    });
+
+    // Sortowanie od najbliższego zapisu
+    wpisy.sort((a, b) => new Date(a.data) - new Date(b.data));
+
+    // 4. Generowanie kodu HTML dla każdego wpisu
+    wpisy.forEach((wpis) => {
+      // Wyciągamy dane dokładnie tak, jak masz na zdjęciu z Firebase
+      const dataWpisu = wpis.data;
+      const przedmiot = wpis.przedmiot;
+      const typ = wpis.typ; // kartkówka, sprawdzian itp.
+      const tresc = wpis.tresc;
+      const nauczyciel = wpis.nauczyciel || "";
+
+      // Tworzymy ładny boks informacyjny dla ucznia
+      const itemHtml = `
+        <div class="test-item">
+          <strong>${dataWpisu} — ${przedmiot} (${typ})</strong>
+          <span>Zakres: ${tresc}</span>
+          ${nauczyciel ? `<br><small style="opacity:0.7;">Zadał: ${nauczyciel}</small>` : ''}
+        </div>
+      `;
+      
+      testyContainer.innerHTML += itemHtml;
+    });
+
+  } catch (error) {
+    console.error("Błąd podczas pobierania terminarza: ", error);
+    testyContainer.innerHTML = "<div class='vulcan-loading' style='color:#ff9999;'>Nie udało się załadować danych.</div>";
+  }
+}
+
+// WYWOŁANIE: Wywołaj tę funkcję w momencie, gdy użytkownik pomyślnie się zaloguje 
+// i uruchamiasz dashboard (czyli tam gdzie dajesz dashboardDiv.style.display = "block")
+// Przykład:
+// ladujTerminarz("7a");
