@@ -76,7 +76,7 @@ loginBtn.addEventListener('click', () => {
     .catch(err => loginError.textContent = err.message);
 });
 // Logowanie po kliknięciu przycisku
-
+ladujTerminarz("7a");
 
 // Logowanie po wciśnięciu Enter w polu hasła
 document.getElementById('password').addEventListener('keydown', (e) => {
