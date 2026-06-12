@@ -44,6 +44,7 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
+const rtdb = firebase.database();
 db.settings({
   experimentalAutoDetectLongPolling: true
 });
@@ -1816,14 +1817,16 @@ if(closeAdminBtn && adminDiv) {
 }
 // --- OBSŁUGA ZAPISYWANIA DO FIREBASE REALTIME DATABASE ---
 
+// --- OBSŁUGA ZAPISYWANIA DO FIREBASE REALTIME DATABASE ---
+
 // 1. Zapisywanie Informacji od Dyrekcji
 document.getElementById("saveDyrekcjaBtn").addEventListener("click", function() {
   const tresc = document.getElementById("dyrekcjaTresc").value.trim();
   
   if(!tresc) { alert("Wpisz treść ogłoszenia!"); return; }
 
-  // Używamy Twojej zmiennej 'db'
-  db.ref("dyrekcja").push({
+  // Teraz strzelamy do rtdb!
+  rtdb.ref("dyrekcja").push({
     tresc: tresc,
     timestamp: firebase.database.ServerValue.TIMESTAMP
   })
@@ -1844,7 +1847,7 @@ document.getElementById("saveDzienWolnyBtn").addEventListener("click", function(
 
   if(!dataWolne || !nazwa) { alert("Wypełnij wszystkie pola dla dnia wolnego!"); return; }
 
-  db.ref("dniWolne").push({
+  rtdb.ref("dniWolne").push({
     data: dataWolne,
     nazwa: nazwa
   })
@@ -1867,7 +1870,7 @@ document.getElementById("saveZastepstwoBtn").addEventListener("click", function(
 
   if(!dataZast || !lekcjaInfo || !klasa) { alert("Wypełnij wszystkie pola dla zastępstwa!"); return; }
 
-  db.ref("klasy/" + klasa + "/zastepstwa").push({
+  rtdb.ref("klasy/" + klasa + "/zastepstwa").push({
     data: dataZast,
     info: lekcjaInfo
   })
