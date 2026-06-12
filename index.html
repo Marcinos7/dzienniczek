@@ -107,34 +107,124 @@
 
 
 
-<!-- DASHBOARD START -->
-<div id="dashboardDiv" class="full-screen" style="display:none;">
-  <header>
-    <h2>Witaj, <span id="userName"></span></h2>
-    <button id="logoutBtn">Wyloguj</button>
-  </header>
-
-  <div class="dashboard-grid">
-    <div class="card" id="testyCard">
-      <h3>Najbliższe testy</h3>
-      <ul id="testyList"><li>Brak danych</li></ul>
-    </div>
-    <div class="card" id="dyrekcjaCard">
-      <h3>Informacje od dyrekcji</h3>
-      <ul id="dyrekcjaList"><li>Brak danych</li></ul>
-    </div>
-    <div class="card" id="dniWolneCard">
-      <h3>Najbliższe dni wolne</h3>
-      <ul id="dniWolneList"><li>Brak danych</li></ul>
-    </div>
-    <div class="card" id="zastepstwaCard">
-      <h3>Zastępstwa</h3>
-      <ul id="zastepstwaList"><li>Brak danych</li></ul>
+<div id="dashboardDiv" class="vulcan-dashboard" style="display: none;">
+  
+  <div class="vulcan-top-bar">
+    <div class="vulcan-logo-mini">VULCAN</div>
+    <div class="vulcan-user-info">
+      <span id="userDisplay">Uczeń</span> - <span id="userNameDashboard">brak_danych@vulcan.edu.pl</span>
+      (<button id="logoutBtn" onclick="location.reload()">wyloguj</button>)
     </div>
   </div>
 
-  <button id="openDziennikBtn" class="full-width-btn">Otwórz pełny panel dziennika</button>
+  <div class="vulcan-container">
+    
+    <div class="vulcan-header">
+      <div class="vulcan-main-logo">
+        <div class="vulcan-logo-icon">✓</div>
+        <div class="vulcan-logo-text">
+          <h2>Dziennik<br><strong>VULCAN</strong></h2>
+        </div>
+      </div>
+      
+      <div class="vulcan-time-widgets">
+        <div class="widget-time" id="liveClock">11:35</div>
+        <div class="widget-date">
+          <span id="liveDay">12 czerwca 2026</span>
+          <span id="liveDayName" style="opacity: 0.8; font-size: 12px; margin-top: 3px;">piątek</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="vulcan-grid">
+      
+      <div class="vulcan-col">
+        <div class="v-card bg-dark-grey">
+          <h3>🧭 Baza wiedzy</h3>
+        </div>
+        
+        <div class="v-card bg-dark-grey">
+          <h3>🔄 Aktualizacje</h3>
+        </div>
+        
+        <div class="v-card bg-pink expandable" id="samorzadCard">
+          <h3>👥 Samorząd szkolny</h3>
+        </div>
+        
+        <div class="v-card bg-blue expandable" id="ankietCard">
+          <h3>💬 Ankiety</h3>
+        </div>
+      </div>
+
+      <div class="vulcan-col">
+        <div class="v-info-card">
+          <h3>Vinformacje</h3>
+          <p>Jak zarejestrować aplikację mobilną Dzienniczek VULCAN</p>
+          <a href="#">Obejrzyj film &gt;</a>
+        </div>
+        
+        <div class="v-card bg-blue expandable" id="testyCard">
+          <h3>📑 Ogłoszenia / Testy</h3>
+          <ul id="testyList">
+            <li>Brak danych</li>
+          </ul>
+        </div>
+        
+        <div class="v-card bg-teal expandable" id="dyrekcjaCard">
+          <h3>📄 Informacje od dyrekcji</h3>
+          <ul id="dyrekcjaList">
+            <li>Brak danych</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="vulcan-col">
+        <div class="v-card bg-dark-grey">
+          <h3>✉️ Wiadomości Plus</h3>
+        </div>
+        
+        <div class="v-card bg-dark-grey" id="openFullPanel">
+          <h3>👤 Uczeń</h3>
+        </div>
+        
+        <div class="v-card bg-blue expandable" id="dniWolneCard">
+          <h3>📅 Najbliższe dni wolne</h3>
+          <ul id="dniWolneList">
+            <li>Brak danych</li>
+          </ul>
+        </div>
+
+        <div class="v-card bg-blue expandable" id="zastepstwaCard">
+          <h3>🔀 Zastępstwa</h3>
+          <ul id="zastepstwaList">
+            <li>Brak danych</li>
+          </ul>
+        </div>
+      </div>
+
+      <button id="openDziennikBtn" class="full-width-btn">Otwórz pełny panel dziennika</button>
+
+    </div>
+  </div>
 </div>
+
+<script>
+  window.addEventListener('DOMContentLoaded', () => {
+    const nameSpan = document.getElementById('userName');
+    const dbEmailSpan = document.getElementById('userNameDashboard');
+    if(nameSpan && nameSpan.innerText.trim() !== "") {
+      dbEmailSpan.innerText = nameSpan.innerText;
+    }
+    
+    const updateClock = () => {
+      const now = new Date();
+      const timeStr = now.toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' });
+      document.getElementById('liveClock').innerText = timeStr;
+    };
+    setInterval(updateClock, 1000);
+    updateClock();
+  });
+</script>
 
 <!-- PANEL NAUCZYCIELA -->
 <div id="dziennikDiv" class="full-screen" style="display:none;">
