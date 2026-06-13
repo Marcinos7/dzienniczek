@@ -1290,7 +1290,26 @@ window.backToMenuFromUwagi = function() {
 
 
 
+// Funkcja aktualizująca bieżącą datę w HTML
+function ustawBiezacaDate() {
+  const elDzien = document.getElementById('liveDay');
+  const elNazwaDnia = document.getElementById('liveDayName');
 
+  if (!elDzien || !elNazwaDnia) return;
+
+  const dzis = new Date();
+
+  // 1. Formatowanie dnia i miesiąca (np. "13 czerwca 2026")
+  const opcjeData = { day: 'numeric', month: 'long', year: 'numeric' };
+  elDzien.textContent = dzis.toLocaleDateString('pl-PL', opcjeData);
+
+  // 2. Formatowanie nazwy dnia tygodnia (np. "sobota")
+  const opcjeDzienTygodnia = { weekday: 'long' };
+  elNazwaDnia.textContent = dzis.toLocaleDateString('pl-PL', opcjeDzienTygodnia);
+}
+
+// Uruchamiamy funkcję od razu po załadowaniu skryptu
+ustawBiezacaDate();
 
 
 // WYLOGOWANIE
@@ -1303,6 +1322,7 @@ function loadTeacherData(uid){
     const data = doc.data();
     userName.textContent = data.imie;
     userName2.textContent = data.imie;
+    userMail.textContent = data.mail;
 
     // DASHBOARD
     loginDiv.style.display='none';
