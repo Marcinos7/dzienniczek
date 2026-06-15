@@ -842,7 +842,7 @@ window.generujWydrukiHTML = async function() {
 
             // Składamy całą stronę ucznia
             karta.innerHTML = `
-                <div style="text-align: center; margin-bottom: 30px; border-bottom: 2px solid #2c3e50; padding-bottom: 10px;">
+                <div style="text-align: center; margin-bottom: 25px; border-bottom: 2px solid #2c3e50; padding-bottom: 10px;">
                     <h1 style="color: #2c3e50; margin: 0; text-transform: uppercase;">Karta Osiągnięć Ucznia</h1>
                     <p style="color: #7f8c8d; margin: 5px 0;">Rok szkolny 2025/2026</p>
                 </div>
@@ -852,7 +852,7 @@ window.generujWydrukiHTML = async function() {
                     <span><strong>Klasa:</strong> ${klasa}</span>
                 </div>
 
-                <table style="width: 90%; border-collapse: collapse; margin-bottom: 25px;">
+                <table style="width: 100%; border-collapse: collapse; margin-bottom: 25px;">
                     <thead>
                         <tr style="background-color: #2c3e50; color: white;">
                             <th style="padding: 12px; border: 1px solid #2c3e50; text-align: left;">Przedmiot</th>
