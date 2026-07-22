@@ -42,30 +42,170 @@
 </head>
 <body>
 
-<!-- 1. LOGOWANIE (TWOJE ORYGINALNE) -->
+<!-- LOGOWANIE -->
 <div id="loginDiv" class="full-screen-login">
-    <div style="flex:1; padding:50px;">
-        <h1>Logowanie nauczyciela</h1>
-        <input type="email" id="email" placeholder="E-mail"><br><br>
-        <input type="password" id="password" placeholder="Hasło"><br><br>
-        <button id="loginBtn">Zaloguj się</button>
-        <p id="loginError" style="color:red;"></p>
+
+  <!-- LEWA STRONA: POWIĘKSZONY FORMULARZ -->
+  <div class="login-left-side">
+    <div class="login-brand">
+      <img src="log.png" alt="Dziennik Elektroniczny" style="height: 40px; width: auto; object-fit: contain;">
     </div>
+    
+    <a href="#" class="login-back-link">← Wróć</a>
+    
+    <h1>Logowanie nauczyciela</h1>
+    
+    <div class="input-group">
+      <label for="email">Nazwa użytkownika lub adres e-mail</label>
+      <input type="email" id="email" placeholder="Wpisz e-mail">
+      <a href="#" class="login-helper-link">Przypomnij nazwę użytkownika</a>
+    </div>
+    
+    <div class="input-group">
+      <label for="password">Hasło</label>
+      <input type="password" id="password" placeholder="Wpisz hasło">
+      <a href="#" class="login-helper-link">Przypomnij hasło</a>
+    </div>
+    
+    <button id="loginBtn">Zaloguj się</button>
+    
+    <div class="login-divider">lub</div>
+    
+    <button class="alt-login-btn" type="button">
+      <span>Zaloguj się inną metodą</span>
+      <span>&gt;</span>
+    </button>
+    
+    <p id="loginError" style="color:red; text-align: center; margin-top: 15px; font-size: 14px;"></p>
+  </div>
+
+  <!-- PRAWA STRONA: ZMIEJSZONA REKLAMA -->
+  <div class="login-right-side">
+    <div class="phone-mockup">
+      <img src="logo.png" alt="Dziennik Elektroniczny" style="height: 200px; width: auto; object-fit: contain;">
+    </div>
+    <h2>Aplikacja mobilna</h2>
+    <p>Potwierdzaj logowanie do dziennika, przeglądaj oceny i podpisuj usprawiedliwienia jednym kliknięciem na telefonie.</p>
+    <button class="more-info-btn" type="button">Dowiedz się więcej</button>
+  </div>
 </div>
 
-<!-- 2. DASHBOARD (TWÓJ ORYGINALNY) -->
-<div id="dashboardDiv" class="vulcan-dashboard">
-    <div style="background:#2c3e50; color:white; padding:10px 20px; display:flex; justify-content:space-between;">
-        <span>edusracz</span>
-        <span><span id="userName"></span> (<button id="logoutBtn">wyloguj</button>)</span>
+
+<div id="dashboardDiv" class="vulcan-dashboard" style="display: none;">
+  
+  <div class="vulcan-top-bar">
+    <div class="vulcan-logo-mini">edusracz</div>
+    <div class="vulcan-user-info">
+      <span id="userName"></span> - <span id="userNameDashboard"></span><span id="userMail"></span>
+      (<button id="logoutBtn" onclick="location.reload()">wyloguj</button>)
     </div>
-    <div style="padding:20px;">
-        <div class="v-card" id="openDziennikBtn" style="background:#e91e63; color:white; padding:20px; cursor:pointer;">
-            <h3>🗒️ Otwórz Dziennik</h3>
+  </div>
+
+  <div class="vulcan-container">
+    
+    <div class="vulcan-header">
+      <div class="vulcan-main-logo">
+        <div class="vulcan-logo-icon">✓</div>
+        <div class="vulcan-logo-text">
+          <h2>Dziennik<br><strong>edusracz</strong></h2>
         </div>
-        <div id="testyList" style="margin-top:20px; background:white; padding:15px; border-radius:8px;">Ładowanie terminarza...</div>
+      </div>
+      
+      <div class="vulcan-time-widgets">
+        <div class="widget-time" id="liveClock">11:35</div>
+        <div class="widget-date">
+          <span id="liveDay">12 czerwca 2026</span>
+          <span id="liveDayName" style="opacity: 0.8; font-size: 12px; margin-top: 3px;">piątek</span>
+        </div>
+      </div>
     </div>
+
+    <div class="vulcan-grid">
+      
+      <div class="vulcan-col">
+        <div class="v-card bg-dark-grey">
+          <h3>🧭 Baza wiedzy</h3>
+        </div>
+        
+        <div class="v-card bg-dark-grey">
+          <h3>🔄 Aktualizacje</h3>
+        </div>
+        
+        <div class="v-card bg-pink expandable" id="samorzadCard">
+          <h3>👥 Samorząd szkolny</h3>
+        </div>
+        
+        <div class="v-card bg-blue expandable" id="ankietCard">
+          <h3>💬 Ankiety</h3>
+        </div>
+      </div>
+
+      <div class="vulcan-col">
+        <div class="v-info-card">
+          <h3>Informacje</h3>
+          <p>Jak zarejestrować aplikację mobilną Dzienniczek edusracz</p>
+          <a href="#">Obejrzyj film &gt;</a>
+        </div>
+        
+<div class="v-card bg-blue expandable" id="testyCard">
+  <h3>📑 Testy</h3>
+  <div id="testyList" class="vulcan-dynamic-list">
+    <div class="vulcan-loading">Ładowanie terminarza...</div>
+  </div>
 </div>
+        
+        <div class="v-card bg-teal expandable" id="dyrekcjaCard">
+          <h3>📄 Informacje od dyrekcji</h3>
+          <ul id="dyrekcjaList">
+            <li>Brak danych</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="vulcan-col">
+        <div class="v-card bg-dark-grey">
+          <h3>✉️ Wiadomości Plus</h3>
+        </div>
+        
+        <div class="v-card bg-dark-grey" id="openDziennikBtn">
+          <h3>🗒️ Dziennik</h3>
+        </div>
+        
+        <div class="v-card bg-blue expandable" id="dniWolneCard">
+          <h3>📅 Najbliższe dni wolne</h3>
+          <ul id="dniWolneList">
+            <li>Brak danych</li>
+          </ul>
+        </div>
+
+        <div class="v-card bg-blue expandable" id="zastepstwaCard">
+          <h3>🔀 Zastępstwa</h3>
+          <ul id="zastepstwaList">
+            <li>Brak danych</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  window.addEventListener('DOMContentLoaded', () => {
+    const nameSpan = document.getElementById('userName');
+    const dbEmailSpan = document.getElementById('userNameDashboard');
+    if(nameSpan && nameSpan.innerText.trim() !== "") {
+      dbEmailSpan.innerText = nameSpan.innerText;
+    }
+    
+    const updateClock = () => {
+      const now = new Date();
+      const timeStr = now.toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' });
+      document.getElementById('liveClock').innerText = timeStr;
+    };
+    setInterval(updateClock, 1000);
+    updateClock();
+  });
+</script>
 
 <!-- 3. DZIENNIK (NOWY WYGLĄD + TWOJA LOGIKA) -->
 <div id="dziennikDiv">
