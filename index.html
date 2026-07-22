@@ -13,13 +13,537 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
 
     <style>
-        /* POŁĄCZONE STYLE VULCAN + TWOJE DASHBOARD */
-        :root {
-            --v-dark: #1b3c5e; --v-header: #3b5e8c; --v-yellow: #f7d14d;
-            --v-bg: #f4f7f9; --border: #bdc3c7;
-        }
-        body { margin: 0; font-family: Arial, sans-serif; background: var(--v-bg); font-size: 13px; }
-        
+
+    /* Reset i style bazowe */
+    .full-screen-login {
+      display: flex;
+      width: 100%;
+      min-height: 100vh;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: #ffffff;
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    .full-screen-login * {
+      box-sizing: border-box;
+    }
+
+    /* LEWA KOLUMNA - Szerszy formularz logowania */
+    .login-left-side {
+      flex: 1.6; /* Zwiększona proporcja (z 1 na 1.6) */
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 40px 12%;
+      max-width: 800px; /* Zwiększona szerokość maksymalna formularza */
+    }
+
+    .login-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 22px;
+      font-weight: bold;
+      color: #0b509b;
+      margin-bottom: 35px;
+    }
+
+    .login-back-link {
+      display: block;
+      color: #0b509b;
+      text-decoration: none;
+      font-size: 15px;
+      margin-bottom: 25px;
+      font-weight: 500;
+    }
+
+    .login-left-side h1 {
+      font-size: 32px; /* Większy nagłówek */
+      color: #333;
+      margin: 0 0 30px 0;
+      font-weight: 700;
+    }
+
+    .input-group {
+      margin-bottom: 25px;
+    }
+
+    .input-group label {
+      display: block;
+      font-size: 15px;
+      color: #333;
+      margin-bottom: 8px;
+    }
+
+    .input-group input {
+      width: 100%;
+      padding: 14px; /* Większy padding dla wygodniejszego wpisywania */
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 16px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .input-group input:focus {
+      border-color: #0b509b;
+    }
+
+    .login-helper-link {
+      display: inline-block;
+      font-size: 14px;
+      color: #0b509b;
+      text-decoration: none;
+      font-weight: 600;
+      margin-top: 8px;
+    }
+
+    #loginBtn {
+      width: 100%;
+      padding: 16px; /* Wyższy, wyraźniejszy przycisk */
+      background-color: #0b509b;
+      color: #ffffff;
+      border: none;
+      border-radius: 4px;
+      font-size: 17px;
+      font-weight: bold;
+      cursor: pointer;
+      margin-top: 15px;
+      transition: background-color 0.2s;
+    }
+
+    #loginBtn:hover {
+      background-color: #083c75;
+    }
+
+    .login-divider {
+      text-align: center;
+      margin: 25px 0;
+      position: relative;
+      color: #777;
+      font-size: 14px;
+    }
+
+    .login-divider::before, .login-divider::after {
+      content: "";
+      position: absolute;
+      top: 50%;
+      width: 42%;
+      height: 1px;
+      background-color: #e0e0e0;
+    }
+
+    .login-divider::before { left: 0; }
+    .login-divider::after { right: 0; }
+
+    .alt-login-btn {
+      width: 100%;
+      padding: 15px;
+      background-color: #f0f4f9;
+      color: #0b509b;
+      border: none;
+      border-radius: 4px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    /* PRAWA KOLUMNA - Węższy i mniejszy panel reklamowy */
+    .login-right-side {
+      flex: 0.9; /* Zmniejszona proporcja (z 1.2 na 0.9) */
+      background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+      color: #ffffff;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 40px;
+      text-align: center;
+    }
+
+    /* Dopasowana, nieco mniejsza makieta telefonu */
+    .phone-mockup {
+      width: 170px;
+      height: 340px;
+      background-color: #000;
+      border-radius: 25px;
+      border: 4px solid #334155;
+      margin-bottom: 25px;
+      box-shadow: 0 15px 20px -5px rgba(0, 0, 0, 0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #64748b;
+      font-size: 11px;
+    }
+
+    .login-right-side h2 {
+      font-size: 22px; /* Zmniejszony nagłówek reklamy */
+      margin-bottom: 12px;
+      max-width: 340px;
+      line-height: 1.3;
+    }
+
+    .login-right-side p {
+      color: #cbd5e1;
+      font-size: 14px;
+      max-width: 340px;
+      margin-bottom: 25px;
+      line-height: 1.4;
+    }
+
+    .more-info-btn {
+      padding: 10px 24px;
+      background-color: #ffffff;
+      color: #0f172a;
+      border: none;
+      border-radius: 4px;
+      font-weight: bold;
+      cursor: pointer;
+      font-size: 13px;
+    }
+
+    /* Responsywność */
+    @media (max-width: 950px) {
+      .login-right-side {
+        display: none; /* Ukrywa reklamę na mniejszych ekranach i zostawia tylko duże logowanie */
+      }
+      .login-left-side {
+        max-width: 100%;
+        padding: 30px 20px;
+      }
+    }
+     
+
+/* Stylizacja dedykowana dla sekcji Dashboard Vulcan */
+.vulcan-dashboard {
+  background-color: #ededed;
+  min-height: 100vh;
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+}
+
+.vulcan-dashboard * {
+  box-sizing: border-box;
+}
+
+/* Górny pasek (Top Bar) */
+.vulcan-top-bar {
+  background-color: #2e2a36;
+  color: #ffffff;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 20px;
+  font-size: 13px;
+}
+
+.vulcan-logo-mini {
+  font-weight: bold;
+  letter-spacing: 1px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.vulcan-logo-mini::before {
+  content: "▼";
+  color: #b92f46;
+}
+
+.vulcan-user-info {
+  color: #e5e5e5;
+}
+
+.vulcan-top-bar #logoutBtn {
+  background: none;
+  border: none;
+  color: #ffffff;
+  text-decoration: underline;
+  cursor: pointer;
+  padding: 0;
+  font-size: 13px;
+  margin-left: 5px;
+}
+
+.vulcan-top-bar #logoutBtn:hover {
+  color: #ff9999;
+}
+
+/* Główny kontener zawartości */
+.vulcan-container {
+  max-width: 1200px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 30px 20px;
+}
+
+/* Sekcja nagłówka z logo i czasem */
+.vulcan-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+}
+
+.vulcan-main-logo {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.vulcan-logo-icon {
+  background-color: #b92f46;
+  color: white;
+  width: 45px;
+  height: 45px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  font-weight: bold;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.vulcan-logo-text h2 {
+  margin: 0;
+  font-size: 24px;
+  color: #444;
+  font-weight: normal;
+  line-height: 1.1;
+}
+
+.vulcan-logo-text h2 strong {
+  display: block;
+  font-size: 20px;
+  color: #111;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Widgety czasu i daty */
+.vulcan-time-widgets {
+  display: flex;
+  gap: 15px;
+}
+
+.widget-time {
+  background-color: #5b79c6;
+  color: white;
+  font-size: 32px;
+  padding: 10px 25px;
+  border-radius: 2px;
+  font-weight: normal;
+}
+
+.widget-date {
+  background-color: #5b79c6;
+  color: white;
+  font-size: 14px;
+  padding: 10px 20px;
+  border-radius: 2px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-width: 120px;
+}
+
+/* Siatka kafelków (Grid) */
+.vulcan-grid {
+  display: grid;
+  grid-template-columns: 1fr 1.2fr 1.2fr;
+  gap: 20px;
+  align-items: start;
+}
+
+/* Kolumny w siatce */
+.vulcan-col {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Style kafelków / kart */
+.v-card {
+  color: white;
+  padding: 20px;
+  border-radius: 2px;
+  cursor: pointer;
+  position: relative;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.v-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+.v-card h3 {
+  margin: 0 0 10px 0;
+  font-size: 20px;
+  font-weight: normal;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Strzałki rozwijania / przejścia */
+.v-card::after {
+  content: "›";
+  position: absolute;
+  right: 20px;
+  top: 20px;
+  font-size: 24px;
+  line-height: 1;
+}
+
+.v-card.expandable::after {
+  content: "︾";
+  font-size: 12px;
+  top: 24px;
+}
+
+/* Listy wewnątrz kafelków */
+.v-card ul {
+  margin: 10px 0 0 0;
+  padding-left: 20px;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.v-card li {
+  margin-bottom: 5px;
+}
+
+/* Kolorystyka konkretnych kafelków */
+.bg-dark-grey {
+  background-color: #424956;
+}
+
+.bg-pink {
+  background-color: #c0426b;
+}
+
+.bg-blue {
+  background-color: #5472c4;
+}
+
+.bg-teal {
+  background-color: #4c8282;
+}
+
+/* Środkowy kafelek informacyjny (Vinformacje) */
+.v-info-card {
+  background-color: #fcfbf7;
+  border: 1px solid #e2dfd3;
+  padding: 25px;
+  color: #333;
+  border-radius: 2px;
+}
+
+.v-info-card h3 {
+  color: #34649c;
+  font-size: 22px;
+  margin: 0 0 15px 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.v-info-card h3::before {
+  content: "➕";
+  font-size: 16px;
+  background-color: #d6ca38;
+  color: white;
+  border-radius: 4px;
+  padding: 2px 4px;
+}
+
+.v-info-card p {
+  font-size: 14px;
+  line-height: 1.5;
+  color: #555;
+  margin-bottom: 15px;
+}
+
+.v-info-card a {
+  color: #34649c;
+  font-size: 14px;
+  text-decoration: underline;
+}
+
+/* Przycisk na dole */
+.full-width-btn {
+  grid-column: 1 / -1;
+  width: 100%;
+  padding: 15px;
+  background-color: #424956;
+  color: white;
+  border: none;
+  font-size: 16px;
+  cursor: pointer;
+  border-radius: 2px;
+  margin-top: 10px;
+  font-weight: bold;
+  transition: background-color 0.2s;
+}
+
+.full-width-btn:hover {
+  background-color: #2f343e;
+}
+
+/* Responsywność */
+@media (max-width: 900px) {
+  .vulcan-grid {
+    grid-template-columns: 1fr;
+  }
+  .vulcan-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 20px;
+  }
+  .vulcan-time-widgets {
+    width: 100%;
+  }
+  .widget-time, .widget-date {
+    flex: 1;
+  }
+}
+
+.vulcan-dynamic-list {
+  margin-top: 10px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+.test-item {
+  background: rgba(255, 255, 255, 0.15);
+  padding: 8px 12px;
+  border-radius: 4px;
+  margin-bottom: 8px;
+  font-size: 13px;
+  line-height: 1.4;
+}
+.test-item strong {
+  display: block;
+  font-size: 14px;
+  margin-bottom: 2px;
+}
+.vulcan-loading {
+  font-size: 13px;
+  font-style: italic;
+  opacity: 0.8;
+}
 
 
         /* GŁÓWNY DZIEŃNIK - UKŁAD VULCAN */
