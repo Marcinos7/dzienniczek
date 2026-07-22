@@ -1,323 +1,137 @@
 <!DOCTYPE html>
 <html lang="pl">
 <head>
-<meta charset="UTF-8">
-<title>Dziennik Elektroniczny - edusracz logowanie</title>
-<link rel="stylesheet" href="style.css">
-<link rel="shortcut icon" href="logo.png" type="image/png">
-<!-- Firebase SDK -->
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
-</head>
-<body>
-<!-- LOADING OVERLAY -->
-<div id="loadingOverlay" class="loading-overlay" style="display:none;">
-  <div class="loading-box">
-    <div class="spinner"></div>
-    <p>Proszę czekać…</p>
- <div id="realizacjaPanel">
-
-  <h2>Realizacja zajęć – plan lekcji</h2>
-
-  <div class="plan-controls">
-    <label>Dzień tygodnia:</label>
-    <select id="daySelect">
-      <option value="poniedzialek">Poniedziałek</option>
-      <option value="wtorek">Wtorek</option>
-      <option value="sroda">Środa</option>
-      <option value="czwartek">Czwartek</option>
-      <option value="piatek">Piątek</option>
-    </select>
-
-    <button id="loadPlanBtn">Pokaż plan</button>
-  </div>
-
-  <table class="plan-table">
-    <thead>
-      <tr>
-        <th>Lekcja</th>
-        <th>Godzina</th>
-        <th>Przedmiot</th>
-      </tr>
-    </thead>
-    <tbody id="planTableBody">
-      <tr><td colspan="3">Wybierz dzień</td></tr>
-    </tbody>
-  </table>
-
-</div>
-  </div>
-</div>
-
-<!-- LOGOWANIE -->
-<div id="loginDiv" class="full-screen-login">
-
-  <!-- LEWA STRONA: POWIĘKSZONY FORMULARZ -->
-  <div class="login-left-side">
-    <div class="login-brand">
-      <img src="log.png" alt="Dziennik Elektroniczny" style="height: 40px; width: auto; object-fit: contain;">
-    </div>
+    <meta charset="UTF-8">
+    <title>Dziennik edusracz - System VULCAN Full Integration</title>
     
-    <a href="#" class="login-back-link">← Wróć</a>
-    
-    <h1>Logowanie nauczyciela</h1>
-    
-    <div class="input-group">
-      <label for="email">Nazwa użytkownika lub adres e-mail</label>
-      <input type="email" id="email" placeholder="Wpisz e-mail">
-      <a href="#" class="login-helper-link">Przypomnij nazwę użytkownika</a>
-    </div>
-    
-    <div class="input-group">
-      <label for="password">Hasło</label>
-      <input type="password" id="password" placeholder="Wpisz hasło">
-      <a href="#" class="login-helper-link">Przypomnij hasło</a>
-    </div>
-    
-    <button id="loginBtn">Zaloguj się</button>
-    
-    <div class="login-divider">lub</div>
-    
-    <button class="alt-login-btn" type="button">
-      <span>Zaloguj się inną metodą</span>
-      <span>&gt;</span>
-    </button>
-    
-    <p id="loginError" style="color:red; text-align: center; margin-top: 15px; font-size: 14px;"></p>
-  </div>
-
-  <!-- PRAWA STRONA: ZMIEJSZONA REKLAMA -->
-  <div class="login-right-side">
-    <div class="phone-mockup">
-      <img src="logo.png" alt="Dziennik Elektroniczny" style="height: 200px; width: auto; object-fit: contain;">
-    </div>
-    <h2>Aplikacja mobilna</h2>
-    <p>Potwierdzaj logowanie do dziennika, przeglądaj oceny i podpisuj usprawiedliwienia jednym kliknięciem na telefonie.</p>
-    <button class="more-info-btn" type="button">Dowiedz się więcej</button>
-  </div>
-</div>
-
-
-
-
-
-
-
-<div id="dashboardDiv" class="vulcan-dashboard" style="display: none;">
-  
-  <div class="vulcan-top-bar">
-    <div class="vulcan-logo-mini">edusracz</div>
-    <div class="vulcan-user-info">
-      <span id="userName"></span> - <span id="userNameDashboard"></span><span id="userMail"></span>
-      (<button id="logoutBtn" onclick="location.reload()">wyloguj</button>)
-    </div>
-  </div>
-
-  <div class="vulcan-container">
-    
-    <div class="vulcan-header">
-      <div class="vulcan-main-logo">
-        <div class="vulcan-logo-icon">✓</div>
-        <div class="vulcan-logo-text">
-          <h2>Dziennik<br><strong>edusracz</strong></h2>
-        </div>
-      </div>
-      
-      <div class="vulcan-time-widgets">
-        <div class="widget-time" id="liveClock">11:35</div>
-        <div class="widget-date">
-          <span id="liveDay">12 czerwca 2026</span>
-          <span id="liveDayName" style="opacity: 0.8; font-size: 12px; margin-top: 3px;">piątek</span>
-        </div>
-      </div>
-    </div>
-
-    <div class="vulcan-grid">
-      
-      <div class="vulcan-col">
-        <div class="v-card bg-dark-grey">
-          <h3>🧭 Baza wiedzy</h3>
-        </div>
-        
-        <div class="v-card bg-dark-grey">
-          <h3>🔄 Aktualizacje</h3>
-        </div>
-        
-        <div class="v-card bg-pink expandable" id="samorzadCard">
-          <h3>👥 Samorząd szkolny</h3>
-        </div>
-        
-        <div class="v-card bg-blue expandable" id="ankietCard">
-          <h3>💬 Ankiety</h3>
-        </div>
-      </div>
-
-      <div class="vulcan-col">
-        <div class="v-info-card">
-          <h3>Informacje</h3>
-          <p>Jak zarejestrować aplikację mobilną Dzienniczek edusracz</p>
-          <a href="#">Obejrzyj film &gt;</a>
-        </div>
-        
-<div class="v-card bg-blue expandable" id="testyCard">
-  <h3>📑 Testy</h3>
-  <div id="testyList" class="vulcan-dynamic-list">
-    <div class="vulcan-loading">Ładowanie terminarza...</div>
-  </div>
-</div>
-        
-        <div class="v-card bg-teal expandable" id="dyrekcjaCard">
-          <h3>📄 Informacje od dyrekcji</h3>
-          <ul id="dyrekcjaList">
-            <li>Brak danych</li>
-          </ul>
-        </div>
-      </div>
-
-      <div class="vulcan-col">
-        <div class="v-card bg-dark-grey">
-          <h3>✉️ Wiadomości Plus</h3>
-        </div>
-        
-        <div class="v-card bg-dark-grey" id="openDziennikBtn">
-          <h3>🗒️ Dziennik</h3>
-        </div>
-        
-        <div class="v-card bg-blue expandable" id="dniWolneCard">
-          <h3>📅 Najbliższe dni wolne</h3>
-          <ul id="dniWolneList">
-            <li>Brak danych</li>
-          </ul>
-        </div>
-
-        <div class="v-card bg-blue expandable" id="zastepstwaCard">
-          <h3>🔀 Zastępstwa</h3>
-          <ul id="zastepstwaList">
-            <li>Brak danych</li>
-          </ul>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<script>
-  window.addEventListener('DOMContentLoaded', () => {
-    const nameSpan = document.getElementById('userName');
-    const dbEmailSpan = document.getElementById('userNameDashboard');
-    if(nameSpan && nameSpan.innerText.trim() !== "") {
-      dbEmailSpan.innerText = nameSpan.innerText;
-    }
-    
-    const updateClock = () => {
-      const now = new Date();
-      const timeStr = now.toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' });
-      document.getElementById('liveClock').innerText = timeStr;
-    };
-    setInterval(updateClock, 1000);
-    updateClock();
-  });
-</script>
+    <!-- Biblioteki Twoje i pomocnicze -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
 
     <style>
-        /* --- STYLIZACJA VULCAN --- */
+        /* POŁĄCZONE STYLE VULCAN + TWOJE DASHBOARD */
         :root {
             --v-dark: #1b3c5e; --v-header: #3b5e8c; --v-yellow: #f7d14d;
             --v-bg: #f4f7f9; --border: #bdc3c7;
         }
-        body { margin: 0; font-family: Arial, sans-serif; background: var(--v-bg); font-size: 13px; overflow: hidden; }
+        body { margin: 0; font-family: Arial, sans-serif; background: var(--v-bg); font-size: 13px; }
         
-        #dziennikDiv { display: flex; flex-direction: column; height: 100vh; }
+        /* Twoje style logowania (uproszczone dla przejrzystości pliku) */
+        .full-screen-login { display: flex; height: 100vh; background: white; }
+        .login-left-side { flex: 1; padding: 50px; display: flex; flex-direction: column; justify-content: center; }
+        .login-right-side { flex: 1; background: #f0f4f8; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 20px; }
         
+        /* Dashboard Vulcan edusracz */
+        .vulcan-dashboard { display: none; flex-direction: column; height: 100vh; background: #e9eef3; }
+        .vulcan-top-bar { background: #2c3e50; color: white; padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; }
+        .v-card { background: #fff; padding: 15px; border-radius: 8px; margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); cursor: pointer; }
+        .bg-blue { background: #3498db !important; color: white; }
+        .bg-pink { background: #e91e63 !important; color: white; }
+
+        /* GŁÓWNY DZIEŃNIK - UKŁAD VULCAN */
+        #dziennikDiv { display: none; flex-direction: column; height: 100vh; overflow: hidden; }
         .top-navbar { background: var(--v-dark); display: flex; height: 30px; align-items: flex-end; padding: 0 10px; }
         .top-tab { background: #46698f; color: white; padding: 5px 15px; font-size: 11px; border: none; cursor: pointer; margin-right: 2px; border-radius: 4px 4px 0 0; }
         .top-tab.active { background: var(--v-yellow); color: black; font-weight: bold; }
-
         .icon-bar { background: var(--v-header); display: flex; padding: 10px 20px; gap: 20px; border-bottom: 2px solid #2c4766; }
-        .icon-item { color: white; text-align: center; font-size: 11px; cursor: pointer; display: flex; flex-direction: column; align-items: center; width: 75px; }
-        .icon-box { width: 34px; height: 34px; background: white; border-radius: 4px; margin-bottom: 5px; display: flex; align-items: center; justify-content: center; font-size: 20px; color: #333; }
+        .icon-item { color: white; text-align: center; font-size: 11px; cursor: pointer; width: 75px; }
+        .icon-box { width: 34px; height: 34px; background: white; border-radius: 4px; margin: 0 auto 5px; display: flex; align-items: center; justify-content: center; font-size: 20px; color: #333; }
 
         .main-container { display: flex; flex: 1; overflow: hidden; }
-        .sidebar { width: 250px; background: white; border-right: 1px solid var(--border); overflow-y: auto; padding: 10px; }
-        .tree-folder { font-weight: bold; margin: 8px 0; cursor: pointer; font-size: 12px; }
-        .tree-item { padding: 4px 20px; cursor: pointer; color: #444; border: 1px solid transparent; }
-        .tree-item:hover { background: #f0f4f8; }
-        .tree-item.selected { background: #fff2cc; border-color: #f1c232; }
-
-        .workspace { flex: 1; display: flex; flex-direction: column; background: white; margin: 5px; border: 1px solid var(--border); }
+        .sidebar { width: 260px; background: white; border-right: 1px solid var(--border); overflow-y: auto; padding: 10px; }
+        .workspace { flex: 1; display: flex; flex-direction: column; background: white; margin: 5px; border: 1px solid var(--border); overflow: hidden; }
         .workspace-tabs { display: flex; background: #eee; border-bottom: 1px solid var(--border); }
         .w-tab { padding: 8px 15px; border-right: 1px solid var(--border); cursor: pointer; font-size: 12px; background: #ddd; }
         .w-tab.active { background: var(--v-yellow); font-weight: bold; }
 
         .scrollable-content { flex: 1; padding: 15px; overflow-y: auto; }
-        .status-bar { background: #eee; border-top: 1px solid #ccc; padding: 3px 10px; font-size: 11px; color: #666; }
-        
-        /* Styl dla Twoich przycisków, żeby pasowały do całości */
-        button:not(.top-tab):not(.w-tab) { cursor: pointer; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th { background: #f2f2f2; padding: 8px; border: 1px solid #ddd; text-align: left; }
+        td { padding: 8px; border: 1px solid #ddd; }
+        input[type="text"], input[type="email"], input[type="password"] { padding: 8px; border: 1px solid #ccc; border-radius: 4px; width: 100%; box-sizing: border-box; }
+        button { cursor: pointer; }
     </style>
 </head>
 <body>
 
+<!-- LOGOWANIE -->
+<div id="loginDiv" class="full-screen-login">
+  <div class="login-left-side">
+    <h1>Logowanie nauczyciela</h1>
+    <div style="margin-bottom: 15px;">
+      <label>E-mail</label><br>
+      <input type="email" id="email" placeholder="Wpisz e-mail">
+    </div>
+    <div style="margin-bottom: 20px;">
+      <label>Hasło</label><br>
+      <input type="password" id="password" placeholder="Wpisz hasło">
+    </div>
+    <button id="loginBtn" style="padding: 12px; background: #1b3c5e; color: white; border: none; font-weight: bold;">Zaloguj się</button>
+    <p id="loginError" style="color:red; margin-top: 10px;"></p>
+  </div>
+  <div class="login-right-side">
+    <h2>Dziennik edusracz</h2>
+    <p>System zarządzania szkołą.</p>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<div id="dashboardDiv" class="vulcan-dashboard">
+  <div class="vulcan-top-bar">
+    <div>edusracz</div>
+    <div><span id="userName"></span> (<button id="logoutBtn">wyloguj</button>)</div>
+  </div>
+  <div style="padding: 20px; flex: 1;">
+    <div class="v-card bg-pink" id="openDziennikBtn"><h3>🗒️ Otwórz Dziennik</h3></div>
+    <div class="v-card bg-blue"><h3>📑 Nadchodzące Testy</h3><div id="testyList">Ładowanie...</div></div>
+  </div>
+</div>
+
+<!-- GŁÓWNY DZIENNIK -->
 <div id="dziennikDiv">
-    <!-- GÓRA -->
     <header class="top-navbar">
         <button class="top-tab active">Dziennik</button>
-        <button class="top-tab" onclick="pokazStep('step-9-oddzial-setup')">Dziennik zajęć innych</button>
-        <button class="top-tab">Wydruki i zestawienia</button>
-        <button class="top-tab">Pomoc</button>
+        <button class="top-tab" id="backToDashboardBtn">Panel Startowy</button>
         <div style="flex-grow:1"></div>
-        <div style="color:white; font-size:11px; padding-bottom:5px;">Zalogowany: <span id="userName2">Artur [A9]</span></div>
+        <div style="color:white; font-size:11px; padding-bottom:5px;">Zalogowany: <span id="userName2"></span></div>
     </header>
-
-    <!-- IKONY -->
     <nav class="icon-bar">
         <div class="icon-item" onclick="pokazStep('step-1')"><div class="icon-box">📓</div>Lekcja</div>
-        <div class="icon-item"><div class="icon-box">📖</div>Rozkłady</div>
         <div class="icon-item" onclick="pokazStep('step-9-oddzial-setup')"><div class="icon-box">👥</div>Rejestr</div>
-        <div class="icon-item" onclick="document.getElementById('adminDiv').style.display='block'"><div class="icon-box">⚙️</div>Admin</div>
     </nav>
 
     <div class="main-container">
-        <!-- LEWO (Daty i lekcje) -->
+        <!-- SIDEBAR - TWOJE DATY I PLAN -->
         <aside class="sidebar">
-            <div style="font-weight:bold; border-bottom:1px solid #ccc; margin-bottom:10px;">22.08 - 28.08.2016</div>
-            <div class="tree-folder">📂 poniedziałek, 22 sierpnia</div>
-            <div class="tree-folder">📂 wtorek, 23 sierpnia</div>
-            <div class="tree-folder">📂 środa, 24 sierpnia</div>
-            <div class="tree-folder">📂 czwartek, 25 sierpnia</div>
-            <div class="tree-folder">📂 piątek, 26 sierpnia</div>
-            <div class="tree-item">1. Matematyka</div>
-            <div class="tree-item">2. Język polski</div>
-            <div class="tree-item">3. Fizyka</div>
-            <div class="tree-item selected">7. Informatyka</div>
+            <div id="sideRange" style="font-weight:bold; border-bottom:1px solid #ccc; margin-bottom:10px;">Zakres Tygodnia</div>
+            <div id="sideDayName" style="font-weight:bold; color: #1b3c5e; margin-bottom: 10px;">Dzień Tygodnia</div>
+            <ul id="lesson-list-sidebar" style="list-style:none; padding:0;">
+                <!-- Tu wpadną lekcje z Twojego planLekcji -->
+            </ul>
         </aside>
 
-        <!-- PRAWO (Twoja cała treść) -->
+        <!-- OBSZAR ROBOCZY -->
         <main class="workspace">
             <div class="workspace-tabs">
                 <div class="w-tab active" onclick="pokazStep('step-5')">Opis lekcji</div>
                 <div class="w-tab" onclick="otworzPanelOcen()">Oceny</div>
                 <div class="w-tab" onclick="pokazStep('step-7-uwagi')">Uwagi</div>
                 <div class="w-tab" onclick="pokazStep('step-8-projekty')">Terminarz</div>
-                <div class="w-tab" onclick="pokazStep('step-8-wydruki')">Wydruki</div>
             </div>
 
-            <div class="scrollable-content" id="main-workspace-content">
-                
-                <!-- TUTAJ WKLEJONE TWOJE STEPS 1-11 -->
-
+            <div class="scrollable-content">
+                <!-- STEP 1: WYBÓR KLASY -->
                 <div id="step-1">
-                    <button id="btn-start" style="padding:10px 20px;">Lekcja</button>
-                    <button id="btn-dzod" onclick="pokazStep('step-9-oddzial-setup')" style="padding:10px 20px;">Dziennik oddziału</button>
+                    <button id="btn-start" style="padding: 15px 30px; background: #27ae60; color: white; border: none; font-weight: bold;">Zacznij Lekcję</button>
                 </div>
 
                 <div id="step-2" style="display:none;">
                     <h3>Wybierz klasę:</h3>
-                    <select id="select-klasa"><option value="">-- wybierz --</option></select>
+                    <select id="select-klasa" style="width: 200px; padding: 10px;"></select>
                 </div>
 
                 <div id="step-3" style="display:none;">
@@ -332,123 +146,333 @@
                 </div>
 
                 <div id="step-4" style="display:none;">
-                    <h3>Plan lekcji na wybrany dzień:</h3>
+                    <h3>Plan lekcji:</h3>
                     <ul id="lesson-list"></ul>
                 </div>
 
-                <div id="step-5" style="display:none; padding: 20px; border: 2px solid #4A90E2; border-radius: 10px; background-color: #f9f9f9;">
+                <!-- STEP 5: OPIS LEKCJI -->
+                <div id="step-5" style="display:none;">
                     <h3 id="info-lekcja-tytul" style="color: #4A90E2;">Wybrana lekcja</h3>
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px;">
-                        <button class="panel-nav-btn" onclick="pokazStep('step-5')">📝 Opis lekcji</button>
-                        <button class="panel-nav-btn">📅 Frekwencja</button>
-                        <button class="panel-nav-btn" onclick="otworzPanelOcen()">⭐ Oceny</button>
-                        <button class="panel-nav-btn" onclick="pokazStep('step-7-uwagi')">⚠️ Uwagi</button>
-                        <button class="panel-nav-btn" onclick="pokazStep('step-8-projekty')">📂 Projekty</button>
+                    <div style="background: #f9f9f9; padding: 20px; border: 1px solid #ccc; border-radius: 8px;">
+                        <label>Temat lekcji:</label><br>
+                        <input type="text" placeholder="Wpisz temat..." style="margin-top: 5px; width: 80%;">
+                        <button style="background: #1b3c5e; color: white; border: none; margin-left: 10px; padding: 8px 20px;">Zapisz</button>
                     </div>
                 </div>
 
+                <!-- STEP 6: OCENY -->
                 <div id="step-6-oceny" style="display:none;">
                     <div style="background: #2196F3; color: white; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
-                        <h2 id="naglowek-oceny-info" style="margin:0;">Przedmiot: -- | Klasa: --</h2>
+                        <h2 id="naglowek-oceny-info" style="margin:0;">Przedmiot: --</h2>
                     </div>
-                    <div id="widok-ocen-kontener">
-                        <h3>Arkusz ocen z przedmiotu</h3>
-                        <table id="tabela-wszystkie-oceny" border="1" style="width:100%; border-collapse: collapse;">
-                            <thead><tr style="background: #f2f2f2;"><th>Nr</th><th>Imię i Nazwisko</th><th>Oceny cząstkowe</th><th>Średnia</th></tr></thead>
+                    <div style="background: #eee; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                        <label>Temat:</label> <input type="text" id="ocena-temat" style="width: 200px;">
+                        <label>Data:</label> <input type="text" id="ocena-data" style="width: 150px;"> 
+                        <button id="btn-generuj-tabele" onclick="generujTabeleOcen()" style="background: #4CAF50; color: white; border: none;">Otwórz arkusz</button>
+                    </div>
+                    <div id="tabela-uczniow-kontener" style="display:none;">
+                        <table id="tabela-wszystkie-oceny">
+                            <thead><tr><th>Nr</th><th>Imię i Nazwisko</th><th id="dynamiczne-naglowki">Oceny</th></tr></thead>
                             <tbody id="lista-uczniow-podglad-ocen"></tbody>
                         </table>
+                        <div style="margin-top:20px; padding: 15px; border-top: 2px solid #2196F3;">
+                             <table border="1" style="width:100%;">
+                                 <thead><tr style="background:#ddd;"><th>Nr</th><th>Uczeń</th><th>Ocena</th><th>Komentarz</th></tr></thead>
+                                 <tbody id="lista-uczniow-oceny"></tbody>
+                             </table>
+                             <button id="btn-zapisz-wszystkie-oceny" style="margin-top:10px; background: #2196F3; color: white; padding: 10px;">ZAPISZ KOLUMNĘ</button>
+                        </div>
                     </div>
                 </div>
 
-                <div id="step-7-dziennik" style="display:none;">
-                    <h2>Dziennik Oddziału - Klasyfikacja</h2>
-                    <div id="lista-przedmiotow-klasyfikacja"></div>
-                </div>
-
-                <div id="step-7-uwagi" style="display:none; border: 1px solid #e74c3c; padding: 20px;">
+                <!-- STEP 7: UWAGI -->
+                <div id="step-7-uwagi" style="display:none;">
                     <h3>Dodaj uwagę</h3>
-                    <select id="uwaga-kategoria"></select>
-                    <textarea id="uwaga-tresc" style="width:100%; height:80px;"></textarea>
-                    <div id="lista-uczniow-uwagi"></div>
-                    <button id="btn-zapisz-uwage" style="background:red; color:white;">Zapisz uwagę</button>
+                    <select id="uwaga-kategoria"></select><br><br>
+                    <textarea id="uwaga-tresc" style="width: 100%; height: 100px;"></textarea><br>
+                    <div id="lista-uczniow-uwagi" style="max-height: 200px; overflow-y: auto; border: 1px solid #ddd; padding: 10px;"></div>
+                    <button id="btn-zapisz-uwage" style="background: #e74c3c; color: white; margin-top: 10px;">Zapisz uwagę</button>
                 </div>
 
+                <!-- STEP 8: TERMINARZ -->
                 <div id="step-8-projekty" style="display:none;">
-                    <h2 id="kalendarz-tytul">Miesiąc Rok</h2>
-                    <div id="calendar-cells" style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px;"></div>
-                </div>
-
-                <div id="step-9-oddzial-setup" style="display:none;">
-                    <h2>Dziennik oddziału</h2>
-                    <select id="lista-klas-oddzial"><option value="">-- wybierz klasę --</option></select>
-                    <button id="btn-wejdz-do-menu-oddzialu">OTWÓRZ MENU ODDZIAŁU</button>
-                </div>
-
-                <div id="step-10-oddzial-menu" style="display:none;">
-                    <h3 id="naglowek-wybrana-klasa">Klasa: --</h3>
-                    <button onclick="otworzListeUczniow()">👥 Lista oddziału</button>
-                    <button onclick="pokazStep('step-7-dziennik')">🎓 Oceny końcowe</button>
-                    <button onclick="pokazStep('step-8-wydruki')">🖨️ Wydruki</button>
-                </div>
-
-                <div id="step-11-lista-uczniow" style="display:none;">
-                    <h2 id="tytul-listy-klasa">Lista uczniów</h2>
-                    <table style="width:100%; border-collapse: collapse;"><tbody id="tabela-uczniow-body"></tbody></table>
-                </div>
-
-                <div id="step-8-wydruki" style="display:none;">
-                    <h2>🖨️ Panel Wydruków</h2>
-                    <div style="display: flex; gap: 20px;">
-                        <div class="print-card" style="border:1px solid #009688; padding:20px;">Świadectwa</div>
-                        <div class="print-card" style="border:1px solid #009688; padding:20px;">Wywiadówki</div>
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <button onclick="zmienMiesiac(-1)">◀ Poprzedni</button>
+                        <h2 id="kalendarz-tytul">Miesiąc Rok</h2>
+                        <button onclick="zmienMiesiac(1)">Następny ▶</button>
                     </div>
+                    <div style="display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; font-weight: bold; background: #34495e; color: white; padding: 5px;">
+                        <div>Pon</div><div>Wt</div><div>Śr</div><div>Czw</div><div>Pt</div><div>Sob</div><div>Ndz</div>
+                    </div>
+                    <div id="calendar-cells" style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; background: #bdc3c7;"></div>
                 </div>
-
-                <!-- KONIEC TWOICH SEKTSJI -->
-
             </div>
         </main>
     </div>
-
-    <footer class="status-bar">© 2016 VULCAN, Uonet+ | Status: Gotowy</footer>
 </div>
 
-<!-- PANEL ADMINA -->
-<div id="adminDiv" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:9999; color:white; padding:50px;">
-    <h2>Panel Administracyjny</h2>
-    <button onclick="this.parentElement.style.display='none'">❌ Zamknij</button>
-    <!-- Tu Twoja treść admina -->
+<!-- MODAL PROJEKTU -->
+<div id="modal-projekt" style="display:none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 25px; border-radius: 15px; box-shadow: 0 0 30px rgba(0,0,0,0.5); z-index: 9999;">
+    <h3 id="modal-data-display">Dodaj wydarzenie</h3>
+    Typ: <select id="projekt-typ"><option value="sprawdzian">Sprawdzian</option><option value="kartkówka">Kartkówka</option></select><br>
+    Przedmiot: <select id="projekt-przedmiot"></select><br>
+    Temat: <textarea id="projekt-tresc" style="width:100%;"></textarea><br>
+    <button id="btn-zapisz-projekt">Zapisz</button>
+    <button onclick="zamknijModalProjektu()">Anuluj</button>
 </div>
 
-<!-- SKRYPTY -->
+<!-- TWOJE JS ZINTEGROWANE -->
 <script>
-    // Ta funkcja zarządza widocznością Twoich "kroków"
-    function pokazStep(id) {
-        // Wszystkie ID Twoich sekcji
-        const steps = [
-            'step-1', 'step-2', 'step-3', 'step-4', 'step-5', 
-            'step-6-oceny', 'step-7-dziennik', 'step-7-uwagi', 
-            'step-8-projekty', 'step-8-wydruki', 'step-9-oddzial-setup', 
-            'step-10-oddzial-menu', 'step-11-lista-uczniow', 'app'
-        ];
-        
-        steps.forEach(s => {
-            const el = document.getElementById(s);
-            if(el) el.style.display = 'none';
+// --- KONFIGURACJA TWOJEJ DATY ---
+const dzis = new Date();
+const formatujDateLokalnie = (d) => {
+    const r = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const dzien = String(d.getDate()).padStart(2, '0');
+    return `${r}-${m}-${dzien}`;
+};
+const dzisStr = formatujDateLokalnie(dzis);
+
+// Ustawienia w sidebarze
+document.getElementById('sideDayName').innerText = "📂 " + dzis.toLocaleDateString('pl-PL', { weekday: 'long', day: 'numeric', month: 'long' });
+document.getElementById('sideRange').innerText = "22.08 - 28.08.2016";
+
+// --- TWOJA KONFIGURACJA FIREBASE ---
+const firebaseConfig = {
+    apiKey: "AIzaSyCpZFyGA92f5600MVKWYhOsJ0eXhKAN0DA",
+    authDomain: "dzienniczek-a488a.firebaseapp.com",
+    projectId: "dzienniczek-a488a",
+    storageBucket: "dzienniczek-a488a.firebasestorage.app",
+    messagingSenderId: "194419034610",
+    appId: "1:194419034610:web:132c6597ce9b750896436b"
+};
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+db.settings({ experimentalForceLongPolling: true });
+
+// --- ELEMENTY I ZMIENNE ---
+let wybranaKlasaDlaOcen = "";
+let aktywnyPrzedmiot = "";
+let aktywnyNumerLekcji = "";
+let obecnaDataKalendarza = new Date();
+let wybranaDataDlaProjektu = "";
+
+const PRZEDMIOTY = ["biologia", "chemia", "fizyka", "geografia", "historia", "informatyka", "język angielski", "język polski", "matematyka", "wychowanie fizyczne"];
+const KATEGORIE_UWAG = ["wypełnianie obowiązków", "kultura osobista", "zachowanie na lekcji"];
+
+// --- LOGOWANIE ---
+document.getElementById('loginBtn').addEventListener('click', () => {
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
+    auth.signInWithEmailAndPassword(email, password)
+        .then(userCred => {
+            db.collection("nauczyciele").doc(userCred.user.uid).get().then(doc => {
+                const d = doc.data();
+                document.getElementById('userName').innerText = d.imie;
+                document.getElementById('userName2').innerText = d.imie;
+                document.getElementById('loginDiv').style.display = 'none';
+                document.getElementById('dashboardDiv').style.display = 'flex';
+                ladujTerminarz();
+            });
+        })
+        .catch(err => document.getElementById('loginError').innerText = err.message);
+});
+
+document.getElementById('openDziennikBtn').addEventListener('click', () => {
+    document.getElementById('dashboardDiv').style.display = 'none';
+    document.getElementById('dziennikDiv').style.display = 'flex';
+});
+
+document.getElementById('logoutBtn').addEventListener('click', () => location.reload());
+document.getElementById('backToDashboardBtn').addEventListener('click', () => {
+    document.getElementById('dziennikDiv').style.display = 'none';
+    document.getElementById('dashboardDiv').style.display = 'flex';
+});
+
+// --- NAWIGACJA STEPS ---
+window.pokazStep = function(id) {
+    document.querySelectorAll('[id^="step-"]').forEach(s => s.style.display = 'none');
+    document.getElementById(id).style.display = 'block';
+    document.querySelectorAll('.w-tab').forEach(t => t.classList.remove('active'));
+};
+
+// --- ŁADOWANIE KLAS I PLANU ---
+document.getElementById('btn-start').addEventListener('click', () => {
+    const select = document.getElementById('select-klasa');
+    select.innerHTML = '<option value="">-- wybierz --</option>';
+    db.collection("klasy").get().then(snap => {
+        snap.forEach(doc => {
+            let opt = document.createElement('option');
+            opt.value = doc.id; opt.textContent = doc.id;
+            select.appendChild(opt);
         });
+        pokazStep('step-2');
+    });
+});
 
-        const target = document.getElementById(id);
-        if(target) target.style.display = 'block';
+document.getElementById('select-klasa').addEventListener('change', (e) => {
+    if(e.target.value) { wybranaKlasaDlaOcen = e.target.value; pokazStep('step-3'); }
+});
+
+document.querySelectorAll('.day-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+        const dzien = e.target.getAttribute('data-day');
+        const list = document.getElementById('lesson-list');
+        const sidebarList = document.getElementById('lesson-list-sidebar');
+        list.innerHTML = "Ładowanie...";
+        pokazStep('step-4');
+
+        db.collection("planLekcji").doc(dzien).get().then(doc => {
+            list.innerHTML = ""; sidebarList.innerHTML = "";
+            if (doc.exists) {
+                const dane = doc.data();
+                Object.keys(dane).sort((a,b)=>Number(a)-Number(b)).forEach(nr => {
+                    let li = document.createElement('li');
+                    li.innerHTML = `Lekcja ${nr}: ${dane[nr]} <button onclick="wybierzLekcjeDoOcen('${dane[nr]}', '${nr}')">Wybierz</button>`;
+                    list.appendChild(li);
+                    
+                    let sLi = document.createElement('li');
+                    sLi.className = 'tree-item';
+                    sLi.innerText = `${nr}. ${dane[nr]}`;
+                    sLi.onclick = () => wybierzLekcjeDoOcen(dane[nr], nr);
+                    sidebarList.appendChild(sLi);
+                });
+            }
+        });
+    });
+});
+
+window.wybierzLekcjeDoOcen = function(przedmiot, nr) {
+    aktywnyPrzedmiot = przedmiot; aktywnyNumerLekcji = nr;
+    document.getElementById('info-lekcja-tytul').textContent = `Lekcja ${nr}: ${przedmiot} (Klasa ${wybranaKlasaDlaOcen})`;
+    pokazStep('step-5');
+};
+
+// --- OCENY ---
+window.otworzPanelOcen = function() {
+    pokazStep('step-6-oceny');
+    document.getElementById('naglowek-oceny-info').innerText = `Przedmiot: ${aktywnyPrzedmiot} | Klasa: ${wybranaKlasaDlaOcen}`;
+    document.getElementById('ocena-data').value = dzisStr;
+    zaladujOcenyRealtime();
+};
+
+function zaladujOcenyRealtime() {
+    const tbody = document.getElementById('lista-uczniow-podglad-ocen');
+    tbody.innerHTML = "Synchronizacja...";
+    db.collection("klasy").doc(wybranaKlasaDlaOcen).collection("uczniowie").orderBy("numer").get().then(snapU => {
+        let uczniowie = snapU.docs.map(d => ({id: d.id, ...d.data()}));
+        db.collection("klasy").doc(wybranaKlasaDlaOcen).collection("oceny").where("przedmiot", "==", aktywnyPrzedmiot).onSnapshot(snapO => {
+            tbody.innerHTML = "";
+            uczniowie.forEach(u => {
+                let tr = document.createElement('tr');
+                tr.innerHTML = `<td>${u.numer}</td><td>${u.imie} ${u.nazwisko}</td>`;
+                let suma = 0, licznik = 0;
+                snapO.forEach(docO => {
+                    const data = docO.data();
+                    const ocena = data.oceny[u.id] || '-';
+                    tr.innerHTML += `<td style="text-align:center;">${ocena}</td>`;
+                    let val = parseFloat(ocena); if(!isNaN(val)) { suma+=val; licznik++; }
+                });
+                tr.innerHTML += `<td style="background:#fff3e0; font-weight:bold;">${licznik>0?(suma/licznik).toFixed(2):'-'}</td>`;
+                tbody.appendChild(tr);
+            });
+        });
+    });
+}
+
+window.generujTabeleOcen = function() {
+    const temat = document.getElementById('ocena-temat').value;
+    if(!temat) return alert("Wpisz temat!");
+    const tbody = document.getElementById('lista-uczniow-oceny');
+    tbody.innerHTML = "Ładowanie...";
+    document.getElementById('tabela-uczniow-kontener').style.display = 'block';
+    db.collection("klasy").doc(wybranaKlasaDlaOcen).collection("uczniowie").orderBy("numer").get().then(snap => {
+        tbody.innerHTML = "";
+        snap.forEach(doc => {
+            tbody.innerHTML += `<tr><td>${doc.data().numer}</td><td>${doc.data().imie} ${doc.data().nazwisko}</td><td><input type="text" class="ocena-input" data-uid="${doc.id}"></td><td><input type="text" class="komentarz-input"></td></tr>`;
+        });
+    });
+};
+
+document.getElementById('btn-zapisz-wszystkie-oceny').addEventListener('click', async () => {
+    const temat = document.getElementById('ocena-temat').value;
+    const data = document.getElementById('ocena-data').value;
+    const inputs = document.querySelectorAll('.ocena-input');
+    let mapaOcen = {};
+    inputs.forEach(i => { if(i.value) mapaOcen[i.getAttribute('data-uid')] = i.value; });
+    
+    await db.collection("klasy").doc(wybranaKlasaDlaOcen).collection("oceny").doc(temat).set({
+        data: data, przedmiot: aktywnyPrzedmiot, oceny: mapaOcen, timestamp: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    alert("Zapisano!");
+    document.getElementById('tabela-uczniow-kontener').style.display = 'none';
+});
+
+// --- KALENDARZ ---
+async function rysujKalendarz() {
+    const cells = document.getElementById('calendar-cells');
+    const tytul = document.getElementById('kalendarz-tytul');
+    cells.innerHTML = "";
+    const rok = obecnaDataKalendarza.getFullYear();
+    const mies = obecnaDataKalendarza.getMonth();
+    const nazwy = ["Styczeń", "Luty", "Marzec", "Kwiecień", "Maj", "Czerwiec", "Lipiec", "Sierpień", "Wrzesień", "Październik", "Listopad", "Grudzień"];
+    tytul.textContent = `${nazwy[mies]} ${rok}`;
+    const pierwszy = new Date(rok, mies, 1).getDay();
+    const dni = new Date(rok, mies + 1, 0).getDate();
+    let przes = pierwszy === 0 ? 6 : pierwszy - 1;
+    for (let i = 0; i < przes; i++) cells.appendChild(document.createElement('div'));
+    for (let d = 1; d <= dni; d++) {
+        const dataStr = `${rok}-${String(mies+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+        let div = document.createElement('div');
+        div.style = "background:white; min-height:80px; padding:5px; border:1px solid #ddd;";
+        div.innerHTML = `<b>${d}</b> <button onclick="otworzModalProjektu('${dataStr}')" style="float:right;">+</button><div id="ev-${dataStr}"></div>`;
+        cells.appendChild(div);
+        wczytajEventy(dataStr);
     }
+}
 
-    function otworzPanelOcen() { pokazStep('step-6-oceny'); }
-    function otworzListeUczniow() { pokazStep('step-11-lista-uczniow'); }
+function wczytajEventy(data) {
+    db.collection("klasy").doc(wybranaKlasaDlaOcen).collection("terminarz").where("data", "==", data).get().then(snap => {
+        const cont = document.getElementById(`ev-${data}`);
+        snap.forEach(doc => {
+            cont.innerHTML += `<div style="font-size:10px; background:#ffeaa7; margin-top:2px;">${doc.data().tresc}</div>`;
+        });
+    });
+}
+
+window.zmienMiesiac = (k) => { obecnaDataKalendarza.setMonth(obecnaDataKalendarza.getMonth() + k); rysujKalendarz(); };
+window.otworzModalProjektu = (d) => {
+    wybranaDataDlaProjektu = d;
+    document.getElementById('modal-data-display').innerText = `Data: ${d}`;
+    const sel = document.getElementById('projekt-przedmiot'); sel.innerHTML = "";
+    PRZEDMIOTY.forEach(p => sel.innerHTML += `<option value="${p}">${p}</option>`);
+    document.getElementById('modal-projekt').style.display = 'block';
+};
+window.zamknijModalProjektu = () => document.getElementById('modal-projekt').style.display = 'none';
+
+document.getElementById('btn-zapisz-projekt').addEventListener('click', async () => {
+    await db.collection("klasy").doc(wybranaKlasaDlaOcen).collection("terminarz").add({
+        data: wybranaDataDlaProjektu, typ: document.getElementById('projekt-typ').value,
+        przedmiot: document.getElementById('projekt-przedmiot').value,
+        tresc: document.getElementById('projekt-tresc').value
+    });
+    zamknijModalProjektu(); rysujKalendarz();
+});
+
+// Start kalendarza przy wejściu w step-8
+document.querySelector('[onclick="pokazStep(\'step-8-projekty\')"]').addEventListener('click', rysujKalendarz);
+
+async function ladujTerminarz() {
+    const list = document.getElementById('testyList');
+    db.collection("klasy").doc("7a").collection("terminarz").where("data", ">=", dzisStr).get().then(snap => {
+        list.innerHTML = "";
+        snap.forEach(doc => {
+            const d = doc.data();
+            list.innerHTML += `<div style="padding:5px; border-bottom:1px solid #ddd;"><b>${d.data}</b>: ${d.przedmiot} - ${d.tresc}</div>`;
+        });
+    });
+}
 </script>
-
-
-  <script type="module" src="script.js"></script>
-</head>
-
-<script type="module" src="script.js"></script>
 </body>
 </html>
