@@ -41,11 +41,16 @@ const firebaseConfig = {
   messagingSenderId: "194419034610",
   appId: "1:194419034610:web:132c6597ce9b750896436b"
 };
+// ... (twoja konfiguracja firebaseConfig) ...
 firebase.initializeApp(firebaseConfig);
+
 const auth = firebase.auth();
 const db = firebase.firestore();
+
+// Zmień "AutoDetect" na "Force"
 db.settings({
-  experimentalAutoDetectLongPolling: true
+  experimentalForceLongPolling: true,
+  merge: true // opcjonalnie, dobre dla stabilności
 });
 // ELEMENTY DOM
 const loginDiv = document.getElementById('loginDiv');
