@@ -215,17 +215,37 @@ document.querySelectorAll('.panel-nav-btn').forEach(btn => {
 // --- DODATKOWE ZMIENNE ---
 const sekcjaStep6 = document.getElementById('step-6-oceny');
 
-// Obsługa przycisku "Oceny" w Kroku 5
+// Obsługa kliknięć na całej stronie (Delegacja)
+document.addEventListener('click', (event) => {
+    // Sprawdzamy, czy kliknięty element (lub jego rodzic) to przycisk "Oceny"
+    const target = event.target.closest('[data-target="oceny"]');
 
-    // 1. Ukrywamy poprzednie kroki
-    document.querySelectorAll('[id^="step-"]').forEach(s => s.style.display = 'none');
-    
-    // 2. Pokazujemy panel ocen
-    sekcjaStep6.style.display = 'block';
+    if (target) {
+        console.log("Kliknięto Oceny - przełączam panel...");
 
-    // 3. Automatyczna data (YYYY-MM-DD)
-    const dzis = new Date().toISOString().split('T')[0];
-    document.getElementById('ocena-data').value = dzis;
+        // 1. Ukrywamy wszystkie Twoje kroki (steps)
+        // Używamy Twojej tablicy lub selektora id^="step-"
+        document.querySelectorAll('[id^="step-"]').forEach(s => {
+            s.style.display = 'none';
+        });
+
+        // 2. Pokazujemy panel ocen (step-6-oceny)
+        const sekcjaStep6 = document.getElementById('step-6-oceny');
+        if (sekcjaStep6) {
+            sekcjaStep6.style.display = 'block';
+        }
+
+        // 3. Automatyczna data (YYYY-MM-DD)
+        const dataInput = document.getElementById('ocena-data');
+        if (dataInput) {
+            const dzis = new Date().toISOString().split('T')[0];
+            dataInput.value = dzis;
+        }
+
+        // 4. (Opcjonalnie) Zmień aktywną zakładkę w nowym menu Vulcan
+        document.querySelectorAll('.w-tab').forEach(tab => tab.classList.remove('active'));
+        // Jeśli masz zakładkę o treści "Oceny", znajdź ją i dodaj klasę active
+    }
 });
 
 // GENEROWANIE TABELI UCZNIÓW
