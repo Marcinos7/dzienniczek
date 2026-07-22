@@ -216,7 +216,7 @@ document.querySelectorAll('.panel-nav-btn').forEach(btn => {
 const sekcjaStep6 = document.getElementById('step-6-oceny');
 
 // Obsługa przycisku "Oceny" w Kroku 5
-document.querySelector('[data-target="oceny"]').addEventListener('click', () => {
+
     // 1. Ukrywamy poprzednie kroki
     document.querySelectorAll('[id^="step-"]').forEach(s => s.style.display = 'none');
     
