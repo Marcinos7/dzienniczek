@@ -60,34 +60,153 @@
 
 <!-- LOGOWANIE -->
 <div id="loginDiv" class="full-screen-login">
+
+  <!-- LEWA STRONA: POWIĘKSZONY FORMULARZ -->
   <div class="login-left-side">
+    <div class="login-brand">
+      <img src="log.png" alt="Dziennik Elektroniczny" style="height: 40px; width: auto; object-fit: contain;">
+    </div>
+    
+    <a href="#" class="login-back-link">← Wróć</a>
+    
     <h1>Logowanie nauczyciela</h1>
-    <div style="margin-bottom: 15px;">
-      <label>E-mail</label><br>
+    
+    <div class="input-group">
+      <label for="email">Nazwa użytkownika lub adres e-mail</label>
       <input type="email" id="email" placeholder="Wpisz e-mail">
+      <a href="#" class="login-helper-link">Przypomnij nazwę użytkownika</a>
     </div>
-    <div style="margin-bottom: 20px;">
-      <label>Hasło</label><br>
+    
+    <div class="input-group">
+      <label for="password">Hasło</label>
       <input type="password" id="password" placeholder="Wpisz hasło">
+      <a href="#" class="login-helper-link">Przypomnij hasło</a>
     </div>
-    <button id="loginBtn" style="padding: 12px; background: #1b3c5e; color: white; border: none; font-weight: bold;">Zaloguj się</button>
-    <p id="loginError" style="color:red; margin-top: 10px;"></p>
+    
+    <button id="loginBtn">Zaloguj się</button>
+    
+    <div class="login-divider">lub</div>
+    
+    <button class="alt-login-btn" type="button">
+      <span>Zaloguj się inną metodą</span>
+      <span>&gt;</span>
+    </button>
+    
+    <p id="loginError" style="color:red; text-align: center; margin-top: 15px; font-size: 14px;"></p>
   </div>
+
+  <!-- PRAWA STRONA: ZMIEJSZONA REKLAMA -->
   <div class="login-right-side">
-    <h2>Dziennik edusracz</h2>
-    <p>System zarządzania szkołą.</p>
+    <div class="phone-mockup">
+      <img src="logo.png" alt="Dziennik Elektroniczny" style="height: 200px; width: auto; object-fit: contain;">
+    </div>
+    <h2>Aplikacja mobilna</h2>
+    <p>Potwierdzaj logowanie do dziennika, przeglądaj oceny i podpisuj usprawiedliwienia jednym kliknięciem na telefonie.</p>
+    <button class="more-info-btn" type="button">Dowiedz się więcej</button>
   </div>
 </div>
 
-<!-- DASHBOARD -->
-<div id="dashboardDiv" class="vulcan-dashboard">
+
+
+
+
+
+
+<div id="dashboardDiv" class="vulcan-dashboard" style="display: none;">
+  
   <div class="vulcan-top-bar">
-    <div>edusracz</div>
-    <div><span id="userName"></span> (<button id="logoutBtn">wyloguj</button>)</div>
+    <div class="vulcan-logo-mini">edusracz</div>
+    <div class="vulcan-user-info">
+      <span id="userName"></span> - <span id="userNameDashboard"></span><span id="userMail"></span>
+      (<button id="logoutBtn" onclick="location.reload()">wyloguj</button>)
+    </div>
   </div>
-  <div style="padding: 20px; flex: 1;">
-    <div class="v-card bg-pink" id="openDziennikBtn"><h3>🗒️ Otwórz Dziennik</h3></div>
-    <div class="v-card bg-blue"><h3>📑 Nadchodzące Testy</h3><div id="testyList">Ładowanie...</div></div>
+
+  <div class="vulcan-container">
+    
+    <div class="vulcan-header">
+      <div class="vulcan-main-logo">
+        <div class="vulcan-logo-icon">✓</div>
+        <div class="vulcan-logo-text">
+          <h2>Dziennik<br><strong>edusracz</strong></h2>
+        </div>
+      </div>
+      
+      <div class="vulcan-time-widgets">
+        <div class="widget-time" id="liveClock">11:35</div>
+        <div class="widget-date">
+          <span id="liveDay">12 czerwca 2026</span>
+          <span id="liveDayName" style="opacity: 0.8; font-size: 12px; margin-top: 3px;">piątek</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="vulcan-grid">
+      
+      <div class="vulcan-col">
+        <div class="v-card bg-dark-grey">
+          <h3>🧭 Baza wiedzy</h3>
+        </div>
+        
+        <div class="v-card bg-dark-grey">
+          <h3>🔄 Aktualizacje</h3>
+        </div>
+        
+        <div class="v-card bg-pink expandable" id="samorzadCard">
+          <h3>👥 Samorząd szkolny</h3>
+        </div>
+        
+        <div class="v-card bg-blue expandable" id="ankietCard">
+          <h3>💬 Ankiety</h3>
+        </div>
+      </div>
+
+      <div class="vulcan-col">
+        <div class="v-info-card">
+          <h3>Informacje</h3>
+          <p>Jak zarejestrować aplikację mobilną Dzienniczek edusracz</p>
+          <a href="#">Obejrzyj film &gt;</a>
+        </div>
+        
+<div class="v-card bg-blue expandable" id="testyCard">
+  <h3>📑 Testy</h3>
+  <div id="testyList" class="vulcan-dynamic-list">
+    <div class="vulcan-loading">Ładowanie terminarza...</div>
+  </div>
+</div>
+        
+        <div class="v-card bg-teal expandable" id="dyrekcjaCard">
+          <h3>📄 Informacje od dyrekcji</h3>
+          <ul id="dyrekcjaList">
+            <li>Brak danych</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="vulcan-col">
+        <div class="v-card bg-dark-grey">
+          <h3>✉️ Wiadomości Plus</h3>
+        </div>
+        
+        <div class="v-card bg-dark-grey" id="openDziennikBtn">
+          <h3>🗒️ Dziennik</h3>
+        </div>
+        
+        <div class="v-card bg-blue expandable" id="dniWolneCard">
+          <h3>📅 Najbliższe dni wolne</h3>
+          <ul id="dniWolneList">
+            <li>Brak danych</li>
+          </ul>
+        </div>
+
+        <div class="v-card bg-blue expandable" id="zastepstwaCard">
+          <h3>🔀 Zastępstwa</h3>
+          <ul id="zastepstwaList">
+            <li>Brak danych</li>
+          </ul>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
 
