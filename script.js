@@ -49,8 +49,7 @@ const db = firebase.firestore();
 
 // Zmień "AutoDetect" na "Force"
 db.settings({
-  experimentalForceLongPolling: true,
-  merge: true // opcjonalnie, dobre dla stabilności
+  experimentalForceLongPolling: true
 });
 // ELEMENTY DOM
 const loginDiv = document.getElementById('loginDiv');
