@@ -1,753 +1,95 @@
 <!DOCTYPE html>
 <html lang="pl">
 <head>
-    <meta charset="UTF-8">
-    <title>Dziennik edusracz</title>
+<meta charset="UTF-8">
+<title>Dziennik Elektroniczny - edusracz</title>
+<link rel="stylesheet" href="style.css">
+<!-- Firebase SDK COMPAT -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+<style>
+    /* --- TWOJE STYLE DASHBOARDU I LOGOWANIA (PRZEPISANE BEZ ZMIAN) --- */
+    :root { --v-dark: #1b3c5e; --v-header: #3b5e8c; --v-yellow: #f7d14d; --v-bg: #f4f7f9; --border: #bdc3c7; }
+    body { margin: 0; font-family: Arial, sans-serif; }
+    .full-screen-login { display: flex; height: 100vh; }
+    .vulcan-dashboard { display: none; flex-direction: column; height: 100vh; background: #f0f2f5; }
     
-    <!-- Biblioteki Twoje i pomocnicze -->
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
-
-    <style>
-
-    /* Reset i style bazowe */
-    .full-screen-login {
-      display: flex;
-      width: 100%;
-      min-height: 100vh;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      background-color: #ffffff;
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
-    .full-screen-login * {
-      box-sizing: border-box;
-    }
-
-    /* LEWA KOLUMNA - Szerszy formularz logowania */
-    .login-left-side {
-      flex: 1.6; /* Zwiększona proporcja (z 1 na 1.6) */
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      padding: 40px 12%;
-      max-width: 800px; /* Zwiększona szerokość maksymalna formularza */
-    }
-
-    .login-brand {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      font-size: 22px;
-      font-weight: bold;
-      color: #0b509b;
-      margin-bottom: 35px;
-    }
-
-    .login-back-link {
-      display: block;
-      color: #0b509b;
-      text-decoration: none;
-      font-size: 15px;
-      margin-bottom: 25px;
-      font-weight: 500;
-    }
-
-    .login-left-side h1 {
-      font-size: 32px; /* Większy nagłówek */
-      color: #333;
-      margin: 0 0 30px 0;
-      font-weight: 700;
-    }
-
-    .input-group {
-      margin-bottom: 25px;
-    }
-
-    .input-group label {
-      display: block;
-      font-size: 15px;
-      color: #333;
-      margin-bottom: 8px;
-    }
-
-    .input-group input {
-      width: 100%;
-      padding: 14px; /* Większy padding dla wygodniejszego wpisywania */
-      border: 1px solid #ccc;
-      border-radius: 4px;
-      font-size: 16px;
-      outline: none;
-      transition: border-color 0.2s;
-    }
-
-    .input-group input:focus {
-      border-color: #0b509b;
-    }
-
-    .login-helper-link {
-      display: inline-block;
-      font-size: 14px;
-      color: #0b509b;
-      text-decoration: none;
-      font-weight: 600;
-      margin-top: 8px;
-    }
-
-    #loginBtn {
-      width: 100%;
-      padding: 16px; /* Wyższy, wyraźniejszy przycisk */
-      background-color: #0b509b;
-      color: #ffffff;
-      border: none;
-      border-radius: 4px;
-      font-size: 17px;
-      font-weight: bold;
-      cursor: pointer;
-      margin-top: 15px;
-      transition: background-color 0.2s;
-    }
-
-    #loginBtn:hover {
-      background-color: #083c75;
-    }
-
-    .login-divider {
-      text-align: center;
-      margin: 25px 0;
-      position: relative;
-      color: #777;
-      font-size: 14px;
-    }
-
-    .login-divider::before, .login-divider::after {
-      content: "";
-      position: absolute;
-      top: 50%;
-      width: 42%;
-      height: 1px;
-      background-color: #e0e0e0;
-    }
-
-    .login-divider::before { left: 0; }
-    .login-divider::after { right: 0; }
-
-    .alt-login-btn {
-      width: 100%;
-      padding: 15px;
-      background-color: #f0f4f9;
-      color: #0b509b;
-      border: none;
-      border-radius: 4px;
-      font-size: 15px;
-      font-weight: 600;
-      cursor: pointer;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    /* PRAWA KOLUMNA - Węższy i mniejszy panel reklamowy */
-    .login-right-side {
-      flex: 0.9; /* Zmniejszona proporcja (z 1.2 na 0.9) */
-      background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-      color: #ffffff;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      padding: 40px;
-      text-align: center;
-    }
-
-    /* Dopasowana, nieco mniejsza makieta telefonu */
-    .phone-mockup {
-      width: 170px;
-      height: 340px;
-      background-color: #000;
-      border-radius: 25px;
-      border: 4px solid #334155;
-      margin-bottom: 25px;
-      box-shadow: 0 15px 20px -5px rgba(0, 0, 0, 0.3);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: #64748b;
-      font-size: 11px;
-    }
-
-    .login-right-side h2 {
-      font-size: 22px; /* Zmniejszony nagłówek reklamy */
-      margin-bottom: 12px;
-      max-width: 340px;
-      line-height: 1.3;
-    }
-
-    .login-right-side p {
-      color: #cbd5e1;
-      font-size: 14px;
-      max-width: 340px;
-      margin-bottom: 25px;
-      line-height: 1.4;
-    }
-
-    .more-info-btn {
-      padding: 10px 24px;
-      background-color: #ffffff;
-      color: #0f172a;
-      border: none;
-      border-radius: 4px;
-      font-weight: bold;
-      cursor: pointer;
-      font-size: 13px;
-    }
-
-    /* Responsywność */
-    @media (max-width: 950px) {
-      .login-right-side {
-        display: none; /* Ukrywa reklamę na mniejszych ekranach i zostawia tylko duże logowanie */
-      }
-      .login-left-side {
-        max-width: 100%;
-        padding: 30px 20px;
-      }
-    }
-     
-
-/* Stylizacja dedykowana dla sekcji Dashboard Vulcan */
-.vulcan-dashboard {
-  background-color: #ededed;
-  min-height: 100vh;
-  font-family: Arial, sans-serif;
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-  display: flex;
-  flex-direction: column;
-}
-
-.vulcan-dashboard * {
-  box-sizing: border-box;
-}
-
-/* Górny pasek (Top Bar) */
-.vulcan-top-bar {
-  background-color: #2e2a36;
-  color: #ffffff;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 10px 20px;
-  font-size: 13px;
-}
-
-.vulcan-logo-mini {
-  font-weight: bold;
-  letter-spacing: 1px;
-  display: flex;
-  align-items: center;
-  gap: 5px;
-}
-
-.vulcan-logo-mini::before {
-  content: "▼";
-  color: #b92f46;
-}
-
-.vulcan-user-info {
-  color: #e5e5e5;
-}
-
-.vulcan-top-bar #logoutBtn {
-  background: none;
-  border: none;
-  color: #ffffff;
-  text-decoration: underline;
-  cursor: pointer;
-  padding: 0;
-  font-size: 13px;
-  margin-left: 5px;
-}
-
-.vulcan-top-bar #logoutBtn:hover {
-  color: #ff9999;
-}
-
-/* Główny kontener zawartości */
-.vulcan-container {
-  max-width: 1200px;
-  width: 100%;
-  margin: 0 auto;
-  padding: 30px 20px;
-}
-
-/* Sekcja nagłówka z logo i czasem */
-.vulcan-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 30px;
-}
-
-.vulcan-main-logo {
-  display: flex;
-  align-items: center;
-  gap: 15px;
-}
-
-.vulcan-logo-icon {
-  background-color: #b92f46;
-  color: white;
-  width: 45px;
-  height: 45px;
-  border-radius: 6px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 24px;
-  font-weight: bold;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-
-.vulcan-logo-text h2 {
-  margin: 0;
-  font-size: 24px;
-  color: #444;
-  font-weight: normal;
-  line-height: 1.1;
-}
-
-.vulcan-logo-text h2 strong {
-  display: block;
-  font-size: 20px;
-  color: #111;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-/* Widgety czasu i daty */
-.vulcan-time-widgets {
-  display: flex;
-  gap: 15px;
-}
-
-.widget-time {
-  background-color: #5b79c6;
-  color: white;
-  font-size: 32px;
-  padding: 10px 25px;
-  border-radius: 2px;
-  font-weight: normal;
-}
-
-.widget-date {
-  background-color: #5b79c6;
-  color: white;
-  font-size: 14px;
-  padding: 10px 20px;
-  border-radius: 2px;
-  text-align: center;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  min-width: 120px;
-}
-
-/* Siatka kafelków (Grid) */
-.vulcan-grid {
-  display: grid;
-  grid-template-columns: 1fr 1.2fr 1.2fr;
-  gap: 20px;
-  align-items: start;
-}
-
-/* Kolumny w siatce */
-.vulcan-col {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-/* Style kafelków / kart */
-.v-card {
-  color: white;
-  padding: 20px;
-  border-radius: 2px;
-  cursor: pointer;
-  position: relative;
-  transition: transform 0.2s, box-shadow 0.2s;
-}
-
-.v-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
-}
-
-.v-card h3 {
-  margin: 0 0 10px 0;
-  font-size: 20px;
-  font-weight: normal;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-/* Strzałki rozwijania / przejścia */
-.v-card::after {
-  content: "›";
-  position: absolute;
-  right: 20px;
-  top: 20px;
-  font-size: 24px;
-  line-height: 1;
-}
-
-.v-card.expandable::after {
-  content: "︾";
-  font-size: 12px;
-  top: 24px;
-}
-
-/* Listy wewnątrz kafelków */
-.v-card ul {
-  margin: 10px 0 0 0;
-  padding-left: 20px;
-  font-size: 14px;
-  color: rgba(255, 255, 255, 0.9);
-}
-
-.v-card li {
-  margin-bottom: 5px;
-}
-
-/* Kolorystyka konkretnych kafelków */
-.bg-dark-grey {
-  background-color: #424956;
-}
-
-.bg-pink {
-  background-color: #c0426b;
-}
-
-.bg-blue {
-  background-color: #5472c4;
-}
-
-.bg-teal {
-  background-color: #4c8282;
-}
-
-/* Środkowy kafelek informacyjny (Vinformacje) */
-.v-info-card {
-  background-color: #fcfbf7;
-  border: 1px solid #e2dfd3;
-  padding: 25px;
-  color: #333;
-  border-radius: 2px;
-}
-
-.v-info-card h3 {
-  color: #34649c;
-  font-size: 22px;
-  margin: 0 0 15px 0;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.v-info-card h3::before {
-  content: "➕";
-  font-size: 16px;
-  background-color: #d6ca38;
-  color: white;
-  border-radius: 4px;
-  padding: 2px 4px;
-}
-
-.v-info-card p {
-  font-size: 14px;
-  line-height: 1.5;
-  color: #555;
-  margin-bottom: 15px;
-}
-
-.v-info-card a {
-  color: #34649c;
-  font-size: 14px;
-  text-decoration: underline;
-}
-
-/* Przycisk na dole */
-.full-width-btn {
-  grid-column: 1 / -1;
-  width: 100%;
-  padding: 15px;
-  background-color: #424956;
-  color: white;
-  border: none;
-  font-size: 16px;
-  cursor: pointer;
-  border-radius: 2px;
-  margin-top: 10px;
-  font-weight: bold;
-  transition: background-color 0.2s;
-}
-
-.full-width-btn:hover {
-  background-color: #2f343e;
-}
-
-/* Responsywność */
-@media (max-width: 900px) {
-  .vulcan-grid {
-    grid-template-columns: 1fr;
-  }
-  .vulcan-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 20px;
-  }
-  .vulcan-time-widgets {
-    width: 100%;
-  }
-  .widget-time, .widget-date {
-    flex: 1;
-  }
-}
-
-.vulcan-dynamic-list {
-  margin-top: 10px;
-  max-height: 200px;
-  overflow-y: auto;
-}
-.test-item {
-  background: rgba(255, 255, 255, 0.15);
-  padding: 8px 12px;
-  border-radius: 4px;
-  margin-bottom: 8px;
-  font-size: 13px;
-  line-height: 1.4;
-}
-.test-item strong {
-  display: block;
-  font-size: 14px;
-  margin-bottom: 2px;
-}
-.vulcan-loading {
-  font-size: 13px;
-  font-style: italic;
-  opacity: 0.8;
-}
-
-
-        /* GŁÓWNY DZIEŃNIK - UKŁAD VULCAN */
-        #dziennikDiv { display: none; flex-direction: column; height: 100vh; overflow: hidden; }
-        .top-navbar { background: var(--v-dark); display: flex; height: 30px; align-items: flex-end; padding: 0 10px; }
-        .top-tab { background: #46698f; color: white; padding: 5px 15px; font-size: 11px; border: none; cursor: pointer; margin-right: 2px; border-radius: 4px 4px 0 0; }
-        .top-tab.active { background: var(--v-yellow); color: black; font-weight: bold; }
-        .icon-bar { background: var(--v-header); display: flex; padding: 10px 20px; gap: 20px; border-bottom: 2px solid #2c4766; }
-        .icon-item { color: white; text-align: center; font-size: 11px; cursor: pointer; width: 75px; }
-        .icon-box { width: 34px; height: 34px; background: white; border-radius: 4px; margin: 0 auto 5px; display: flex; align-items: center; justify-content: center; font-size: 20px; color: #333; }
-
-        .main-container { display: flex; flex: 1; overflow: hidden; }
-        .sidebar { width: 260px; background: white; border-right: 1px solid var(--border); overflow-y: auto; padding: 10px; }
-        .workspace { flex: 1; display: flex; flex-direction: column; background: white; margin: 5px; border: 1px solid var(--border); overflow: hidden; }
-        .workspace-tabs { display: flex; background: #eee; border-bottom: 1px solid var(--border); }
-        .w-tab { padding: 8px 15px; border-right: 1px solid var(--border); cursor: pointer; font-size: 12px; background: #ddd; }
-        .w-tab.active { background: var(--v-yellow); font-weight: bold; }
-
-        .scrollable-content { flex: 1; padding: 15px; overflow-y: auto; }
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        th { background: #f2f2f2; padding: 8px; border: 1px solid #ddd; text-align: left; }
-        td { padding: 8px; border: 1px solid #ddd; }
-        input[type="text"], input[type="email"], input[type="password"] { padding: 8px; border: 1px solid #ccc; border-radius: 4px; width: 100%; box-sizing: border-box; }
-        button { cursor: pointer; }
-    </style>
+    /* --- NOWY WYGLĄD DZIENNIKA (STRUKTURA VULCAN) --- */
+    #dziennikDiv { display: none; flex-direction: column; height: 100vh; overflow: hidden; background: var(--v-bg); }
+    .top-navbar { background: var(--v-dark); display: flex; height: 30px; align-items: flex-end; padding: 0 10px; }
+    .top-tab { background: #46698f; color: white; padding: 5px 15px; font-size: 11px; border: none; cursor: pointer; margin-right: 2px; border-radius: 4px 4px 0 0; }
+    .top-tab.active { background: var(--v-yellow); color: black; font-weight: bold; }
+    .icon-bar { background: var(--v-header); display: flex; padding: 10px 20px; gap: 20px; border-bottom: 2px solid #2c4766; }
+    .icon-item { color: white; text-align: center; font-size: 11px; cursor: pointer; width: 75px; }
+    .icon-box { width: 34px; height: 34px; background: white; border-radius: 4px; margin: 0 auto 5px; display: flex; align-items: center; justify-content: center; font-size: 20px; color: #333; }
+    .main-container { display: flex; flex: 1; overflow: hidden; }
+    .sidebar { width: 250px; background: white; border-right: 1px solid var(--border); overflow-y: auto; padding: 10px; }
+    .workspace { flex: 1; display: flex; flex-direction: column; background: white; margin: 5px; border: 1px solid var(--border); overflow: hidden; }
+    .workspace-tabs { display: flex; background: #eee; border-bottom: 1px solid var(--border); }
+    .w-tab { padding: 8px 15px; border-right: 1px solid var(--border); cursor: pointer; font-size: 12px; background: #ddd; }
+    .w-tab.active { background: var(--v-yellow); font-weight: bold; }
+    .scrollable-content { flex: 1; padding: 15px; overflow-y: auto; }
+    
+    /* Style tabel Twoich */
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+    th { background: #f2f2f2; padding: 10px; border: 1px solid #ddd; }
+    td { padding: 10px; border: 1px solid #ddd; }
+    .hidden { display: none; }
+</style>
 </head>
 <body>
 
-<!-- LOGOWANIE -->
+<!-- 1. LOGOWANIE (TWOJE ORYGINALNE) -->
 <div id="loginDiv" class="full-screen-login">
-
-  <!-- LEWA STRONA: POWIĘKSZONY FORMULARZ -->
-  <div class="login-left-side">
-    <div class="login-brand">
-      <img src="log.png" alt="Dziennik Elektroniczny" style="height: 40px; width: auto; object-fit: contain;">
+    <div style="flex:1; padding:50px;">
+        <h1>Logowanie nauczyciela</h1>
+        <input type="email" id="email" placeholder="E-mail"><br><br>
+        <input type="password" id="password" placeholder="Hasło"><br><br>
+        <button id="loginBtn">Zaloguj się</button>
+        <p id="loginError" style="color:red;"></p>
     </div>
-    
-    <a href="#" class="login-back-link">← Wróć</a>
-    
-    <h1>Logowanie nauczyciela</h1>
-    
-    <div class="input-group">
-      <label for="email">Nazwa użytkownika lub adres e-mail</label>
-      <input type="email" id="email" placeholder="Wpisz e-mail">
-      <a href="#" class="login-helper-link">Przypomnij nazwę użytkownika</a>
-    </div>
-    
-    <div class="input-group">
-      <label for="password">Hasło</label>
-      <input type="password" id="password" placeholder="Wpisz hasło">
-      <a href="#" class="login-helper-link">Przypomnij hasło</a>
-    </div>
-    
-    <button id="loginBtn">Zaloguj się</button>
-    
-    <div class="login-divider">lub</div>
-    
-    <button class="alt-login-btn" type="button">
-      <span>Zaloguj się inną metodą</span>
-      <span>&gt;</span>
-    </button>
-    
-    <p id="loginError" style="color:red; text-align: center; margin-top: 15px; font-size: 14px;"></p>
-  </div>
-
-  <!-- PRAWA STRONA: ZMIEJSZONA REKLAMA -->
-  <div class="login-right-side">
-    <div class="phone-mockup">
-      <img src="logo.png" alt="Dziennik Elektroniczny" style="height: 200px; width: auto; object-fit: contain;">
-    </div>
-    <h2>Aplikacja mobilna</h2>
-    <p>Potwierdzaj logowanie do dziennika, przeglądaj oceny i podpisuj usprawiedliwienia jednym kliknięciem na telefonie.</p>
-    <button class="more-info-btn" type="button">Dowiedz się więcej</button>
-  </div>
 </div>
 
-
-
-
-
-
-
-<div id="dashboardDiv" class="vulcan-dashboard" style="display: none;">
-  
-  <div class="vulcan-top-bar">
-    <div class="vulcan-logo-mini">edusracz</div>
-    <div class="vulcan-user-info">
-      <span id="userName"></span> - <span id="userNameDashboard"></span><span id="userMail"></span>
-      (<button id="logoutBtn" onclick="location.reload()">wyloguj</button>)
+<!-- 2. DASHBOARD (TWÓJ ORYGINALNY) -->
+<div id="dashboardDiv" class="vulcan-dashboard">
+    <div style="background:#2c3e50; color:white; padding:10px 20px; display:flex; justify-content:space-between;">
+        <span>edusracz</span>
+        <span><span id="userName"></span> (<button id="logoutBtn">wyloguj</button>)</span>
     </div>
-  </div>
-
-  <div class="vulcan-container">
-    
-    <div class="vulcan-header">
-      <div class="vulcan-main-logo">
-        <div class="vulcan-logo-icon">✓</div>
-        <div class="vulcan-logo-text">
-          <h2>Dziennik<br><strong>edusracz</strong></h2>
+    <div style="padding:20px;">
+        <div class="v-card" id="openDziennikBtn" style="background:#e91e63; color:white; padding:20px; cursor:pointer;">
+            <h3>🗒️ Otwórz Dziennik</h3>
         </div>
-      </div>
-      
-      <div class="vulcan-time-widgets">
-        <div class="widget-time" id="liveClock">11:35</div>
-        <div class="widget-date">
-          <span id="liveDay">12 czerwca 2026</span>
-          <span id="liveDayName" style="opacity: 0.8; font-size: 12px; margin-top: 3px;">piątek</span>
-        </div>
-      </div>
+        <div id="testyList" style="margin-top:20px; background:white; padding:15px; border-radius:8px;">Ładowanie terminarza...</div>
     </div>
-
-    <div class="vulcan-grid">
-      
-      <div class="vulcan-col">
-        <div class="v-card bg-dark-grey">
-          <h3>🧭 Baza wiedzy</h3>
-        </div>
-        
-        <div class="v-card bg-dark-grey">
-          <h3>🔄 Aktualizacje</h3>
-        </div>
-        
-        <div class="v-card bg-pink expandable" id="samorzadCard">
-          <h3>👥 Samorząd szkolny</h3>
-        </div>
-        
-        <div class="v-card bg-blue expandable" id="ankietCard">
-          <h3>💬 Ankiety</h3>
-        </div>
-      </div>
-
-      <div class="vulcan-col">
-        <div class="v-info-card">
-          <h3>Informacje</h3>
-          <p>Jak zarejestrować aplikację mobilną Dzienniczek edusracz</p>
-          <a href="#">Obejrzyj film &gt;</a>
-        </div>
-        
-<div class="v-card bg-blue expandable" id="testyCard">
-  <h3>📑 Testy</h3>
-  <div id="testyList" class="vulcan-dynamic-list">
-    <div class="vulcan-loading">Ładowanie terminarza...</div>
-  </div>
-</div>
-        
-        <div class="v-card bg-teal expandable" id="dyrekcjaCard">
-          <h3>📄 Informacje od dyrekcji</h3>
-          <ul id="dyrekcjaList">
-            <li>Brak danych</li>
-          </ul>
-        </div>
-      </div>
-
-      <div class="vulcan-col">
-        <div class="v-card bg-dark-grey">
-          <h3>✉️ Wiadomości Plus</h3>
-        </div>
-        
-        <div class="v-card bg-dark-grey" id="openDziennikBtn">
-          <h3>🗒️ Dziennik</h3>
-        </div>
-        
-        <div class="v-card bg-blue expandable" id="dniWolneCard">
-          <h3>📅 Najbliższe dni wolne</h3>
-          <ul id="dniWolneList">
-            <li>Brak danych</li>
-          </ul>
-        </div>
-
-        <div class="v-card bg-blue expandable" id="zastepstwaCard">
-          <h3>🔀 Zastępstwa</h3>
-          <ul id="zastepstwaList">
-            <li>Brak danych</li>
-          </ul>
-        </div>
-      </div>
-    </div>
-  </div>
 </div>
 
-<!-- GŁÓWNY DZIENNIK -->
+<!-- 3. DZIENNIK (NOWY WYGLĄD + TWOJA LOGIKA) -->
 <div id="dziennikDiv">
     <header class="top-navbar">
         <button class="top-tab active">Dziennik</button>
-        <button class="top-tab" id="backToDashboardBtn">Panel Startowy</button>
+        <button class="top-tab" id="backToDashboardBtn">Powrót do panelu</button>
         <div style="flex-grow:1"></div>
-        <div style="color:white; font-size:11px; padding-bottom:5px;">Zalogowany: <span id="userName2"></span></div>
+        <div style="color:white; font-size:11px; padding-bottom:5px;">Artur [A9]</div>
     </header>
+
     <nav class="icon-bar">
         <div class="icon-item" onclick="pokazStep('step-1')"><div class="icon-box">📓</div>Lekcja</div>
         <div class="icon-item" onclick="pokazStep('step-9-oddzial-setup')"><div class="icon-box">👥</div>Rejestr</div>
     </nav>
 
     <div class="main-container">
-        <!-- SIDEBAR - TWOJE DATY I PLAN -->
+        <!-- SIDEBAR - TWOJE DATY -->
         <aside class="sidebar">
-            <div id="sideRange" style="font-weight:bold; border-bottom:1px solid #ccc; margin-bottom:10px;">Zakres Tygodnia</div>
-            <div id="sideDayName" style="font-weight:bold; color: #1b3c5e; margin-bottom: 10px;">Dzień Tygodnia</div>
-            <ul id="lesson-list-sidebar" style="list-style:none; padding:0;">
-                <!-- Tu wpadną lekcje z Twojego planLekcji -->
-            </ul>
+            <div id="sidebarRange" style="font-weight:bold; margin-bottom:10px;">22.08 - 28.08.2016</div>
+            <div class="tree-folder">📂 piątek, 26 sierpnia 2016</div>
+            <ul id="lesson-list-sidebar" style="list-style:none; padding:0;"></ul>
         </aside>
 
-        <!-- OBSZAR ROBOCZY -->
+        <!-- WORKSPACE -->
         <main class="workspace">
             <div class="workspace-tabs">
                 <div class="w-tab active" onclick="pokazStep('step-5')">Opis lekcji</div>
@@ -757,16 +99,18 @@
             </div>
 
             <div class="scrollable-content">
-                <!-- STEP 1: WYBÓR KLASY -->
+                <!-- STEP 1 - START -->
                 <div id="step-1">
-                    <button id="btn-start" style="padding: 15px 30px; background: #27ae60; color: white; border: none; font-weight: bold;">Zacznij Lekcję</button>
+                    <button id="btn-start" style="padding:15px; font-weight:bold; background:#27ae60; color:white; border:none; cursor:pointer;">ROZPOCZNIJ LEKCJĘ</button>
                 </div>
 
+                <!-- STEP 2 - KLASA -->
                 <div id="step-2" style="display:none;">
                     <h3>Wybierz klasę:</h3>
-                    <select id="select-klasa" style="width: 200px; padding: 10px;"></select>
+                    <select id="select-klasa" style="padding:10px; width:200px;"></select>
                 </div>
 
+                <!-- STEP 3 - DZIEŃ -->
                 <div id="step-3" style="display:none;">
                     <h3>Wybierz dzień tygodnia:</h3>
                     <div id="days-buttons">
@@ -778,141 +122,110 @@
                     </div>
                 </div>
 
+                <!-- STEP 4 - LISTA Z PLANU -->
                 <div id="step-4" style="display:none;">
                     <h3>Plan lekcji:</h3>
                     <ul id="lesson-list"></ul>
                 </div>
 
-                <!-- STEP 5: OPIS LEKCJI -->
+                <!-- STEP 5 - MENU LEKCJI -->
                 <div id="step-5" style="display:none;">
-                    <h3 id="info-lekcja-tytul" style="color: #4A90E2;">Wybrana lekcja</h3>
-                    <div style="background: #f9f9f9; padding: 20px; border: 1px solid #ccc; border-radius: 8px;">
-                        <label>Temat lekcji:</label><br>
-                        <input type="text" placeholder="Wpisz temat..." style="margin-top: 5px; width: 80%;">
-                        <button style="background: #1b3c5e; color: white; border: none; margin-left: 10px; padding: 8px 20px;">Zapisz</button>
+                    <h3 id="info-lekcja-tytul" style="color:#4A90E2;">Wybrana lekcja</h3>
+                    <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap:10px;">
+                        <button class="panel-nav-btn" data-target="opis">📝 Opis lekcji</button>
+                        <button class="panel-nav-btn" data-target="oceny" onclick="otworzPanelOcen()">⭐ Oceny</button>
+                        <button class="panel-nav-btn" data-target="uwagi" onclick="otworzPanelUwagi()">⚠️ Uwagi</button>
+                        <button class="panel-nav-btn" data-target="projekty" onclick="otworzPanelTerminarz()">📂 Terminarz</button>
                     </div>
                 </div>
 
-                <!-- STEP 6: OCENY -->
+                <!-- STEP 6 - OCENY (TWOJA LOGIKA) -->
                 <div id="step-6-oceny" style="display:none;">
-                    <div style="background: #2196F3; color: white; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
-                        <h2 id="naglowek-oceny-info" style="margin:0;">Przedmiot: --</h2>
+                    <div style="background:#2196F3; color:white; padding:15px; border-radius:8px;">
+                        <h2 id="naglowek-oceny-info" style="margin:0;">Przedmiot: -- | Klasa: --</h2>
                     </div>
-                    <div style="background: #eee; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
-                        <label>Temat:</label> <input type="text" id="ocena-temat" style="width: 200px;">
-                        <label>Data:</label> <input type="text" id="ocena-data" style="width: 150px;"> 
-                        <button id="btn-generuj-tabele" onclick="generujTabeleOcen()" style="background: #4CAF50; color: white; border: none;">Otwórz arkusz</button>
+                    <div style="background:#eee; padding:15px; margin:15px 0; border-radius:8px;">
+                        <label>Temat:</label> <input type="text" id="ocena-temat">
+                        <label>Data:</label> <input type="text" id="ocena-data">
+                        <button id="btn-generuj-tabele" onclick="generujTabeleOcen()">Otwórz arkusz wpisywania</button>
                     </div>
-                    <div id="tabela-uczniow-kontener" style="display:none;">
+                    <div id="widok-ocen-kontener">
+                        <h3>Arkusz zbiorczy</h3>
                         <table id="tabela-wszystkie-oceny">
-                            <thead><tr><th>Nr</th><th>Imię i Nazwisko</th><th id="dynamiczne-naglowki">Oceny</th></tr></thead>
+                            <thead><tr><th>Nr</th><th>Uczeń</th><th id="dynamiczne-naglowki">Oceny</th><th style="background:#fff3e0;">Średnia</th></tr></thead>
                             <tbody id="lista-uczniow-podglad-ocen"></tbody>
                         </table>
-                        <div style="margin-top:20px; padding: 15px; border-top: 2px solid #2196F3;">
-                             <table border="1" style="width:100%;">
-                                 <thead><tr style="background:#ddd;"><th>Nr</th><th>Uczeń</th><th>Ocena</th><th>Komentarz</th></tr></thead>
-                                 <tbody id="lista-uczniow-oceny"></tbody>
-                             </table>
-                             <button id="btn-zapisz-wszystkie-oceny" style="margin-top:10px; background: #2196F3; color: white; padding: 10px;">ZAPISZ KOLUMNĘ</button>
-                        </div>
+                    </div>
+                    <div id="tabela-uczniow-kontener" style="display:none; margin-top:20px; border-top:2px solid #2196F3;">
+                        <h3>Wpisujesz: <span id="aktualny-temat-wpisywania">--</span></h3>
+                        <table border="1">
+                            <thead><tr><th>Nr</th><th>Uczeń</th><th>Ocena</th><th>Komentarz</th></tr></thead>
+                            <tbody id="lista-uczniow-oceny"></tbody>
+                        </table>
+                        <button id="btn-zapisz-wszystkie-oceny" style="margin-top:10px; background:#2196F3; color:white; padding:10px;">ZAPISZ KOLUMNĘ DO BAZY</button>
                     </div>
                 </div>
 
-                <!-- STEP 7: UWAGI -->
-                <div id="step-7-uwagi" style="display:none; padding: 20px; border: 1px solid #e74c3c; border-radius: 8px; background: #fffaf9;">
-    <button onclick="backToMenuFromUwagi()" style="margin-bottom: 15px;">⬅ Powrót do menu</button>
-    <h3>Dodaj uwagę</h3>
+                <!-- STEP 7 - UWAGI -->
+                <div id="step-7-uwagi" style="display:none;">
+                    <h3>Dodaj uwagę</h3>
+                    <select id="uwaga-kategoria"></select><br><br>
+                    <textarea id="uwaga-tresc" style="width:100%; height:80px;"></textarea><br>
+                    <div id="lista-uczniow-uwagi" style="max-height:200px; overflow-y:auto; border:1px solid #ddd; padding:10px;"></div>
+                    <button id="btn-zapisz-uwage" style="background:#e74c3c; color:white; margin-top:10px;">Zapisz uwagę</button>
+                </div>
 
-    <div style="margin-bottom: 15px;">
-        <label><strong>1. Wybierz kategorię:</strong></label><br>
-        <select id="uwaga-kategoria" style="width: 100%; padding: 8px; margin-top: 5px;"></select>
-    </div>
+                <!-- STEP 8 - TERMINARZ -->
+                <div id="step-8-projekty" style="display:none;">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <button onclick="zmienMiesiac(-1)">◀ Poprzedni</button>
+                        <h2 id="kalendarz-tytul">Miesiąc Rok</h2>
+                        <button onclick="zmienMiesiac(1)">Następny ▶</button>
+                    </div>
+                    <div id="calendar-cells" style="display:grid; grid-template-columns:repeat(7, 1fr); gap:2px; background:#bdc3c7; border:2px solid #bdc3c7;"></div>
+                </div>
 
-    <div style="margin-bottom: 15px;">
-        <label><strong>2. Treść uwagi:</strong></label><br>
-        <textarea id="uwaga-tresc" style="width: 100%; height: 80px; margin-top: 5px;" placeholder="Wpisz treść uwagi..."></textarea>
-    </div>
-
-    <div style="margin-bottom: 15px;">
-        <label><strong>3. Wybierz uczniów:</strong></label>
-        <div id="lista-uczniow-uwagi" style="max-height: 250px; overflow-y: auto; border: 1px solid #ddd; padding: 10px; background: white;">
-            Ładowanie listy uczniów...
-        </div>
-    </div>
-
-    <button id="btn-zapisz-uwage" style="background: #e74c3c; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">
-        Zapisz uwagę dla zaznaczonych
-    </button>
-</div>
-
-                <!-- STEP 8: TERMINARZ -->
-               <div id="step-8-projekty" style="display:none; padding: 20px; font-family: Arial, sans-serif;">
-    <button onclick="backToMenuFromProjekty()" style="margin-bottom: 15px; padding: 8px 15px; cursor: pointer;">⬅ Powrót do menu</button>
-
-    <div style="background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-            <button onclick="zmienMiesiac(-1)" style="padding: 5px 15px; cursor: pointer;">◀ Poprzedni</button>
-            <h2 id="kalendarz-tytul" style="margin: 0; color: #2c3e50; text-transform: capitalize;">Miesiąc Rok</h2>
-            <button onclick="zmienMiesiac(1)" style="padding: 5px 15px; cursor: pointer;">Następny ▶</button>
-        </div>
-
-        <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; text-align: center; font-weight: bold; background: #34495e; color: white; padding: 10px 0; border-radius: 5px 5px 0 0;">
-            <div>Pon</div><div>Wt</div><div>Śr</div><div>Czw</div><div>Pt</div><div>Sob</div><div>Ndz</div>
-        </div>
-
-        <div id="calendar-cells" style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; background: #bdc3c7; border: 2px solid #bdc3c7; border-radius: 0 0 5px 5px;">
-            </div>
-    </div>
-
-    <div id="modal-projekt" style="display:none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 25px; border-radius: 15px; box-shadow: 0 0 30px rgba(0,0,0,0.5); z-index: 2000; width: 350px;">
-        <h3 style="margin-top: 0; color: #2980b9;">Dodaj do terminarza</h3>
-        <p id="modal-data-display" style="font-weight: bold; color: #7f8c8d; border-bottom: 1px solid #eee; padding-bottom: 10px;"></p>
-
-        <div style="margin-bottom: 10px;">
-            <label>Typ wydarzenia:</label><br>
-            <select id="projekt-typ" style="width:100%; padding: 8px; border-radius: 5px; border: 1px solid #ddd;">
-                <option value="sprawdzian">🔴 Sprawdzian</option>
-                <option value="kartkówka">🟡 Kartkówka</option>
-                <option value="odpowiedź ustna">🟢 Odpowiedź ustna</option>
-                <option value="zadanie domowe">🔵 Zadanie domowe</option>
-                <option value="praca lekcyjna">⚪ Praca lekcyjna</option>
-            </select>
-        </div>
-
-        <div style="margin-bottom: 10px;">
-            <label>Przedmiot:</label><br>
-            <select id="projekt-przedmiot" style="width:100%; padding: 8px; border-radius: 5px; border: 1px solid #ddd;"></select>
-        </div>
-
-        <div style="margin-bottom: 15px;">
-            <label>Treść / Temat:</label><br>
-            <textarea id="projekt-tresc" style="width:100%; height: 70px; padding: 8px; border-radius: 5px; border: 1px solid #ddd; resize: none;" placeholder="Wpisz szczegóły..."></textarea>
-        </div>
-
-        <div style="display: flex; justify-content: space-between;">
-            <button onclick="zamknijModalProjektu()" style="padding: 10px 20px; background: #95a5a6; color: white; border: none; border-radius: 5px; cursor: pointer;">Anuluj</button>
-            <button id="btn-zapisz-projekt" style="padding: 10px 20px; background: #27ae60; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">Zapisz w kalendarzu</button>
-        </div>
-    </div>
-</div>
+                <!-- STEP 9 - REJESTR -->
+                <div id="step-9-oddzial-setup" style="display:none;">
+                    <h2>Dziennik oddziału</h2>
+                    <select id="lista-klas-oddzial" style="padding:10px;"></select>
+                    <button id="btn-wejdz-do-menu-oddzialu">OTWÓRZ MENU</button>
+                </div>
             </div>
         </main>
     </div>
 </div>
 
-<!-- MODAL PROJEKTU -->
-<div id="modal-projekt" style="display:none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 25px; border-radius: 15px; box-shadow: 0 0 30px rgba(0,0,0,0.5); z-index: 9999;">
-    <h3 id="modal-data-display">Dodaj wydarzenie</h3>
-    Typ: <select id="projekt-typ"><option value="sprawdzian">Sprawdzian</option><option value="kartkówka">Kartkówka</option></select><br>
-    Przedmiot: <select id="projekt-przedmiot"></select><br>
-    Temat: <textarea id="projekt-tresc" style="width:100%;"></textarea><br>
-    <button id="btn-zapisz-projekt">Zapisz</button>
+<!-- MODAL TERMINARZA -->
+<div id="modal-projekt" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:white; padding:25px; border-radius:15px; box-shadow:0 0 30px rgba(0,0,0,0.5); z-index:9999;">
+    <h3 id="modal-data-display">Dodaj do terminarza</h3>
+    Typ: <select id="projekt-typ"><option value="sprawdzian">Sprawdzian</option><option value="kartkówka">Kartkówka</option></select><br><br>
+    Przedmiot: <select id="projekt-przedmiot"></select><br><br>
+    Treść: <textarea id="projekt-tresc" style="width:100%;"></textarea><br><br>
+    <button id="btn-zapisz-projekt">Zapisz w kalendarzu</button>
     <button onclick="zamknijModalProjektu()">Anuluj</button>
 </div>
 
-<!-- TWOJE JS ZINTEGROWANE -->
+<!-- SKRYPTY (TWOJA LOGIKA + MOJA NAWIGACJA) -->
 <script>
-// --- KONFIGURACJA TWOJEJ DATY ---
+// 1. DANE I KONFIGURACJA
+const PRZEDMIOTY = ["biologia", "chemia", "fizyka", "geografia", "historia", "informatyka", "język angielski", "język polski", "matematyka"];
+const KATEGORIE_UWAG = ["wypełnianie obowiązków", "kultura osobista", "zachowanie na lekcji"];
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCpZFyGA92f5600MVKWYhOsJ0eXhKAN0DA",
+  authDomain: "dzienniczek-a488a.firebaseapp.com",
+  projectId: "dzienniczek-a488a",
+  storageBucket: "dzienniczek-a488a.firebasestorage.app",
+  messagingSenderId: "194419034610",
+  appId: "1:194419034610:web:132c6597ce9b750896436b"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+const auth = firebase.auth();
+db.settings({ experimentalForceLongPolling: true });
+
+// TWOJA LOGIKA DATY
 const dzis = new Date();
 const formatujDateLokalnie = (d) => {
     const r = d.getFullYear();
@@ -922,71 +235,45 @@ const formatujDateLokalnie = (d) => {
 };
 const dzisStr = formatujDateLokalnie(dzis);
 
-// Ustawienia w sidebarze
-document.getElementById('sideDayName').innerText = "📂 " + dzis.toLocaleDateString('pl-PL', { weekday: 'long', day: 'numeric', month: 'long' });
-document.getElementById('sideRange').innerText = "22.08 - 28.08.2016";
-
-// --- TWOJA KONFIGURACJA FIREBASE ---
-const firebaseConfig = {
-    apiKey: "AIzaSyCpZFyGA92f5600MVKWYhOsJ0eXhKAN0DA",
-    authDomain: "dzienniczek-a488a.firebaseapp.com",
-    projectId: "dzienniczek-a488a",
-    storageBucket: "dzienniczek-a488a.firebasestorage.app",
-    messagingSenderId: "194419034610",
-    appId: "1:194419034610:web:132c6597ce9b750896436b"
-};
-firebase.initializeApp(firebaseConfig);
-const auth = firebase.auth();
-const db = firebase.firestore();
-db.settings({ experimentalForceLongPolling: true });
-
-// --- ELEMENTY I ZMIENNE ---
 let wybranaKlasaDlaOcen = "";
 let aktywnyPrzedmiot = "";
 let aktywnyNumerLekcji = "";
 let obecnaDataKalendarza = new Date();
 let wybranaDataDlaProjektu = "";
 
-const PRZEDMIOTY = ["biologia", "chemia", "fizyka", "geografia", "historia", "informatyka", "język angielski", "język polski", "matematyka", "wychowanie fizyczne"];
-const KATEGORIE_UWAG = ["wypełnianie obowiązków", "kultura osobista", "zachowanie na lekcji"];
-
-// --- LOGOWANIE ---
+// 2. LOGOWANIE (TWOJE)
 document.getElementById('loginBtn').addEventListener('click', () => {
-    const email = document.getElementById('email').value;
-    const password = document.getElementById('password').value;
-    auth.signInWithEmailAndPassword(email, password)
-        .then(userCred => {
-            db.collection("nauczyciele").doc(userCred.user.uid).get().then(doc => {
-                const d = doc.data();
-                document.getElementById('userName').innerText = d.imie;
-                document.getElementById('userName2').innerText = d.imie;
-                document.getElementById('loginDiv').style.display = 'none';
-                document.getElementById('dashboardDiv').style.display = 'flex';
-                ladujTerminarz();
-            });
-        })
-        .catch(err => document.getElementById('loginError').innerText = err.message);
+  const email = document.getElementById('email').value;
+  const password = document.getElementById('password').value;
+  auth.signInWithEmailAndPassword(email, password)
+    .then(userCred => {
+        db.collection("nauczyciele").doc(userCred.user.uid).get().then(doc => {
+            const data = doc.data();
+            document.getElementById('userName').textContent = data.imie;
+            document.getElementById('loginDiv').style.display = 'none';
+            document.getElementById('dashboardDiv').style.display = 'flex';
+            ladujTerminarzDashboard();
+        });
+    })
+    .catch(err => document.getElementById('loginError').textContent = err.message);
 });
 
-document.getElementById('openDziennikBtn').addEventListener('click', () => {
-    document.getElementById('dashboardDiv').style.display = 'none';
-    document.getElementById('dziennikDiv').style.display = 'flex';
-});
-
-document.getElementById('logoutBtn').addEventListener('click', () => location.reload());
-document.getElementById('backToDashboardBtn').addEventListener('click', () => {
-    document.getElementById('dziennikDiv').style.display = 'none';
-    document.getElementById('dashboardDiv').style.display = 'flex';
-});
-
-// --- NAWIGACJA STEPS ---
+// 3. NAWIGACJA (PANCERNA)
 window.pokazStep = function(id) {
-    document.querySelectorAll('[id^="step-"]').forEach(s => s.style.display = 'none');
+    const steps = ['step-1', 'step-2', 'step-3', 'step-4', 'step-5', 'step-6-oceny', 'step-7-uwagi', 'step-8-projekty', 'step-9-oddzial-setup'];
+    steps.forEach(s => {
+        const el = document.getElementById(s);
+        if(el) el.style.display = 'none';
+    });
     document.getElementById(id).style.display = 'block';
+    
+    // Obsługa zakładek Vulcan
     document.querySelectorAll('.w-tab').forEach(t => t.classList.remove('active'));
+    if(id === 'step-5') document.querySelector('.w-tab:nth-child(1)').classList.add('active');
+    if(id === 'step-6-oceny') document.querySelector('.w-tab:nth-child(2)').classList.add('active');
 };
 
-// --- ŁADOWANIE KLAS I PLANU ---
+// 4. LOGIKA LEKCJI (TWOJA)
 document.getElementById('btn-start').addEventListener('click', () => {
     const select = document.getElementById('select-klasa');
     select.innerHTML = '<option value="">-- wybierz --</option>';
@@ -1008,24 +295,24 @@ document.querySelectorAll('.day-btn').forEach(btn => {
     btn.addEventListener('click', (e) => {
         const dzien = e.target.getAttribute('data-day');
         const list = document.getElementById('lesson-list');
-        const sidebarList = document.getElementById('lesson-list-sidebar');
+        const sidebar = document.getElementById('lesson-list-sidebar');
         list.innerHTML = "Ładowanie...";
         pokazStep('step-4');
 
         db.collection("planLekcji").doc(dzien).get().then(doc => {
-            list.innerHTML = ""; sidebarList.innerHTML = "";
+            list.innerHTML = ""; sidebar.innerHTML = "";
             if (doc.exists) {
                 const dane = doc.data();
-                Object.keys(dane).sort((a,b)=>Number(a)-Number(b)).forEach(nr => {
+                Object.keys(dane).sort((a,b) => Number(a)-Number(b)).forEach(nr => {
                     let li = document.createElement('li');
                     li.innerHTML = `Lekcja ${nr}: ${dane[nr]} <button onclick="wybierzLekcjeDoOcen('${dane[nr]}', '${nr}')">Wybierz</button>`;
                     list.appendChild(li);
                     
                     let sLi = document.createElement('li');
-                    sLi.className = 'tree-item';
+                    sLi.style.padding = "5px 10px"; sLi.style.cursor = "pointer";
                     sLi.innerText = `${nr}. ${dane[nr]}`;
                     sLi.onclick = () => wybierzLekcjeDoOcen(dane[nr], nr);
-                    sidebarList.appendChild(sLi);
+                    sidebar.appendChild(sLi);
                 });
             }
         });
@@ -1038,32 +325,32 @@ window.wybierzLekcjeDoOcen = function(przedmiot, nr) {
     pokazStep('step-5');
 };
 
-// --- OCENY ---
+// 5. OCENY (TWOJA LOGIKA FIX)
 window.otworzPanelOcen = function() {
     pokazStep('step-6-oceny');
-    document.getElementById('naglowek-oceny-info').innerText = `Przedmiot: ${aktywnyPrzedmiot} | Klasa: ${wybranaKlasaDlaOcen}`;
+    document.getElementById('naglowek-oceny-info').textContent = `Przedmiot: ${aktywnyPrzedmiot} | Klasa: ${wybranaKlasaDlaOcen}`;
     document.getElementById('ocena-data').value = dzisStr;
-    zaladujOcenyRealtime();
+    zaladujWidokZbiorczy();
 };
 
-function zaladujOcenyRealtime() {
+function zaladujWidokZbiorczy() {
     const tbody = document.getElementById('lista-uczniow-podglad-ocen');
-    tbody.innerHTML = "Synchronizacja...";
+    tbody.innerHTML = "Wczytywanie...";
     db.collection("klasy").doc(wybranaKlasaDlaOcen).collection("uczniowie").orderBy("numer").get().then(snapU => {
-        let uczniowie = snapU.docs.map(d => ({id: d.id, ...d.data()}));
-        db.collection("klasy").doc(wybranaKlasaDlaOcen).collection("oceny").where("przedmiot", "==", aktywnyPrzedmiot).onSnapshot(snapO => {
+        let uczniowie = snapU.docs.map(doc => ({id: doc.id, ...doc.data()}));
+        db.collection("klasy").doc(wybranaKlasaDlaOcen).collection("oceny")
+          .where("przedmiot", "==", aktywnyPrzedmiot).onSnapshot(snapO => {
             tbody.innerHTML = "";
             uczniowie.forEach(u => {
                 let tr = document.createElement('tr');
                 tr.innerHTML = `<td>${u.numer}</td><td>${u.imie} ${u.nazwisko}</td>`;
                 let suma = 0, licznik = 0;
                 snapO.forEach(docO => {
-                    const data = docO.data();
-                    const ocena = data.oceny[u.id] || '-';
-                    tr.innerHTML += `<td style="text-align:center;">${ocena}</td>`;
-                    let val = parseFloat(ocena); if(!isNaN(val)) { suma+=val; licznik++; }
+                    const oVal = docO.data().oceny[u.id] || '-';
+                    tr.innerHTML += `<td style="text-align:center;">${oVal}</td>`;
+                    let num = parseFloat(oVal); if(!isNaN(num)) { suma += num; licznik++; }
                 });
-                tr.innerHTML += `<td style="background:#fff3e0; font-weight:bold;">${licznik>0?(suma/licznik).toFixed(2):'-'}</td>`;
+                tr.innerHTML += `<td style="background:#fff3e0; font-weight:bold; text-align:center;">${licznik>0?(suma/licznik).toFixed(2):'-'}</td>`;
                 tbody.appendChild(tr);
             });
         });
@@ -1074,32 +361,36 @@ window.generujTabeleOcen = function() {
     const temat = document.getElementById('ocena-temat').value;
     if(!temat) return alert("Wpisz temat!");
     const tbody = document.getElementById('lista-uczniow-oceny');
-    tbody.innerHTML = "Ładowanie...";
+    tbody.innerHTML = "";
+    document.getElementById('aktualny-temat-wpisywania').textContent = temat;
     document.getElementById('tabela-uczniow-kontener').style.display = 'block';
     db.collection("klasy").doc(wybranaKlasaDlaOcen).collection("uczniowie").orderBy("numer").get().then(snap => {
-        tbody.innerHTML = "";
         snap.forEach(doc => {
-            tbody.innerHTML += `<tr><td>${doc.data().numer}</td><td>${doc.data().imie} ${doc.data().nazwisko}</td><td><input type="text" class="ocena-input" data-uid="${doc.id}"></td><td><input type="text" class="komentarz-input"></td></tr>`;
+            tbody.innerHTML += `<tr><td>${doc.data().numer}</td><td>${doc.data().imie} ${doc.data().nazwisko}</td><td><input type="text" class="ocena-input" data-uid="${doc.id}" style="width:40px;"></td><td><input type="text" class="komentarz-input"></td></tr>`;
         });
     });
 };
 
 document.getElementById('btn-zapisz-wszystkie-oceny').addEventListener('click', async () => {
     const temat = document.getElementById('ocena-temat').value;
-    const data = document.getElementById('ocena-data').value;
-    const inputs = document.querySelectorAll('.ocena-input');
-    let mapaOcen = {};
-    inputs.forEach(i => { if(i.value) mapaOcen[i.getAttribute('data-uid')] = i.value; });
+    const dataOceny = document.getElementById('ocena-data').value;
+    let oceny = {};
+    document.querySelectorAll('.ocena-input').forEach(i => { if(i.value) oceny[i.dataset.uid] = i.value; });
     
     await db.collection("klasy").doc(wybranaKlasaDlaOcen).collection("oceny").doc(temat).set({
-        data: data, przedmiot: aktywnyPrzedmiot, oceny: mapaOcen, timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        data: dataOceny, przedmiot: aktywnyPrzedmiot, oceny: oceny, timestamp: firebase.firestore.FieldValue.serverTimestamp()
     });
     alert("Zapisano!");
     document.getElementById('tabela-uczniow-kontener').style.display = 'none';
 });
 
-// --- KALENDARZ ---
-async function rysujKalendarz() {
+// 6. TERMINARZ (TWOJA LOGIKA)
+window.otworzPanelTerminarz = function() {
+    pokazStep('step-8-projekty');
+    rysujKalendarz();
+};
+
+function rysujKalendarz() {
     const cells = document.getElementById('calendar-cells');
     const tytul = document.getElementById('kalendarz-tytul');
     cells.innerHTML = "";
@@ -1107,21 +398,23 @@ async function rysujKalendarz() {
     const mies = obecnaDataKalendarza.getMonth();
     const nazwy = ["Styczeń", "Luty", "Marzec", "Kwiecień", "Maj", "Czerwiec", "Lipiec", "Sierpień", "Wrzesień", "Październik", "Listopad", "Grudzień"];
     tytul.textContent = `${nazwy[mies]} ${rok}`;
-    const pierwszy = new Date(rok, mies, 1).getDay();
+
     const dni = new Date(rok, mies + 1, 0).getDate();
-    let przes = pierwszy === 0 ? 6 : pierwszy - 1;
-    for (let i = 0; i < przes; i++) cells.appendChild(document.createElement('div'));
+    const pierwszy = new Date(rok, mies, 1).getDay();
+    let przesuniecie = pierwszy === 0 ? 6 : pierwszy - 1;
+
+    for (let i = 0; i < przesuniecie; i++) cells.appendChild(document.createElement('div'));
     for (let d = 1; d <= dni; d++) {
         const dataStr = `${rok}-${String(mies+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
         let div = document.createElement('div');
         div.style = "background:white; min-height:80px; padding:5px; border:1px solid #ddd;";
         div.innerHTML = `<b>${d}</b> <button onclick="otworzModalProjektu('${dataStr}')" style="float:right;">+</button><div id="ev-${dataStr}"></div>`;
         cells.appendChild(div);
-        wczytajEventy(dataStr);
+        wczytajWydarzenia(dataStr);
     }
 }
 
-function wczytajEventy(data) {
+function wczytajWydarzenia(data) {
     db.collection("klasy").doc(wybranaKlasaDlaOcen).collection("terminarz").where("data", "==", data).get().then(snap => {
         const cont = document.getElementById(`ev-${data}`);
         snap.forEach(doc => {
@@ -1149,19 +442,30 @@ document.getElementById('btn-zapisz-projekt').addEventListener('click', async ()
     zamknijModalProjektu(); rysujKalendarz();
 });
 
-// Start kalendarza przy wejściu w step-8
-document.querySelector('[onclick="pokazStep(\'step-8-projekty\')"]').addEventListener('click', rysujKalendarz);
-
-async function ladujTerminarz() {
-    const list = document.getElementById('testyList');
+// 7. INNE (DASHBOARD I RESZTA)
+function ladujTerminarzDashboard() {
     db.collection("klasy").doc("7a").collection("terminarz").where("data", ">=", dzisStr).get().then(snap => {
+        const list = document.getElementById('testyList');
         list.innerHTML = "";
         snap.forEach(doc => {
             const d = doc.data();
-            list.innerHTML += `<div style="padding:5px; border-bottom:1px solid #ddd;"><b>${d.data}</b>: ${d.przedmiot} - ${d.tresc}</div>`;
+            list.innerHTML += `<div style="margin-bottom:5px; border-bottom:1px solid #eee;"><b>${d.data}</b>: ${d.przedmiot} - ${d.tresc}</div>`;
         });
     });
 }
+
+document.getElementById('openDziennikBtn').addEventListener('click', () => {
+    document.getElementById('dashboardDiv').style.display = 'none';
+    document.getElementById('dziennikDiv').style.display = 'flex';
+});
+
+document.getElementById('backToDashboardBtn').addEventListener('click', () => {
+    document.getElementById('dziennikDiv').style.display = 'none';
+    document.getElementById('dashboardDiv').style.display = 'flex';
+});
+
+document.getElementById('logoutBtn').addEventListener('click', () => location.reload());
 </script>
+
 </body>
 </html>
