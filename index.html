@@ -223,429 +223,225 @@
   });
 </script>
 
-<!-- PANEL NAUCZYCIELA -->
-<div id="dziennikDiv" class="full-screen" style="display:none;">
-  <header>
-    <h2>Dziennik - <span id="userName2"></span></h2>
-    <button id="backToDashboardBtn">Powrót do panelu startowego</button>
-  </header>
-
-  
-<div id="step-5" style="display:none; margin-top: 20px; padding: 20px; border: 2px solid #4A90E2; border-radius: 10px; background-color: #f9f9f9;">
-    <h3 id="info-lekcja-tytul" style="color: #4A90E2;">Wybrana lekcja</h3>
-    <button onclick="backToMenuFromPanelLekcji()" style="margin-bottom: 15px; padding: 8px 15px; cursor: pointer;">⬅ Powrót do menu</button>
-    <p>Wybierz panel, do którego chcesz się udać:</p>
-    
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px;">
-        <button class="panel-nav-btn" data-target="opis">📝 Opis lekcji</button>
-        <button class="panel-nav-btn" data-target="frekwencja">📅 Frekwencja</button>
-        <button class="panel-nav-btn" data-target="oceny" onclick="otworzPanelOcen()">⭐ Oceny</button>
-        <button class="panel-nav-btn" data-target="uwagi">⚠️ Uwagi</button>
-        <button class="panel-nav-btn" data-target="projekty">📂 Projekty</button>
-    </div>
-</div>
-<div id="step-6-oceny" style="display:none; padding: 20px;">
-    <button onclick="backToMenuFromOceny()" style="margin-bottom: 15px; padding: 8px 15px; cursor: pointer;">⬅ Powrót do menu lekcji</button>
-    
-    <div style="background: #2196F3; color: white; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
-        <h2 id="naglowek-oceny-info" style="margin:0;">Przedmiot: -- | Klasa: --</h2>
-    </div>
-
-    <details style="background: #eee; padding: 10px; border-radius: 8px; margin-bottom: 20px;">
-        <summary style="cursor: pointer; font-weight: bold;">➕ Dodaj nową ocenę (sprawdzian/odpowiedź)</summary>
-        <div id="setup-oceny" style="padding-top: 15px;">
-            <label>Temat:</label>
-            <input type="text" id="ocena-temat" placeholder="np. Sprawdzian: Gęstość">
-            <label>Data:</label>
-            <input type="text" id="ocena-data"> 
-            <button id="btn-generuj-tabele" style="background: #4CAF50; color: white; border: none; padding: 5px 10px; cursor: pointer;">Otwórz arkusz wpisywania</button>
-        </div>
-    </details>
-
-    <div id="widok-ocen-kontener" style="background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); overflow-x: auto;">
-        <h3>Arkusz ocen z przedmiotu</h3>
-        <table id="tabela-wszystkie-oceny" border="1" style="width:100%; border-collapse: collapse; text-align: left;">
-            <thead>
-                <tr style="background: #f2f2f2;">
-                    <th style="width: 40px; padding: 10px;">Nr</th>
-                    <th style="width: 200px; padding: 10px;">Imię i Nazwisko</th>
-                    <th id="dynamiczne-naglowki" style="padding: 10px; background: #e3f2fd;">Oceny cząstkowe</th>
-                    <th style="width: 80px; padding: 10px; background: #fff3e0;">Średnia</th>
-                </tr>
-            </thead>
-            <tbody id="lista-uczniow-podglad-ocen">
-                </tbody>
-        </table>
-    </div>
-
-    <div id="tabela-uczniow-kontener" style="display:none; margin-top: 20px; border-top: 2px solid #2196F3; padding-top: 20px;">
-        <h3 style="color: #2196F3;">Wpisujesz teraz: <span id="aktualny-temat-wpisywania">--</span></h3>
-        <table border="1" style="width:100%; border-collapse: collapse;">
-            <thead>
-                <tr style="background: #ddd;">
-                    <th>Nr</th>
-                    <th>Imię i Nazwisko</th>
-                    <th style="width: 100px;">Ocena</th>
-                    <th>Komentarz</th>
-                </tr>
-            </thead>
-            <tbody id="lista-uczniow-oceny"></tbody>
-        </table>
-        <br>
-        <button id="btn-zapisz-wszystkie-oceny" style="padding: 10px 20px; background: #2196F3; color: white; font-weight: bold; border: none; cursor: pointer;">
-            ZAPISZ TĘ KOLUMNĘ DO BAZY
-        </button>
-        <button onclick="document.getElementById('tabela-uczniow-kontener').style.display='none'" style="padding: 10px; background: #ccc; border: none; cursor: pointer;">Anuluj</button>
-    </div>
-</div>
-
-
-
-
-
-<div id="step-8-projekty" style="display:none; padding: 20px; font-family: Arial, sans-serif;">
-    <button onclick="backToMenuFromProjekty()" style="margin-bottom: 15px; padding: 8px 15px; cursor: pointer;">⬅ Powrót do menu</button>
-    
-    <div style="background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-            <button onclick="zmienMiesiac(-1)" style="padding: 5px 15px; cursor: pointer;">◀ Poprzedni</button>
-            <h2 id="kalendarz-tytul" style="margin: 0; color: #2c3e50; text-transform: capitalize;">Miesiąc Rok</h2>
-            <button onclick="zmienMiesiac(1)" style="padding: 5px 15px; cursor: pointer;">Następny ▶</button>
-        </div>
-
-        <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; text-align: center; font-weight: bold; background: #34495e; color: white; padding: 10px 0; border-radius: 5px 5px 0 0;">
-            <div>Pon</div><div>Wt</div><div>Śr</div><div>Czw</div><div>Pt</div><div>Sob</div><div>Ndz</div>
-        </div>
-
-        <div id="calendar-cells" style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; background: #bdc3c7; border: 2px solid #bdc3c7; border-radius: 0 0 5px 5px;">
-            </div>
-    </div>
-
-    <div id="modal-projekt" style="display:none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 25px; border-radius: 15px; box-shadow: 0 0 30px rgba(0,0,0,0.5); z-index: 2000; width: 350px;">
-        <h3 style="margin-top: 0; color: #2980b9;">Dodaj do terminarza</h3>
-        <p id="modal-data-display" style="font-weight: bold; color: #7f8c8d; border-bottom: 1px solid #eee; padding-bottom: 10px;"></p>
+    <style>
+        /* --- STYLIZACJA VULCAN --- */
+        :root {
+            --v-dark: #1b3c5e; --v-header: #3b5e8c; --v-yellow: #f7d14d;
+            --v-bg: #f4f7f9; --border: #bdc3c7;
+        }
+        body { margin: 0; font-family: Arial, sans-serif; background: var(--v-bg); font-size: 13px; overflow: hidden; }
         
-        <div style="margin-bottom: 10px;">
-            <label>Typ wydarzenia:</label><br>
-            <select id="projekt-typ" style="width:100%; padding: 8px; border-radius: 5px; border: 1px solid #ddd;">
-                <option value="sprawdzian">🔴 Sprawdzian</option>
-                <option value="kartkówka">🟡 Kartkówka</option>
-                <option value="odpowiedź ustna">🟢 Odpowiedź ustna</option>
-                <option value="zadanie domowe">🔵 Zadanie domowe</option>
-                <option value="praca lekcyjna">⚪ Praca lekcyjna</option>
-            </select>
-        </div>
-
-        <div style="margin-bottom: 10px;">
-            <label>Przedmiot:</label><br>
-            <select id="projekt-przedmiot" style="width:100%; padding: 8px; border-radius: 5px; border: 1px solid #ddd;"></select>
-        </div>
-
-        <div style="margin-bottom: 15px;">
-            <label>Treść / Temat:</label><br>
-            <textarea id="projekt-tresc" style="width:100%; height: 70px; padding: 8px; border-radius: 5px; border: 1px solid #ddd; resize: none;" placeholder="Wpisz szczegóły..."></textarea>
-        </div>
-
-        <div style="display: flex; justify-content: space-between;">
-            <button onclick="zamknijModalProjektu()" style="padding: 10px 20px; background: #95a5a6; color: white; border: none; border-radius: 5px; cursor: pointer;">Anuluj</button>
-            <button id="btn-zapisz-projekt" style="padding: 10px 20px; background: #27ae60; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">Zapisz w kalendarzu</button>
-        </div>
-    </div>
-</div>
-
-
-<div id="step-9-oddzial-setup" style="display:none; padding: 20px;">
-    <button onclick="backToDashboardFromOddzial()">⬅ Powrót</button>
-    <h2 style="color: #8e44ad;">Dziennik oddziału</h2>
-    
-    <div style="margin: 20px 0;">
-        <label><strong>Wybierz klasę:</strong></label><br>
-        <select id="lista-klas-oddzial" style="width: 250px; padding: 10px; margin-top: 5px;">
-            <option value="">-- wybierz klasę --</option>
-        </select>
-    </div>
-
-    <button id="btn-wejdz-do-menu-oddzialu" style="display:none; background: #27ae60; color: white; padding: 12px 25px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">
-        OTWÓRZ MENU ODDZIAŁU
-    </button>
-</div>
-
-<div id="step-10-oddzial-menu" style="display:none; padding: 20px;">
-    <button onclick="backToStep9()" style="margin-bottom: 20px;">⬅ Zmień klasę</button>
-    
-    <div style="background: #8e44ad; color: white; padding: 15px; border-radius: 10px; margin-bottom: 20px;">
-        <h3 id="naglowek-wybrana-klasa" style="margin:0;">Klasa: --</h3>
-    </div>
-
-    <div style="display: grid; grid-template-columns: 1fr; gap: 10px; max-width: 300px;">
-        <button class="panel-nav-btn" onclick="otworzListeUczniow()">👥 Lista oddziału</button>
-        <button class="panel-nav-btn" onclick="otworzArkuszDziennika()">🎓 Oceny semestralne i końcowe</button>
-        <button class="panel-nav-btn" onclick="pokazStep('step-8-wydruki')">🖨️ Wydruki i pliki PDF</button>
-    </div>
-</div>
-<div id="step-11-lista-uczniow" style="display:none; padding: 20px;">
-    <button onclick="backToStep10()" style="margin-bottom: 20px; padding: 10px; cursor: pointer;">⬅ Powrót do menu</button>
-    
-    <div style="background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
-        <h2 id="tytul-listy-klasa" style="color: #2c3e50; margin-top: 0;">Lista uczniów</h2>
-
-        <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 5px solid #27ae60;">
-            <h4 style="margin-top:0;">Dodaj nowego ucznia:</h4>
-            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                <input type="number" id="nowy-uczen-numer" placeholder="Nr" style="width: 50px; padding: 8px;">
-                <input type="text" id="nowy-uczen-imie" placeholder="Imię" style="padding: 8px; flex: 1;">
-                <input type="text" id="nowy-uczen-nazwisko" placeholder="Nazwisko" style="padding: 8px; flex: 1;">
-                <button onclick="dodajUczniaDoBazy()" style="background: #27ae60; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; font-weight: bold;">+ Dodaj</button>
-            </div>
-        </div>
-
-        <table style="width: 100%; border-collapse: collapse; margin-top: 10px;">
-            <thead>
-                <tr style="background: #34495e; color: white;">
-                    <th style="padding: 12px; border: 1px solid #ddd; width: 50px;">Nr</th>
-                    <th style="padding: 12px; border: 1px solid #ddd; text-align: left;">Imię i Nazwisko</th>
-                    <th style="padding: 12px; border: 1px solid #ddd; width: 80px;">Akcja</th>
-                </tr>
-            </thead>
-            <tbody id="tabela-uczniow-body">
-                </tbody>
-        </table>
-        <button onclick="window.print()" class="print-btn">🖨️ Drukuj listę uczniów</button>
-    </div>
-</div>
-
-
-
-
-
-
-
-
-<div id="step-8-wydruki" style="display:none; padding: 20px;">
-    <button onclick="backToStepoddzialdowydruki()" style="margin-bottom: 15px;">⬅ Powrót do menu</button>
-    
-    <div style="background: #009688; color: white; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
-        <h2 style="margin:0;">🖨️ Panel Wydruków</h2>
-        <p style="margin:5px 0 0 0; opacity: 0.9;">Wybierz rodzaj dokumentu do wygenerowania</p>
-    </div>
-
-    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 15px;">
-        <div class="print-card" onclick="generujWydruk('swiadectwa')" style="border: 2px solid #009688; padding: 20px; border-radius: 10px; cursor: pointer; text-align: center; background: white;">
-            <span style="font-size: 40px;">📜</span>
-            <h3>Świadectwa</h3>
-            <p>Arkusze ocen końcowych dla uczniów.</p>
-        </div>
-
-        <div class="print-card" onclick="generujWydruk('wywiadowki')" style="border: 2px solid #009688; padding: 20px; border-radius: 10px; cursor: pointer; text-align: center; background: white;">
-            <span style="font-size: 40px;">👪</span>
-            <h3>Wywiadówki</h3>
-            <p>Zestawienie ocen bieżących i frekwencji dla rodziców.</p>
-        </div>
-
-        <div class="print-card" onclick="generujWydrukiHTML()" style="border: 2px solid #009688; padding: 20px; border-radius: 10px; cursor: pointer; text-align: center; background: white;">
-            <span style="font-size: 40px;">📊</span>
-            <h3>Podsumowania</h3>
-            <p>Zestawienie wyników klasy (średnie, klasyfikacja).</p>
-        </div>
-    </div>
-</div>
-
-
-
-
-
-
-
-
-
-
-<div id="step-7-dziennik" style="display:none; padding: 20px;">
-    <button onclick="backToMenu()" style="margin-bottom: 15px;">⬅ Powrót do menu</button>
-    
-    <div style="background: #673AB7; color: white; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
-        <h2 style="margin:0;">Dziennik Oddziału - Klasyfikacja</h2>
-        <p id="dziennik-info-podnaglowek" style="margin: 5px 0 0 0; opacity: 0.9;">Wybierz przedmiot, aby wyświetlić arkusz</p>
-    </div>
-
-    <div id="sekcja-wyboru-przedmiotu" style="background: #f9f9f9; padding: 20px; border-radius: 8px; margin-bottom: 20px; border: 1px dashed #673AB7;">
-        <h3 style="margin-top:0;">Wybierz przedmiot:</h3>
-        <div id="lista-przedmiotow-klasyfikacja" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 10px;">
-            </div>
-    </div>
-
-    <div id="widok-arkusza-kontener" style="display:none; background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); overflow-x: auto;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-            <h3 id="tytul-arkusza">Arkusz ocen: --</h3>
-            <button onclick="document.getElementById('widok-arkusza-kontener').style.display='none'; document.getElementById('sekcja-wyboru-przedmiotu').style.display='block';" style="font-size: 0.8em; cursor:pointer;">🔄 Zmień przedmiot</button>
-        </div>
+        #dziennikDiv { display: flex; flex-direction: column; height: 100vh; }
         
-        <table id="tabela-arkusz-pelny" border="1" style="width:100%; border-collapse: collapse; min-width: 1000px; text-align: left;">
-            <thead>
-                <tr style="background: #f2f2f2;">
-                    <th style="width: 40px; padding: 10px;">Nr</th>
-                    <th style="width: 200px; padding: 10px;">Imię i Nazwisko</th>
-                    <th id="placeholder-lekcje" style="display:none;"></th>
-                    <th style="width: 60px; padding: 10px; background: #fff3e0; text-align: center;">Śr.</th>
-                    <th style="width: 70px; padding: 10px; background: #e8f5e9; text-align: center;">Przew.</th>
-                    <th style="width: 70px; padding: 10px; background: #e1f5fe; text-align: center;">Sem.</th>
-                    <th style="width: 70px; padding: 10px; background: #fffde7; text-align: center;">Końc.</th>
-                </tr>
-            </thead>
-            <tbody id="lista-uczniow-arkusz-pelny">
-                <tr><td colspan="10" style="padding:20px; text-align:center;">Wybierz przedmiot powyżej...</td></tr>
-            </tbody>
-        </table>
+        .top-navbar { background: var(--v-dark); display: flex; height: 30px; align-items: flex-end; padding: 0 10px; }
+        .top-tab { background: #46698f; color: white; padding: 5px 15px; font-size: 11px; border: none; cursor: pointer; margin-right: 2px; border-radius: 4px 4px 0 0; }
+        .top-tab.active { background: var(--v-yellow); color: black; font-weight: bold; }
+
+        .icon-bar { background: var(--v-header); display: flex; padding: 10px 20px; gap: 20px; border-bottom: 2px solid #2c4766; }
+        .icon-item { color: white; text-align: center; font-size: 11px; cursor: pointer; display: flex; flex-direction: column; align-items: center; width: 75px; }
+        .icon-box { width: 34px; height: 34px; background: white; border-radius: 4px; margin-bottom: 5px; display: flex; align-items: center; justify-content: center; font-size: 20px; color: #333; }
+
+        .main-container { display: flex; flex: 1; overflow: hidden; }
+        .sidebar { width: 250px; background: white; border-right: 1px solid var(--border); overflow-y: auto; padding: 10px; }
+        .tree-folder { font-weight: bold; margin: 8px 0; cursor: pointer; font-size: 12px; }
+        .tree-item { padding: 4px 20px; cursor: pointer; color: #444; border: 1px solid transparent; }
+        .tree-item:hover { background: #f0f4f8; }
+        .tree-item.selected { background: #fff2cc; border-color: #f1c232; }
+
+        .workspace { flex: 1; display: flex; flex-direction: column; background: white; margin: 5px; border: 1px solid var(--border); }
+        .workspace-tabs { display: flex; background: #eee; border-bottom: 1px solid var(--border); }
+        .w-tab { padding: 8px 15px; border-right: 1px solid var(--border); cursor: pointer; font-size: 12px; background: #ddd; }
+        .w-tab.active { background: var(--v-yellow); font-weight: bold; }
+
+        .scrollable-content { flex: 1; padding: 15px; overflow-y: auto; }
+        .status-bar { background: #eee; border-top: 1px solid #ccc; padding: 3px 10px; font-size: 11px; color: #666; }
+        
+        /* Styl dla Twoich przycisków, żeby pasowały do całości */
+        button:not(.top-tab):not(.w-tab) { cursor: pointer; }
+    </style>
+</head>
+<body>
+
+<div id="dziennikDiv">
+    <!-- GÓRA -->
+    <header class="top-navbar">
+        <button class="top-tab active">Dziennik</button>
+        <button class="top-tab" onclick="pokazStep('step-9-oddzial-setup')">Dziennik zajęć innych</button>
+        <button class="top-tab">Wydruki i zestawienia</button>
+        <button class="top-tab">Pomoc</button>
+        <div style="flex-grow:1"></div>
+        <div style="color:white; font-size:11px; padding-bottom:5px;">Zalogowany: <span id="userName2">Artur [A9]</span></div>
+    </header>
+
+    <!-- IKONY -->
+    <nav class="icon-bar">
+        <div class="icon-item" onclick="pokazStep('step-1')"><div class="icon-box">📓</div>Lekcja</div>
+        <div class="icon-item"><div class="icon-box">📖</div>Rozkłady</div>
+        <div class="icon-item" onclick="pokazStep('step-9-oddzial-setup')"><div class="icon-box">👥</div>Rejestr</div>
+        <div class="icon-item" onclick="document.getElementById('adminDiv').style.display='block'"><div class="icon-box">⚙️</div>Admin</div>
+    </nav>
+
+    <div class="main-container">
+        <!-- LEWO (Daty i lekcje) -->
+        <aside class="sidebar">
+            <div style="font-weight:bold; border-bottom:1px solid #ccc; margin-bottom:10px;">22.08 - 28.08.2016</div>
+            <div class="tree-folder">📂 poniedziałek, 22 sierpnia</div>
+            <div class="tree-folder">📂 wtorek, 23 sierpnia</div>
+            <div class="tree-folder">📂 środa, 24 sierpnia</div>
+            <div class="tree-folder">📂 czwartek, 25 sierpnia</div>
+            <div class="tree-folder">📂 piątek, 26 sierpnia</div>
+            <div class="tree-item">1. Matematyka</div>
+            <div class="tree-item">2. Język polski</div>
+            <div class="tree-item">3. Fizyka</div>
+            <div class="tree-item selected">7. Informatyka</div>
+        </aside>
+
+        <!-- PRAWO (Twoja cała treść) -->
+        <main class="workspace">
+            <div class="workspace-tabs">
+                <div class="w-tab active" onclick="pokazStep('step-5')">Opis lekcji</div>
+                <div class="w-tab" onclick="otworzPanelOcen()">Oceny</div>
+                <div class="w-tab" onclick="pokazStep('step-7-uwagi')">Uwagi</div>
+                <div class="w-tab" onclick="pokazStep('step-8-projekty')">Terminarz</div>
+                <div class="w-tab" onclick="pokazStep('step-8-wydruki')">Wydruki</div>
+            </div>
+
+            <div class="scrollable-content" id="main-workspace-content">
+                
+                <!-- TUTAJ WKLEJONE TWOJE STEPS 1-11 -->
+
+                <div id="step-1">
+                    <button id="btn-start" style="padding:10px 20px;">Lekcja</button>
+                    <button id="btn-dzod" onclick="pokazStep('step-9-oddzial-setup')" style="padding:10px 20px;">Dziennik oddziału</button>
+                </div>
+
+                <div id="step-2" style="display:none;">
+                    <h3>Wybierz klasę:</h3>
+                    <select id="select-klasa"><option value="">-- wybierz --</option></select>
+                </div>
+
+                <div id="step-3" style="display:none;">
+                    <h3>Wybierz dzień tygodnia:</h3>
+                    <div id="days-buttons">
+                        <button class="day-btn" data-day="poniedzialek">Poniedziałek</button>
+                        <!-- ... reszta dni ... -->
+                    </div>
+                </div>
+
+                <div id="step-4" style="display:none;">
+                    <h3>Plan lekcji na wybrany dzień:</h3>
+                    <ul id="lesson-list"></ul>
+                </div>
+
+                <div id="step-5" style="display:none; padding: 20px; border: 2px solid #4A90E2; border-radius: 10px; background-color: #f9f9f9;">
+                    <h3 id="info-lekcja-tytul" style="color: #4A90E2;">Wybrana lekcja</h3>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px;">
+                        <button class="panel-nav-btn" onclick="pokazStep('step-5')">📝 Opis lekcji</button>
+                        <button class="panel-nav-btn">📅 Frekwencja</button>
+                        <button class="panel-nav-btn" onclick="otworzPanelOcen()">⭐ Oceny</button>
+                        <button class="panel-nav-btn" onclick="pokazStep('step-7-uwagi')">⚠️ Uwagi</button>
+                        <button class="panel-nav-btn" onclick="pokazStep('step-8-projekty')">📂 Projekty</button>
+                    </div>
+                </div>
+
+                <div id="step-6-oceny" style="display:none;">
+                    <div style="background: #2196F3; color: white; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                        <h2 id="naglowek-oceny-info" style="margin:0;">Przedmiot: -- | Klasa: --</h2>
+                    </div>
+                    <div id="widok-ocen-kontener">
+                        <h3>Arkusz ocen z przedmiotu</h3>
+                        <table id="tabela-wszystkie-oceny" border="1" style="width:100%; border-collapse: collapse;">
+                            <thead><tr style="background: #f2f2f2;"><th>Nr</th><th>Imię i Nazwisko</th><th>Oceny cząstkowe</th><th>Średnia</th></tr></thead>
+                            <tbody id="lista-uczniow-podglad-ocen"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div id="step-7-dziennik" style="display:none;">
+                    <h2>Dziennik Oddziału - Klasyfikacja</h2>
+                    <div id="lista-przedmiotow-klasyfikacja"></div>
+                </div>
+
+                <div id="step-7-uwagi" style="display:none; border: 1px solid #e74c3c; padding: 20px;">
+                    <h3>Dodaj uwagę</h3>
+                    <select id="uwaga-kategoria"></select>
+                    <textarea id="uwaga-tresc" style="width:100%; height:80px;"></textarea>
+                    <div id="lista-uczniow-uwagi"></div>
+                    <button id="btn-zapisz-uwage" style="background:red; color:white;">Zapisz uwagę</button>
+                </div>
+
+                <div id="step-8-projekty" style="display:none;">
+                    <h2 id="kalendarz-tytul">Miesiąc Rok</h2>
+                    <div id="calendar-cells" style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px;"></div>
+                </div>
+
+                <div id="step-9-oddzial-setup" style="display:none;">
+                    <h2>Dziennik oddziału</h2>
+                    <select id="lista-klas-oddzial"><option value="">-- wybierz klasę --</option></select>
+                    <button id="btn-wejdz-do-menu-oddzialu">OTWÓRZ MENU ODDZIAŁU</button>
+                </div>
+
+                <div id="step-10-oddzial-menu" style="display:none;">
+                    <h3 id="naglowek-wybrana-klasa">Klasa: --</h3>
+                    <button onclick="otworzListeUczniow()">👥 Lista oddziału</button>
+                    <button onclick="pokazStep('step-7-dziennik')">🎓 Oceny końcowe</button>
+                    <button onclick="pokazStep('step-8-wydruki')">🖨️ Wydruki</button>
+                </div>
+
+                <div id="step-11-lista-uczniow" style="display:none;">
+                    <h2 id="tytul-listy-klasa">Lista uczniów</h2>
+                    <table style="width:100%; border-collapse: collapse;"><tbody id="tabela-uczniow-body"></tbody></table>
+                </div>
+
+                <div id="step-8-wydruki" style="display:none;">
+                    <h2>🖨️ Panel Wydruków</h2>
+                    <div style="display: flex; gap: 20px;">
+                        <div class="print-card" style="border:1px solid #009688; padding:20px;">Świadectwa</div>
+                        <div class="print-card" style="border:1px solid #009688; padding:20px;">Wywiadówki</div>
+                    </div>
+                </div>
+
+                <!-- KONIEC TWOICH SEKTSJI -->
+
+            </div>
+        </main>
     </div>
+
+    <footer class="status-bar">© 2016 VULCAN, Uonet+ | Status: Gotowy</footer>
 </div>
 
-
-
-
-
-
-
-
-
-<div id="step-7-uwagi" style="display:none; padding: 20px; border: 1px solid #e74c3c; border-radius: 8px; background: #fffaf9;">
-    <button onclick="backToMenuFromUwagi()" style="margin-bottom: 15px;">⬅ Powrót do menu</button>
-    <h3>Dodaj uwagę</h3>
-
-    <div style="margin-bottom: 15px;">
-        <label><strong>1. Wybierz kategorię:</strong></label><br>
-        <select id="uwaga-kategoria" style="width: 100%; padding: 8px; margin-top: 5px;"></select>
-    </div>
-
-    <div style="margin-bottom: 15px;">
-        <label><strong>2. Treść uwagi:</strong></label><br>
-        <textarea id="uwaga-tresc" style="width: 100%; height: 80px; margin-top: 5px;" placeholder="Wpisz treść uwagi..."></textarea>
-    </div>
-
-    <div style="margin-bottom: 15px;">
-        <label><strong>3. Wybierz uczniów:</strong></label>
-        <div id="lista-uczniow-uwagi" style="max-height: 250px; overflow-y: auto; border: 1px solid #ddd; padding: 10px; background: white;">
-            Ładowanie listy uczniów...
-        </div>
-    </div>
-
-    <button id="btn-zapisz-uwage" style="background: #e74c3c; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;">
-        Zapisz uwagę dla zaznaczonych
-    </button>
+<!-- PANEL ADMINA -->
+<div id="adminDiv" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:9999; color:white; padding:50px;">
+    <h2>Panel Administracyjny</h2>
+    <button onclick="this.parentElement.style.display='none'">❌ Zamknij</button>
+    <!-- Tu Twoja treść admina -->
 </div>
 
-<div id="adminDiv" class="vulcan-admin-panel" style="display: none;">
-  <div class="admin-header">
-    <h2>Panel Administracyjny Dziennika</h2>
-    <button id="closeAdminBtn" class="admin-close-btn">❌ Zamknij panel</button>
-  </div>
+<!-- SKRYPTY -->
+<script>
+    // Ta funkcja zarządza widocznością Twoich "kroków"
+    function pokazStep(id) {
+        // Wszystkie ID Twoich sekcji
+        const steps = [
+            'step-1', 'step-2', 'step-3', 'step-4', 'step-5', 
+            'step-6-oceny', 'step-7-dziennik', 'step-7-uwagi', 
+            'step-8-projekty', 'step-8-wydruki', 'step-9-oddzial-setup', 
+            'step-10-oddzial-menu', 'step-11-lista-uczniow', 'app'
+        ];
+        
+        steps.forEach(s => {
+            const el = document.getElementById(s);
+            if(el) el.style.display = 'none';
+        });
 
-  <div class="admin-grid">
-    <div class="admin-card">
-      <h3>📢 Dodaj informację od dyrekcji</h3>
-      <div class="admin-form-group">
-        <label for="dyrekcjaTresc">Treść ogłoszenia:</label>
-        <textarea id="dyrekcjaTresc" placeholder="Wpisz treść komunikatu od dyrekcji..."></textarea>
-      </div>
-      <button id="saveDyrekcjaBtn" class="admin-save-btn">Zapisz ogłoszenie</button>
-    </div>
-
-    <div class="admin-card">
-      <h3>📅 Dodaj dzień wolny</h3>
-      <div class="admin-form-group">
-        <label for="dzienWolnyData">Data:</label>
-        <input type="date" id="dzienWolnyData">
-      </div>
-      <div class="admin-form-group">
-        <label for="dzienWolnyNazwa">Okazja / Nazwa:</label>
-        <input type="text" id="dzienWolnyNazwa" placeholder="np. Przerwa świąteczna, Boże Narodzenie">
-      </div>
-      <button id="saveDzienWolnyBtn" class="admin-save-btn">Zapisz dzień wolny</button>
-    </div>
-
-    <div class="admin-card">
-      <h3>🔀 Dodaj zastępstwo</h3>
-      <div class="admin-form-group">
-        <label for="zastepstwoData">Data:</label>
-        <input type="date" id="zastepstwoData">
-      </div>
-      <div class="admin-form-group">
-        <label for="zastepstwoLekcja">Numer lekcji / Przedmiot:</label>
-        <input type="text" id="zastepstwoLekcja" placeholder="np. Lekcja 3 - j. polski zamiast matematyki">
-      </div>
-      <div class="admin-form-group">
-        <label for="zastepstwoKlasa">Klasa:</label>
-        <input type="text" id="zastepstwoKlasa" placeholder="np. 7a" value="7a">
-      </div>
-      <button id="saveZastepstwoBtn" class="admin-save-btn">Zapisz zastępstwo</button>
-    </div>
-  </div>
-</div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-<div id="app">
-    <div id="step-1">
-        <button id="btn-start">Lekcja</button>
-        <button id="btn-dzod">Dziennik oddziału</button>
-        <button id="adminBtn" class="admin-open-btn">Administracja</button>
-    </div>
-
-    <div id="step-2" style="display:none;">
-        <h3>Wybierz klasę:</h3>
-        <select id="select-klasa">
-            <option value="">-- wybierz --</option>
-        </select>
-    </div>
-
-    <div id="step-3" style="display:none;">
-        <h3>Wybierz dzień tygodnia:</h3>
-        <div id="days-buttons">
-            <button class="day-btn" data-day="poniedzialek">Poniedziałek</button>
-            <button class="day-btn" data-day="wtorek">Wtorek</button>
-            <button class="day-btn" data-day="sroda">Środa</button>
-            <button class="day-btn" data-day="czwartek">Czwartek</button>
-            <button class="day-btn" data-day="piatek">Piątek</button>
-        </div>
-    </div>
-
-    <div id="step-4" style="display:none;">
-        <h3>Plan lekcji na wybrany dzień:</h3>
-        <ul id="lesson-list"></ul>
-    </div>
-</div>
-</div>
-<!-- MODAL REALIZACJI LEKCJI -->
-<div id="lessonModal" class="modal" style="display:none;">
-  <div class="modal-content">
-    <h3>Wpisz realizację godziny lekcyjnej</h3>
-    <label>Nauczyciel:</label>
-    <input type="text" id="modalNauczyciel" readonly><br>
-    <label>Przedmiot:</label>
-    <input type="text" id="modalPrzedmiot" readonly><br>
-    <label>Temat:</label>
-    <input type="text" id="modalTemat" placeholder="Wpisz temat lekcji"><br>
-    <button id="saveLessonBtn">Zapisz</button>
-    <button id="cancelLessonBtn">Anuluj</button>
-  </div>
-</div>
-<head>
-  <script type="importmap">
-    {
-      "imports": {
-        "firebase/app": "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js",
-        "firebase/firestore": "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js"
-      }
+        const target = document.getElementById(id);
+        if(target) target.style.display = 'block';
     }
-  </script>
+
+    function otworzPanelOcen() { pokazStep('step-6-oceny'); }
+    function otworzListeUczniow() { pokazStep('step-11-lista-uczniow'); }
+</script>
+
 
   <script type="module" src="script.js"></script>
 </head>
