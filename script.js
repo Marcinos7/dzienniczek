@@ -248,35 +248,33 @@ document.addEventListener('click', (event) => {
     }
 });
 
-// GENEROWANIE TABELI UCZNIÓW
-document.getElementById('btn-generuj-tabele').addEventListener('click', () => {
-    const temat = document.getElementById('ocena-temat').value;
+// FUNKCJA GENEROWANIA TABELI (Zamiast addEventListener)
+function generujTabeleOcen() {
+    const tematInput = document.getElementById('ocena-temat');
+    const temat = tematInput ? tematInput.value : "";
+    
     if(!temat) return alert("Musisz wpisać temat oceny!");
 
     const tbody = document.getElementById('lista-uczniow-oceny');
+    if (!tbody) return console.error("Nie znaleziono elementu: lista-uczniow-oceny");
+
     tbody.innerHTML = "<tr><td colspan='4'>Ładowanie listy uczniów...</td></tr>";
     document.getElementById('tabela-uczniow-kontener').style.display = 'block';
 
+    // Zakładam, że zmienna wybranaKlasaDlaOcen jest ustawiana wcześniej w Twoim kodzie
     console.log("Próba pobrania uczniów dla klasy:", wybranaKlasaDlaOcen);
-    
 
     db.collection("klasy").doc(wybranaKlasaDlaOcen).collection("uczniowie").get()
         .then(snapshot => {
-            console.log("Czy kolekcja istnieje?", !snapshot.empty);
-            console.log("Liczba znalezionych dokumentów:", snapshot.size);
-
             tbody.innerHTML = "";
             
             if(snapshot.empty) {
-                tbody.innerHTML = "<tr><td colspan='4'>Brak uczniów. Sprawdź konsolę (F12)!</td></tr>";
-                console.warn("UWAGA: Firebase nie znalazł nic w ścieżce: klasy /", wybranaKlasaDlaOcen, "/ uczniowie");
+                tbody.innerHTML = "<tr><td colspan='4'>Brak uczniów w tej klasie.</td></tr>";
                 return;
             }
 
             snapshot.forEach(docStudent => {
                 const u = docStudent.data();
-                console.log("Wczytano ucznia:", u); // Zobaczysz czy pola imie/nazwisko się zgadzają
-
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td>${u.numer || '?'}</td>
@@ -300,10 +298,10 @@ document.getElementById('btn-generuj-tabele').addEventListener('click', () => {
             });
         })
         .catch(err => {
-            console.error("Błąd krytyczny Firestore:", err);
+            console.error("Błąd Firestore:", err);
             tbody.innerHTML = `<tr><td colspan='4'>Błąd: ${err.message}</td></tr>`;
         });
-});
+}
 let wybranaDataProjektu = "";
 
 
